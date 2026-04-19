@@ -1,21 +1,50 @@
 import { Card } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Button } from "../components/ui/button";
-import { Eye, FileText, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Eye, FileText, CheckCircle2, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useProcessing } from "../hooks/useProcessing";
+import { toast } from "sonner";
 
 export function HistoryPage() {
   const navigate = useNavigate();
-  const { processedFiles, selectResult } = useProcessing();
+  const { processedFiles, selectResult, isLoadingHistory, refreshHistory } = useProcessing();
 
-  const handleViewFile = (id: string) => {
-    const selected = selectResult(id);
-    if (selected) {
-      navigate("/results");
+  const handleViewFile = async (id: string) => {
+    try {
+      const selected = await selectResult(id);
+      if (selected) {
+        navigate("/results");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo abrir el job");
     }
   };
+
+  const handleRefresh = async () => {
+    try {
+      await refreshHistory();
+      toast.success("Historial actualizado");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo actualizar el historial");
+    }
+  };
+
+  if (isLoadingHistory) {
+    return (
+      <div className="flex h-full flex-col p-4 sm:p-6">
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4 gap-2">
+          <ArrowLeft className="size-4" />
+          Volver
+        </Button>
+        <div className="flex flex-1 items-center justify-center text-gray-600">
+          <Loader2 className="mr-2 size-4 animate-spin" />
+          Cargando historial...
+        </div>
+      </div>
+    );
+  }
 
   if (processedFiles.length === 0) {
     return (
@@ -26,12 +55,8 @@ export function HistoryPage() {
         </Button>
         <div className="flex flex-1 items-center justify-center">
           <div className="max-w-md rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">
-              Aún no hay documentos procesados
-            </h2>
-            <p className="mb-6 text-sm text-gray-600">
-              Sube tu primer archivo para comenzar a ver el historial.
-            </p>
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">Aún no hay jobs procesados</h2>
+            <p className="mb-6 text-sm text-gray-600">Sube tu primer archivo para comenzar.</p>
             <Button onClick={() => navigate("/upload")}>Procesar un archivo</Button>
           </div>
         </div>
@@ -46,10 +71,13 @@ export function HistoryPage() {
           <ArrowLeft className="size-4" />
           Volver
         </Button>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Historial de procesamiento
-        </h2>
-        <p className="text-gray-600">Revisa todos los documentos que has procesado</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">Historial de jobs</h2>
+            <p className="text-gray-600">Revisa todos los documentos creados en el backend</p>
+          </div>
+          <Button variant="outline" onClick={() => void handleRefresh()}>Actualizar</Button>
+        </div>
       </div>
 
       <Card className="flex-1 overflow-hidden">
@@ -84,31 +112,20 @@ export function HistoryPage() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {item.status === "success" ? (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 border-green-200 bg-green-50 text-green-700"
-                      >
+                    {item.displayStatus === "success" ? (
+                      <Badge variant="outline" className="gap-1 border-green-200 bg-green-50 text-green-700">
                         <CheckCircle2 className="size-3" />
-                        Procesado
+                        {item.status}
                       </Badge>
                     ) : (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 border-red-200 bg-red-50 text-red-700"
-                      >
+                      <Badge variant="outline" className="gap-1 border-red-200 bg-red-50 text-red-700">
                         <AlertCircle className="size-3" />
-                        {item.errorCount || 0} errores
+                        {item.status}
                       </Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewFile(item.id)}
-                      className="gap-2"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => void handleViewFile(item.id)} className="gap-2">
                       <Eye className="size-4" />
                       Ver
                     </Button>

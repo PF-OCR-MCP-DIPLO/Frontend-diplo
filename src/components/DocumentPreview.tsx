@@ -1,16 +1,32 @@
 import { Card } from "./ui/card";
-import { FileText, ZoomIn, ZoomOut } from "lucide-react";
+import { FileText, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-interface DocumentPreviewProps {
-  fileUrl: string;
-  fileName: string;
-  fileType: "pdf" | "image";
+interface PreviewImage {
+  id: number;
+  url: string;
+  name: string;
+  status: string;
 }
 
-export function DocumentPreview({ fileUrl, fileName, fileType }: DocumentPreviewProps) {
-  const [zoom, setZoom] = useState(100);
+interface DocumentPreviewProps {
+  sourceDocxUrl: string;
+  fileName: string;
+  images: PreviewImage[];
+}
+
+export function DocumentPreview({ sourceDocxUrl, fileName, images }: DocumentPreviewProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const safeIndex = useMemo(() => {
+    if (images.length === 0) {
+      return 0;
+    }
+    return Math.min(currentIndex, images.length - 1);
+  }, [currentIndex, images.length]);
+
+  const currentImage = images[safeIndex];
 
   return (
     <Card className="flex h-full flex-col overflow-hidden">
@@ -19,46 +35,61 @@ export function DocumentPreview({ fileUrl, fileName, fileType }: DocumentPreview
           <FileText className="size-5 text-gray-500" />
           <h3 className="font-semibold text-gray-900">Documento</h3>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.max(50, zoom - 10))}
-          >
-            <ZoomOut className="size-4" />
+        {sourceDocxUrl && (
+          <Button asChild variant="outline" size="sm">
+            <a href={sourceDocxUrl} target="_blank" rel="noreferrer">
+              <ExternalLink className="size-4" />
+              Abrir .docx
+            </a>
           </Button>
-          <span className="min-w-[60px] text-center text-sm text-gray-600">
-            {zoom}%
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.min(200, zoom + 10))}
-          >
-            <ZoomIn className="size-4" />
-          </Button>
-        </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-auto bg-gray-100 p-4">
-        <div className="flex justify-center">
-          {fileType === "image" ? (
-            <img
-              src={fileUrl}
-              alt={fileName}
-              style={{ width: `${zoom}%` }}
-              className="rounded-lg shadow-lg"
-            />
-          ) : (
-            <div className="flex items-center justify-center rounded-lg bg-white p-12 shadow-lg">
-              <div className="text-center">
-                <FileText className="mx-auto mb-4 size-16 text-gray-400" />
-                <p className="text-gray-600">Vista previa de PDF</p>
-                <p className="text-sm text-gray-500">{fileName}</p>
+        {currentImage ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-medium text-gray-900">{currentImage.name}</p>
+                <p className="text-sm text-gray-600">Estado OCR: {currentImage.status}</p>
               </div>
+              {images.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+                    disabled={safeIndex === 0}
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    {safeIndex + 1} / {images.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentIndex((index) => Math.min(images.length - 1, index + 1))}
+                    disabled={safeIndex === images.length - 1}
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+            <div className="flex justify-center">
+              <img src={currentImage.url} alt={currentImage.name} className="max-h-[520px] rounded-lg bg-white shadow-lg" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-lg bg-white p-12 shadow-lg">
+            <div className="text-center">
+              <FileText className="mx-auto mb-4 size-16 text-gray-400" />
+              <p className="text-gray-600">El backend creó el job, pero aún no hay imágenes para mostrar.</p>
+              <p className="mt-2 text-sm text-gray-500">{fileName}</p>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

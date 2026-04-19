@@ -1,192 +1,277 @@
 import type { ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { ConsignmentRow } from "../components/EditableTable";
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { ConsignmentRow } from "../components/EditableTable";
+  exportJob,
+  getJob,
+  listJobs,
+  processJob,
+  type ApiJobDetail,
+  type ApiJobListItem,
+  type ApiSourceImage,
+  uploadDocument,
+} from "../lib/api";
 
-type ProcessingStatus = "success" | "error";
+export type ProcessingStatus = "uploaded" | "processing" | "completed" | "failed";
 
 export interface ProcessedFile {
   id: string;
+  jobId: number;
   name: string;
   date: Date;
   status: ProcessingStatus;
-  fileUrl?: string;
-  fileType?: "pdf" | "image";
-  data?: ConsignmentRow[];
-  errorCount?: number;
+  displayStatus: "success" | "error";
+  sourceDocxUrl: string;
+  excelUrl: string | null;
+  totalImages: number;
+  totalRecords: number;
+  errorMessage: string;
+  sourceImages: ApiSourceImage[];
+  data: ConsignmentRow[];
+  errorCount: number;
 }
 
 interface ProcessingContextValue {
   isProcessing: boolean;
-  currentFile: File | null;
+  isExporting: boolean;
+  isLoadingHistory: boolean;
+  isRefreshing: boolean;
   processedFiles: ProcessedFile[];
   currentResults: ProcessedFile | null;
   processFile: (file: File) => Promise<ProcessedFile>;
-  reprocess: () => Promise<ProcessedFile | null>;
-  selectResult: (id: string) => ProcessedFile | null;
+  runProcessing: (jobId?: number) => Promise<ProcessedFile | null>;
+  refreshJob: (jobId?: number) => Promise<ProcessedFile | null>;
+  refreshHistory: () => Promise<void>;
+  exportCurrentJob: (jobId?: number) => Promise<ProcessedFile | null>;
+  selectResult: (id: string) => Promise<ProcessedFile | null>;
+  selectResultByJobId: (jobId: number) => Promise<ProcessedFile | null>;
 }
 
 const ProcessingContext = createContext<ProcessingContextValue | null>(null);
-const historyStorageKey = "procesador-history";
 
-const generateMockData = (): ConsignmentRow[] => {
-  const montos = [
-    "$100,000",
-    "$250,500",
-    "abc123",
-    "$75,000",
-    "$180,000",
-    "N/A",
-    "$320,000",
-  ];
-  const bancos = [
-    "BBVA",
-    "Bancolombia",
-    "Davivienda",
-    "???",
-    "Nequi",
-    "Banco Popular",
-    "Colpatria",
-  ];
-  const referencias = ["12345", "54321", "98765", "11111", "22222", "33333", "44444"];
-
-  return Array.from({ length: 7 }, (_, i) => {
-    const monto = montos[i];
-    const isValidMonto = !isNaN(parseFloat(monto.replace(/[^\d.-]/g, "")));
-
-    return {
-      id: `row-${i + 1}`,
-      fecha: new Date(2026, 2, 12 + i).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-      }),
-      monto,
-      referencia: referencias[i],
-      banco: bancos[i],
-      estado: isValidMonto ? "valid" : "error",
-      errors: isValidMonto ? [] : ["No es numérico"],
-    };
-  });
-};
-
-const hydrateHistory = (raw: string | null): ProcessedFile[] => {
-  if (!raw) return [];
-
-  try {
-    const parsed = JSON.parse(raw) as ProcessedFile[];
-    return parsed.map((item) => {
-      const data = item.data ?? [];
-      const errorCount =
-        typeof item.errorCount === "number"
-          ? item.errorCount
-          : data.filter((row) => row.estado === "error").length;
-
-      return { ...item, date: new Date(item.date), errorCount };
-    });
-  } catch (error) {
-    console.error("No se pudo leer el historial guardado.", error);
-    return [];
+function normalizeMonto(value: string) {
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) {
+    return value;
   }
-};
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 2,
+  }).format(numeric);
+}
+
+function toConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
+  return job.source_images
+    .flatMap((image) =>
+      image.deposits.map((deposit) => ({
+        id: `${image.id}-${deposit.id}`,
+        fecha: deposit.fecha_consignacion || "Sin fecha",
+        monto: normalizeMonto(deposit.valor),
+        referencia: deposit.referencia,
+        banco: image.source_name,
+        estado: image.ocr_status === "failed" || deposit.observations.length > 0 ? "error" : "valid",
+        errors: [
+          ...deposit.observations,
+          ...(image.error_message ? [image.error_message] : []),
+        ],
+      }))
+    )
+    .sort((left, right) => left.id.localeCompare(right.id, undefined, { numeric: true }));
+}
+
+function toProcessedFile(job: ApiJobDetail): ProcessedFile {
+  const data = toConsignmentRows(job);
+  const imageErrors = job.source_images.filter((image) => image.ocr_status === "failed").length;
+  const rowErrors = data.filter((row) => row.estado === "error").length;
+  return {
+    id: job.id.toString(),
+    jobId: job.id,
+    name: job.original_filename,
+    date: new Date(job.created_at),
+    status: job.status,
+    displayStatus: job.status === "failed" || rowErrors > 0 || imageErrors > 0 ? "error" : "success",
+    sourceDocxUrl: job.source_docx,
+    excelUrl: job.excel_file,
+    totalImages: job.total_images,
+    totalRecords: job.total_records,
+    errorMessage: job.error_message,
+    sourceImages: job.source_images,
+    data,
+    errorCount: Math.max(rowErrors, imageErrors),
+  };
+}
+
+function mergeJob(previous: ProcessedFile[], next: ProcessedFile) {
+  return [next, ...previous.filter((item) => item.jobId !== next.jobId)].sort(
+    (left, right) => right.date.getTime() - left.date.getTime()
+  );
+}
+
+function toPlaceholderJob(job: ApiJobListItem): ProcessedFile {
+  return {
+    id: job.id.toString(),
+    jobId: job.id,
+    name: job.original_filename,
+    date: new Date(job.created_at),
+    status: job.status,
+    displayStatus: job.status === "failed" ? "error" : "success",
+    sourceDocxUrl: "",
+    excelUrl: null,
+    totalImages: job.total_images,
+    totalRecords: job.total_records,
+    errorMessage: "",
+    sourceImages: [],
+    data: [],
+    errorCount: job.status === "failed" ? 1 : 0,
+  };
+}
 
 export function ProcessingProvider({ children }: { children: ReactNode }) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [currentResults, setCurrentResults] = useState<ProcessedFile | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(historyStorageKey);
-    const hydrated = hydrateHistory(saved);
-    setProcessedFiles(hydrated);
+  const refreshHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const jobs = await listJobs();
+      setProcessedFiles((previous) => {
+        const preserved = new Map(previous.map((item) => [item.jobId, item]));
+        return jobs.map((job) => preserved.get(job.id) ?? toPlaceholderJob(job));
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (processedFiles.length === 0) {
-      localStorage.removeItem(historyStorageKey);
-      return;
-    }
-
-    localStorage.setItem(historyStorageKey, JSON.stringify(processedFiles));
-  }, [processedFiles]);
-
-  /**
-   * Simula el procesamiento OCR de un archivo y devuelve el resultado generado.
-   */
-  const processFile = useCallback((file: File) => {
-    setCurrentFile(file);
-    setIsProcessing(true);
-
-    return new Promise<ProcessedFile>((resolve) => {
-      window.setTimeout(() => {
-        const fileUrl = URL.createObjectURL(file);
-        const fileType = file.type.startsWith("image/") ? "image" : "pdf";
-        const data = generateMockData();
-        const errorCount = data.filter((row) => row.estado === "error").length;
-
-        const processedFile: ProcessedFile = {
-          id: Date.now().toString(),
-          name: file.name,
-          date: new Date(),
-          status: errorCount > 0 ? "error" : "success",
-          fileUrl,
-          fileType,
-          data,
-          errorCount,
-        };
-
-        setProcessedFiles((prev) => [processedFile, ...prev]);
-        setCurrentResults(processedFile);
-        setIsProcessing(false);
-        resolve(processedFile);
-      }, 3000);
+    refreshHistory().catch(() => {
+      setIsLoadingHistory(false);
     });
+  }, [refreshHistory]);
+
+  const selectResultByJobId = useCallback(async (jobId: number) => {
+    setIsRefreshing(true);
+    try {
+      const job = toProcessedFile(await getJob(jobId));
+      setProcessedFiles((previous) => mergeJob(previous, job));
+      setCurrentResults(job);
+      return job;
+    } finally {
+      setIsRefreshing(false);
+    }
   }, []);
 
-  /**
-   * Reprocesa el archivo actual, si existe.
-   */
-  const reprocess = useCallback(async () => {
-    if (!currentFile) {
-      return null;
+  const processFile = useCallback(async (file: File) => {
+    setIsProcessing(true);
+    try {
+      const job = toProcessedFile(await uploadDocument(file));
+      setProcessedFiles((previous) => mergeJob(previous, job));
+      setCurrentResults(job);
+      return job;
+    } finally {
+      setIsProcessing(false);
     }
+  }, []);
 
-    return processFile(currentFile);
-  }, [currentFile, processFile]);
+  const runProcessing = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentResults?.jobId;
+      if (!targetJobId) {
+        return null;
+      }
+      setIsProcessing(true);
+      try {
+        const job = toProcessedFile(await processJob(targetJobId));
+        setProcessedFiles((previous) => mergeJob(previous, job));
+        setCurrentResults(job);
+        return job;
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [currentResults?.jobId]
+  );
+
+  const refreshJob = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentResults?.jobId;
+      if (!targetJobId) {
+        return null;
+      }
+      return selectResultByJobId(targetJobId);
+    },
+    [currentResults?.jobId, selectResultByJobId]
+  );
+
+  const exportCurrentJob = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentResults?.jobId;
+      if (!targetJobId) {
+        return null;
+      }
+      setIsExporting(true);
+      try {
+        const job = toProcessedFile(await exportJob(targetJobId));
+        setProcessedFiles((previous) => mergeJob(previous, job));
+        setCurrentResults(job);
+        return job;
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [currentResults?.jobId]
+  );
 
   const selectResult = useCallback(
-    (id: string) => {
-      const file = processedFiles.find((item) => item.id === id) ?? null;
-      if (file) {
-        setCurrentResults(file);
+    async (id: string) => {
+      const jobId = Number(id);
+      if (Number.isNaN(jobId)) {
+        return null;
       }
-      return file;
+      return selectResultByJobId(jobId);
     },
-    [processedFiles]
+    [selectResultByJobId]
   );
 
   const value = useMemo(
     () => ({
       isProcessing,
-      currentFile,
+      isExporting,
+      isLoadingHistory,
+      isRefreshing,
       processedFiles,
       currentResults,
       processFile,
-      reprocess,
+      runProcessing,
+      refreshJob,
+      refreshHistory,
+      exportCurrentJob,
       selectResult,
+      selectResultByJobId,
     }),
-    [isProcessing, currentFile, processedFiles, currentResults, processFile, reprocess, selectResult]
+    [
+      isProcessing,
+      isExporting,
+      isLoadingHistory,
+      isRefreshing,
+      processedFiles,
+      currentResults,
+      processFile,
+      runProcessing,
+      refreshJob,
+      refreshHistory,
+      exportCurrentJob,
+      selectResult,
+      selectResultByJobId,
+    ]
   );
 
-  return (
-    <ProcessingContext.Provider value={value}>{children}</ProcessingContext.Provider>
-  );
+  return <ProcessingContext.Provider value={value}>{children}</ProcessingContext.Provider>;
 }
 
 export function useProcessing() {

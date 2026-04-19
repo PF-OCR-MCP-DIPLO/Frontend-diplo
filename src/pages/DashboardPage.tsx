@@ -1,17 +1,22 @@
-import { FileUp, Clock } from "lucide-react";
+import { FileUp, Clock, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useProcessing } from "../hooks/useProcessing";
+import { toast } from "sonner";
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { processedFiles, selectResult } = useProcessing();
+  const { processedFiles, selectResult, isLoadingHistory } = useProcessing();
 
-  const handleFileClick = (id: string) => {
-    const selected = selectResult(id);
-    if (selected) {
-      navigate("/results");
+  const handleFileClick = async (id: string) => {
+    try {
+      const selected = await selectResult(id);
+      if (selected) {
+        navigate("/results");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo cargar el job");
     }
   };
 
@@ -22,12 +27,8 @@ export function DashboardPage() {
           <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-blue-50">
             <FileUp className="size-10 text-blue-600" />
           </div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-            Bienvenido al Procesador
-          </h2>
-          <p className="text-gray-600">
-            Carga y procesa documentos de consignación de forma automática
-          </p>
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">Bienvenido al Procesador</h2>
+          <p className="text-gray-600">Carga y procesa documentos de consignación desde el backend real</p>
         </div>
 
         <div className="flex justify-center">
@@ -37,53 +38,51 @@ export function DashboardPage() {
             className="h-16 w-full max-w-[300px] rounded-xl text-base sm:h-20 sm:text-lg"
           >
             <FileUp className="mr-2 size-6" />
-            Cargar y procesar
+            Cargar .docx
           </Button>
         </div>
 
-        {processedFiles.length > 0 && (
-          <Card className="p-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Clock className="size-5 text-gray-500" />
-                <h3 className="font-semibold text-gray-900">Archivos recientes</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/history")}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                Ver historial
-              </Button>
+        <Card className="p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock className="size-5 text-gray-500" />
+              <h3 className="font-semibold text-gray-900">Jobs recientes</h3>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/history")} className="text-blue-600 hover:text-blue-700">
+              Ver historial
+            </Button>
+          </div>
+          {isLoadingHistory ? (
+            <div className="flex items-center justify-center py-8 text-gray-600">
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Cargando jobs...
+            </div>
+          ) : processedFiles.length === 0 ? (
+            <p className="text-sm text-gray-600">Todavía no hay jobs creados en el backend.</p>
+          ) : (
             <div className="space-y-2">
               {processedFiles.slice(0, 5).map((file) => (
                 <button
                   key={file.id}
-                  onClick={() => handleFileClick(file.id)}
+                  onClick={() => void handleFileClick(file.id)}
                   className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors hover:bg-gray-50"
                 >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{file.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {file.date.toLocaleDateString("es-ES")}
-                    </p>
+                    <p className="text-sm text-gray-500">{file.date.toLocaleDateString("es-ES")}</p>
                   </div>
                   <div
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      file.status === "success"
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-700"
+                      file.displayStatus === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
                     }`}
                   >
-                    {file.status === "success" ? "✓ Procesado" : "⚠ Con errores"}
+                    {file.status}
                   </div>
                 </button>
               ))}
             </div>
-          </Card>
-        )}
+          )}
+        </Card>
       </div>
     </div>
   );

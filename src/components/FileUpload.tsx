@@ -21,10 +21,10 @@ export function FileUpload({ onFileSelect, isProcessing }: FileUploadProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "application/pdf": [".pdf"],
-      "image/*": [".png", ".jpg", ".jpeg"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
     },
     multiple: false,
+    disabled: isProcessing,
   });
 
   return (
@@ -50,24 +50,16 @@ export function FileUpload({ onFileSelect, isProcessing }: FileUploadProps) {
 
           {isProcessing ? (
             <div className="text-center">
-              <p className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">
-                Procesando documento...
-              </p>
-              <p className="text-gray-600">
-                Extrayendo información del archivo
-              </p>
+              <p className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">Subiendo documento...</p>
+              <p className="text-gray-600">Creando el job en el backend</p>
             </div>
           ) : (
             <div className="text-center">
               <p className="mb-2 text-lg font-semibold text-gray-900 sm:text-xl">
-                {isDragActive
-                  ? "Suelta el archivo aquí"
-                  : "Arrastra tu archivo o haz clic"}
+                {isDragActive ? "Suelta el archivo aquí" : "Arrastra tu archivo .docx o haz clic"}
               </p>
-              <p className="mb-6 text-gray-600">
-                Soporta archivos PDF e imágenes (PNG, JPG)
-              </p>
-              <Button size="lg" className="rounded-xl">
+              <p className="mb-6 text-gray-600">Soporta únicamente documentos Word (.docx)</p>
+              <Button size="lg" className="rounded-xl" type="button">
                 <Upload className="mr-2 size-5" />
                 Seleccionar archivo
               </Button>
