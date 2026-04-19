@@ -67,6 +67,8 @@ export interface ApiProcessingSettings {
   ocr_model: string;
   llm_provider: "ollama" | "openai" | "gemini" | "deepseek";
   llm_model: string;
+  has_ocr_api_key: boolean;
+  has_llm_api_key: boolean;
   request_timeout_seconds: number;
   updated_at: string;
 }
@@ -78,6 +80,7 @@ export interface ApiProcessingSettingsOptions {
     llm: string[];
   };
   provider_models: Record<string, { ocr: string[]; llm: string[] }>;
+  provider_requirements: Record<string, { operational: boolean; requires_api_key: boolean }>;
 }
 
 const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
@@ -114,6 +117,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       const payload = await response.json();
       if (typeof payload.detail === "string") {
         message = payload.detail;
+      } else if (payload && typeof payload === "object") {
+        const firstFieldValue = Object.values(payload)[0];
+        if (typeof firstFieldValue === "string") {
+          message = firstFieldValue;
+        } else if (Array.isArray(firstFieldValue) && typeof firstFieldValue[0] === "string") {
+          message = firstFieldValue[0];
+        }
       } else if (typeof payload.file?.[0] === "string") {
         message = payload.file[0];
       } else if (typeof payload.error_message === "string" && payload.error_message) {
