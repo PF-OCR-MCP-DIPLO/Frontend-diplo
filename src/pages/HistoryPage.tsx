@@ -6,6 +6,7 @@ import { Badge } from "../components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useProcessing } from "../hooks/useProcessing";
 import { toast } from "sonner";
+import { statusClass, statusLabel } from "../lib/status";
 
 export function HistoryPage() {
   const navigate = useNavigate();
@@ -112,17 +113,10 @@ export function HistoryPage() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {item.displayStatus === "success" ? (
-                      <Badge variant="outline" className="gap-1 border-green-200 bg-green-50 text-green-700">
-                        <CheckCircle2 className="size-3" />
-                        {item.status}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1 border-red-200 bg-red-50 text-red-700">
-                        <AlertCircle className="size-3" />
-                        {item.status}
-                      </Badge>
-                    )}
+                    <Badge variant="outline" className={`gap-1 ${statusClass[item.status] ?? "border-gray-200 bg-gray-50 text-gray-700"}`}>
+                      {item.displayStatus === "success" ? <CheckCircle2 className="size-3" /> : <AlertCircle className="size-3" />}
+                      {statusLabel[item.status] ?? item.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => void handleViewFile(item.id)} className="gap-2">

@@ -1,40 +1,81 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "../components/ui/card";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { ArrowLeft, Settings as SettingsIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import {
+  getProcessingSettings,
+  getProcessingSettingsOptions,
+  updateProcessingSettings,
+  type ApiProcessingSettings,
+  type ApiProcessingSettingsOptions,
+} from "../lib/api";
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"local" | "cloud">("local");
-  const [apiKey, setApiKey] = useState("");
+  const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
+  const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const savedMode = localStorage.getItem("procesador-mode");
-    if (savedMode === "local" || savedMode === "cloud") {
-      setMode(savedMode);
-    }
-    const savedKey = localStorage.getItem("procesador-api-key");
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const [loadedSettings, loadedOptions] = await Promise.all([
+          getProcessingSettings(),
+          getProcessingSettingsOptions(),
+        ]);
+        setSettings(loadedSettings);
+        setOptions(loadedOptions);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "No se pudo cargar la configuración");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void load();
   }, []);
 
-  const handleSave = () => {
-    localStorage.setItem("procesador-mode", mode);
-    if (apiKey) {
-      localStorage.setItem("procesador-api-key", apiKey);
+  const modelOptions = useMemo(() => {
+    if (!options || !settings) {
+      return { ocr: [], llm: [] };
     }
-    toast.success("Configuración guardada correctamente");
+    const entry = options.provider_models[settings.ocr_provider] ?? { ocr: [], llm: [] };
+    const llmEntry = options.provider_models[settings.llm_provider] ?? { ocr: [], llm: [] };
+    return { ocr: entry.ocr, llm: llmEntry.llm };
+  }, [options, settings]);
+
+  const handleSave = async () => {
+    if (!settings) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const next = await updateProcessingSettings(settings);
+      setSettings(next);
+      toast.success("Configuración guardada correctamente");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar la configuración");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleModeChange = (value: string) => {
-    setMode(value === "cloud" ? "cloud" : "local");
-  };
+  if (isLoading || !settings || !options) {
+    return (
+      <div className="flex h-full flex-col p-4 sm:p-6">
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4 gap-2">
+          <ArrowLeft className="size-4" />
+          Volver
+        </Button>
+        <div className="flex flex-1 items-center justify-center text-gray-600">Cargando configuración...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col p-4 sm:p-6">
@@ -46,79 +87,108 @@ export function SettingsPage() {
         <div className="flex items-center gap-3">
           <SettingsIcon className="size-8 text-blue-600" />
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Configuración</h2>
-            <p className="text-gray-600">Personaliza el comportamiento del procesador</p>
+            <h2 className="text-2xl font-semibold text-gray-900">Configuración de procesamiento</h2>
+            <p className="text-gray-600">Controla OCR, proveedor y modelo LLM del backend</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1">
-        <Card className="max-w-2xl p-6">
+      <div className="flex-1 overflow-auto">
+        <Card className="max-w-3xl p-6">
           <div className="space-y-6">
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Modo de operación</Label>
-              <RadioGroup value={mode} onValueChange={handleModeChange}>
-                <div className="flex items-center space-x-2 rounded-lg border border-gray-200 p-4">
-                  <RadioGroupItem value="local" id="local" />
-                  <div className="flex-1">
-                    <Label htmlFor="local" className="cursor-pointer font-medium">
-                      Local
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Procesamiento en tu navegador (sin envío de datos)
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 rounded-lg border border-gray-200 p-4">
-                  <RadioGroupItem value="cloud" id="cloud" />
-                  <div className="flex-1">
-                    <Label htmlFor="cloud" className="cursor-pointer font-medium">
-                      Cloud
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Procesamiento en la nube con mayor precisión
-                    </p>
-                  </div>
-                </div>
-              </RadioGroup>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="ocr-mode">OCR mode</Label>
+                <select
+                  id="ocr-mode"
+                  className="h-10 w-full rounded-md border border-gray-200 px-3 text-sm"
+                  value={settings.ocr_mode}
+                  onChange={(e) => setSettings({ ...settings, ocr_mode: e.target.value as ApiProcessingSettings["ocr_mode"] })}
+                >
+                  {options.ocr_modes.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ocr-provider">OCR provider</Label>
+                <select
+                  id="ocr-provider"
+                  className="h-10 w-full rounded-md border border-gray-200 px-3 text-sm"
+                  value={settings.ocr_provider}
+                  onChange={(e) => setSettings({ ...settings, ocr_provider: e.target.value as ApiProcessingSettings["ocr_provider"] })}
+                >
+                  {options.providers.ocr.map((provider) => (
+                    <option key={provider} value={provider}>
+                      {provider}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {mode === "cloud" && (
-              <div className="space-y-3">
-                <Label htmlFor="api-key" className="text-base font-semibold">
-                  API Key
-                </Label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="ocr-model">OCR model</Label>
                 <Input
-                  id="api-key"
-                  type="password"
-                  placeholder="Ingresa tu API key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  id="ocr-model"
+                  value={settings.ocr_model}
+                  onChange={(e) => setSettings({ ...settings, ocr_model: e.target.value })}
+                  placeholder={modelOptions.ocr[0] ?? "model"}
                 />
-                <p className="text-sm text-gray-600">
-                  Necesitas una API key válida para usar el modo cloud
-                </p>
+                {modelOptions.ocr.length > 0 && <p className="text-xs text-gray-500">Sugeridos: {modelOptions.ocr.join(", ")}</p>}
               </div>
-            )}
-
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Información</Label>
-              <div className="rounded-lg bg-blue-50 p-4">
-                <p className="text-sm text-blue-900">
-                  <strong>Versión:</strong> 1.0.0
-                </p>
-                <p className="text-sm text-blue-900">
-                  <strong>Último procesamiento:</strong>{" "}
-                  {new Date().toLocaleDateString("es-ES")}
-                </p>
+              <div className="space-y-2">
+                <Label htmlFor="llm-provider">LLM provider</Label>
+                <select
+                  id="llm-provider"
+                  className="h-10 w-full rounded-md border border-gray-200 px-3 text-sm"
+                  value={settings.llm_provider}
+                  onChange={(e) => setSettings({ ...settings, llm_provider: e.target.value as ApiProcessingSettings["llm_provider"] })}
+                >
+                  {options.providers.llm.map((provider) => (
+                    <option key={provider} value={provider}>
+                      {provider}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => navigate("/")}>
-                Cancelar
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="llm-model">LLM model</Label>
+                <Input
+                  id="llm-model"
+                  value={settings.llm_model}
+                  onChange={(e) => setSettings({ ...settings, llm_model: e.target.value })}
+                  placeholder={modelOptions.llm[0] ?? "model"}
+                />
+                {modelOptions.llm.length > 0 && <p className="text-xs text-gray-500">Sugeridos: {modelOptions.llm.join(", ")}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timeout">Timeout (seconds)</Label>
+                <Input
+                  id="timeout"
+                  type="number"
+                  min={30}
+                  value={settings.request_timeout_seconds}
+                  onChange={(e) => setSettings({ ...settings, request_timeout_seconds: Number(e.target.value) || 30 })}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
+              Última actualización: {new Date(settings.updated_at).toLocaleString("es-CO")}
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => navigate("/")}>Cancelar</Button>
+              <Button onClick={() => void handleSave()} disabled={isSaving}>
+                {isSaving ? "Guardando..." : "Guardar cambios"}
               </Button>
-              <Button onClick={handleSave}>Guardar cambios</Button>
             </div>
           </div>
         </Card>

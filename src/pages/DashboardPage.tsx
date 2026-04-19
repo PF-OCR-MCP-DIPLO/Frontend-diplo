@@ -4,6 +4,7 @@ import { Card } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useProcessing } from "../hooks/useProcessing";
 import { toast } from "sonner";
+import { statusClass, statusLabel } from "../lib/status";
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -72,11 +73,9 @@ export function DashboardPage() {
                     <p className="text-sm text-gray-500">{file.date.toLocaleDateString("es-ES")}</p>
                   </div>
                   <div
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      file.displayStatus === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-                    }`}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium ${statusClass[file.status] ?? "bg-gray-100 text-gray-700 border-gray-200"}`}
                   >
-                    {file.status}
+                    {statusLabel[file.status] ?? file.status}
                   </div>
                 </button>
               ))}

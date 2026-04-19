@@ -12,7 +12,12 @@ import {
   uploadDocument,
 } from "../lib/api";
 
-export type ProcessingStatus = "uploaded" | "processing" | "completed" | "failed";
+export type ProcessingStatus =
+  | "uploaded"
+  | "processing"
+  | "completed"
+  | "completed_with_errors"
+  | "failed";
 
 export interface ProcessedFile {
   id: string;

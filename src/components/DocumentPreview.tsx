@@ -1,5 +1,5 @@
 import { Card } from "./ui/card";
-import { FileText, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, ExternalLink, ChevronLeft, ChevronRight, Minimize2, Maximize2, Expand } from "lucide-react";
 import { Button } from "./ui/button";
 import { useMemo, useState } from "react";
 
@@ -14,10 +14,12 @@ interface DocumentPreviewProps {
   sourceDocxUrl: string;
   fileName: string;
   images: PreviewImage[];
+  onOpenImage: (image: PreviewImage) => void;
 }
 
-export function DocumentPreview({ sourceDocxUrl, fileName, images }: DocumentPreviewProps) {
+export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }: DocumentPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [collapsed, setCollapsed] = useState(false);
 
   const safeIndex = useMemo(() => {
     if (images.length === 0) {
@@ -35,17 +37,23 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images }: DocumentPre
           <FileText className="size-5 text-gray-500" />
           <h3 className="font-semibold text-gray-900">Documento</h3>
         </div>
-        {sourceDocxUrl && (
-          <Button asChild variant="outline" size="sm">
-            <a href={sourceDocxUrl} target="_blank" rel="noreferrer">
-              <ExternalLink className="size-4" />
-              Abrir .docx
-            </a>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setCollapsed((value) => !value)}>
+            {collapsed ? <Maximize2 className="size-4" /> : <Minimize2 className="size-4" />}
+            {collapsed ? "Expandir" : "Minimizar"}
           </Button>
-        )}
+          {sourceDocxUrl && (
+            <Button asChild variant="outline" size="sm">
+              <a href={sourceDocxUrl} target="_blank" rel="noreferrer">
+                <ExternalLink className="size-4" />
+                Abrir .docx
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto bg-gray-100 p-4">
+      {!collapsed && <div className="flex-1 overflow-auto bg-gray-100 p-4">
         {currentImage ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
@@ -78,7 +86,13 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images }: DocumentPre
               )}
             </div>
             <div className="flex justify-center">
-              <img src={currentImage.url} alt={currentImage.name} className="max-h-[520px] rounded-lg bg-white shadow-lg" />
+              <button onClick={() => onOpenImage(currentImage)} className="group relative">
+                <img src={currentImage.url} alt={currentImage.name} className="max-h-[520px] rounded-lg bg-white shadow-lg" />
+                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                  <Expand className="size-3" />
+                  Ampliar
+                </span>
+              </button>
             </div>
           </div>
         ) : (
@@ -90,7 +104,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images }: DocumentPre
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </Card>
   );
 }

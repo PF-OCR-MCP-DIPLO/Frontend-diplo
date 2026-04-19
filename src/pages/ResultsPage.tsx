@@ -58,6 +58,7 @@ export function ResultsPage() {
 
   return (
     <ResultsView
+      jobId={currentResults.jobId}
       fileName={currentResults.name}
       sourceDocxUrl={currentResults.sourceDocxUrl}
       sourceImages={currentResults.sourceImages.map((image) => ({
