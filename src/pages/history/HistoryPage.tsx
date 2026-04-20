@@ -6,22 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
 import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
 import { statusClass, statusLabel } from '@/lib/constants/status';
 import { formatDateTime } from '@/lib/utils/format';
 
 export function HistoryPage() {
   const navigate = useNavigate();
-  const { processedFiles, selectResult, isLoadingHistory, refreshHistory } = useProcessing();
-
-  async function handleViewFile(id: string) {
-    try {
-      const selected = await selectResult(id);
-      if (selected) navigate('/results');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo abrir el job');
-    }
-  }
+  const openResult = useOpenResult();
+  const { processedFiles, isLoadingHistory, refreshHistory } = useProcessing();
 
   async function handleRefresh() {
     try {
@@ -84,7 +77,7 @@ export function HistoryPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className='text-right'>
-                    <Button variant='outline' size='sm' onClick={() => void handleViewFile(item.id)} className='gap-2'>
+                    <Button variant='outline' size='sm' onClick={() => void openResult(item.id, 'No se pudo abrir el job')} className='gap-2'>
                       <Eye className='size-4' />
                       Ver
                     </Button>

@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getJobLogs } from '@/features/processing/api/processing.api';
 import { DocumentPreview } from '@/features/processing/components/document-preview/DocumentPreview';
 import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import { ResultsActions } from '@/features/processing/components/results/ResultsActions';
@@ -10,7 +8,7 @@ import { ResultsHeader } from '@/features/processing/components/results/ResultsH
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsSummary } from '@/features/processing/components/results/ResultsSummary';
-import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
+import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
 
 interface ResultsViewProps {
@@ -32,109 +30,80 @@ interface ResultsViewProps {
   onExport: () => void;
 }
 
-export function ResultsView({
-  jobId,
-  fileName,
-  sourceDocxUrl,
-  sourceImages,
-  initialData,
-  status,
-  totalImages,
-  totalRecords,
-  errorMessage,
-  excelUrl,
-  isProcessing,
-  isRefreshing,
-  isExporting,
-  onProcess,
-  onRefresh,
-  onExport,
-}: ResultsViewProps) {
-  const [data, setData] = useState<ConsignmentRow[]>(initialData);
-  const [showChat, setShowChat] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
-  const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
-  const [showLogsDialog, setShowLogsDialog] = useState(false);
-
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
-
-  const errorCount = useMemo(() => data.filter((row) => row.estado === 'error').length, [data]);
-
-  function handleErrorClick(rowId: string) {
-    const element = document.getElementById(rowId);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  async function handleOpenLogs() {
-    const payload = await getJobLogs(jobId);
-    setLogs(payload);
-    setShowLogsDialog(true);
-  }
+export function ResultsView(props: ResultsViewProps) {
+  const viewState = useResultsViewState(props.jobId, props.initialData);
 
   return (
     <div className='space-y-6'>
       <section className='rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm'>
         <div className='flex flex-wrap items-start justify-between gap-4'>
           <ResultsHeader
-            fileName={fileName}
-            status={status}
-            totalImages={totalImages}
-            totalRecords={totalRecords}
-            errorMessage={errorMessage}
+            fileName={props.fileName}
+            status={props.status}
+            totalImages={props.totalImages}
+            totalRecords={props.totalRecords}
+            errorMessage={props.errorMessage}
           />
           <ResultsActions
-            showChat={showChat}
-            isProcessing={isProcessing}
-            isRefreshing={isRefreshing}
-            isExporting={isExporting}
-            status={status}
-            excelUrl={excelUrl}
-            canShowErrors={errorCount > 0 || Boolean(errorMessage)}
-            onToggleChat={() => setShowChat((value) => !value)}
-            onRefresh={onRefresh}
-            onProcess={onProcess}
-            onExport={onExport}
-            onOpenLogs={() => void handleOpenLogs()}
-            onOpenErrors={() => setShowErrorDialog(true)}
+            showChat={viewState.showChat}
+            isProcessing={props.isProcessing}
+            isRefreshing={props.isRefreshing}
+            isExporting={props.isExporting}
+            status={props.status}
+            excelUrl={props.excelUrl}
+            canShowErrors={viewState.errorCount > 0 || Boolean(props.errorMessage)}
+            onToggleChat={() => viewState.setShowChat((value) => !value)}
+            onRefresh={props.onRefresh}
+            onProcess={props.onProcess}
+            onExport={props.onExport}
+            onOpenLogs={() => void viewState.openLogs()}
+            onOpenErrors={() => viewState.setShowErrorDialog(true)}
           />
         </div>
       </section>
 
-      <ResultsSummary errorCount={errorCount} totalImages={totalImages} totalRecords={totalRecords} />
+      <ResultsSummary errorCount={viewState.errorCount} totalImages={props.totalImages} totalRecords={props.totalRecords} />
 
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'>
         <div className='flex min-h-[720px] flex-col gap-6'>
           <div className='flex-1'>
             <DocumentPreview
-              fileName={fileName}
-              sourceDocxUrl={sourceDocxUrl}
-              images={sourceImages}
-              onOpenImage={(image) => setExpandedImage({ url: image.url, name: image.name })}
+              fileName={props.fileName}
+              sourceDocxUrl={props.sourceDocxUrl}
+              images={props.sourceImages}
+              onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
             />
           </div>
-          {(errorCount > 0 || errorMessage) ? <ResultsErrorPanel data={data} onErrorClick={handleErrorClick} /> : null}
+          {viewState.errorCount > 0 || props.errorMessage ? (
+            <ResultsErrorPanel data={viewState.data} onErrorClick={viewState.handleErrorClick} />
+          ) : null}
         </div>
 
         <div className='flex min-h-[720px] flex-col gap-6'>
           <div className='flex-1'>
-            <EditableTable data={data} onDataChange={setData} />
+            <EditableTable data={viewState.data} onDataChange={viewState.setData} />
           </div>
-          {showChat ? <ResultsChatPanel errors={errorCount} /> : null}
+          {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} /> : null}
         </div>
       </div>
 
       <ResultsErrorDialog
-        open={showErrorDialog}
-        errorMessage={errorMessage}
-        data={data}
-        onClose={() => setShowErrorDialog(false)}
-        onErrorClick={handleErrorClick}
+        open={viewState.showErrorDialog}
+        errorMessage={props.errorMessage}
+        data={viewState.data}
+        onClose={() => viewState.setShowErrorDialog(false)}
+        onErrorClick={viewState.handleErrorClick}
       />
-      <ResultsImagePreviewDialog open={Boolean(expandedImage)} image={expandedImage} onClose={() => setExpandedImage(null)} />
-      <ResultsLogsDialog open={showLogsDialog} logs={logs} onClose={() => setShowLogsDialog(false)} />
+      <ResultsImagePreviewDialog
+        open={Boolean(viewState.expandedImage)}
+        image={viewState.expandedImage}
+        onClose={() => viewState.setExpandedImage(null)}
+      />
+      <ResultsLogsDialog
+        open={viewState.showLogsDialog}
+        logs={viewState.logs}
+        onClose={() => viewState.setShowLogsDialog(false)}
+      />
     </div>
   );
 }

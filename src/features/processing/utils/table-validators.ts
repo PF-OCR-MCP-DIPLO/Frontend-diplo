@@ -1,7 +1,7 @@
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, RowStatus } from '@/features/processing/types/processing.types';
 import { isValidCurrencyInput } from '@/features/processing/utils/table-formatters';
 
-export function validateRowField(row: ConsignmentRow, field: keyof ConsignmentRow, value: string) {
+export function validateRowField(row: ConsignmentRow, field: keyof ConsignmentRow, value: string): { estado: RowStatus; errors: string[] } {
   if (field !== 'monto') {
     return {
       estado: row.estado,

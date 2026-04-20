@@ -1,26 +1,16 @@
 import { Clock, FileUp, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
 import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
 import { statusClass, statusLabel } from '@/lib/constants/status';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { processedFiles, selectResult, isLoadingHistory } = useProcessing();
-
-  async function handleFileClick(id: string) {
-    try {
-      const selected = await selectResult(id);
-      if (selected) {
-        navigate('/results');
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo cargar el job');
-    }
-  }
+  const openResult = useOpenResult();
+  const { processedFiles, isLoadingHistory } = useProcessing();
 
   return (
     <div className='space-y-6'>
@@ -65,7 +55,7 @@ export function DashboardPage() {
               {processedFiles.slice(0, 5).map((file) => (
                 <button
                   key={file.id}
-                  onClick={() => void handleFileClick(file.id)}
+                  onClick={() => void openResult(file.id, 'No se pudo cargar el job')}
                   className='flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 p-4 text-left transition hover:border-teal-200 hover:bg-teal-50/40'
                 >
                   <div className='min-w-0 flex-1'>

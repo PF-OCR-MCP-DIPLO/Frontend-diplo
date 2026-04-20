@@ -16,7 +16,7 @@ export function useEditableTable(data: ConsignmentRow[], onDataChange: (data: Co
   }
 
   function updateCell(rowId: string, field: keyof ConsignmentRow, value: string) {
-    const nextRows = data.map((row) => {
+    const nextRows = data.map((row): ConsignmentRow => {
       if (row.id !== rowId) {
         return row;
       }

@@ -1,17 +1,21 @@
 import { formatCurrency } from '@/lib/utils/format';
 import type { ApiJobDetail, ApiJobListItem } from '@/features/processing/types/processing.api';
-import type { ConsignmentRow, PreviewImage, ProcessedFile } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, PreviewImage, ProcessedFile, RowStatus } from '@/features/processing/types/processing.types';
+
+function resolveRowStatus(hasImageError: boolean, hasObservations: boolean): RowStatus {
+  return hasImageError || hasObservations ? 'error' : 'valid';
+}
 
 export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
   return job.source_images
     .flatMap((image) =>
-      image.deposits.map((deposit) => ({
+      image.deposits.map((deposit): ConsignmentRow => ({
         id: `${image.id}-${deposit.id}`,
         fecha: deposit.fecha_consignacion || 'Sin fecha',
         monto: formatCurrency(deposit.valor),
         referencia: deposit.referencia,
         banco: image.source_name,
-        estado: image.ocr_status === 'failed' || deposit.observations.length > 0 ? 'error' : 'valid',
+        estado: resolveRowStatus(image.ocr_status === 'failed', deposit.observations.length > 0),
         errors: [...deposit.observations, ...(image.error_message ? [image.error_message] : [])],
       }))
     )

@@ -1,12 +1,10 @@
 import { useCallback } from 'react';
 import { exportJob, getJob, listJobs, processJob, uploadDocument } from '@/features/processing/api/processing.api';
+import type { ProcessingState } from '@/features/processing/hooks/useProcessingState';
 import { mapJobListItemToPlaceholder, mapJobToProcessedFile } from '@/features/processing/mappers/processing.mappers';
 import { mergeProcessedJob } from '@/features/processing/utils/processing-store';
-import type { useProcessingState } from '@/features/processing/hooks/useProcessingState';
 
-interface ProcessingStateSlice extends ReturnType<typeof useProcessingState> {}
-
-export function useProcessingActions(state: ProcessingStateSlice) {
+export function useProcessingActions(state: ProcessingState) {
   const refreshHistory = useCallback(async () => {
     state.setIsLoadingHistory(true);
     try {
@@ -20,29 +18,31 @@ export function useProcessingActions(state: ProcessingStateSlice) {
     }
   }, [state]);
 
+  const upsertCurrentJob = useCallback((job: ReturnType<typeof mapJobToProcessedFile>) => {
+    state.setProcessedFiles((previous) => mergeProcessedJob(previous, job));
+    state.setCurrentResults(job);
+    return job;
+  }, [state]);
+
   const selectResultByJobId = useCallback(async (jobId: number) => {
     state.setIsRefreshing(true);
     try {
       const job = mapJobToProcessedFile(await getJob(jobId));
-      state.setProcessedFiles((previous) => mergeProcessedJob(previous, job));
-      state.setCurrentResults(job);
-      return job;
+      return upsertCurrentJob(job);
     } finally {
       state.setIsRefreshing(false);
     }
-  }, [state]);
+  }, [state, upsertCurrentJob]);
 
-  const processFileAction = useCallback(async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     state.setIsProcessing(true);
     try {
       const job = mapJobToProcessedFile(await uploadDocument(file));
-      state.setProcessedFiles((previous) => mergeProcessedJob(previous, job));
-      state.setCurrentResults(job);
-      return job;
+      return upsertCurrentJob(job);
     } finally {
       state.setIsProcessing(false);
     }
-  }, [state]);
+  }, [state, upsertCurrentJob]);
 
   const runProcessing = useCallback(async (jobId?: number) => {
     const targetJobId = jobId ?? state.currentResults?.jobId;
@@ -53,13 +53,11 @@ export function useProcessingActions(state: ProcessingStateSlice) {
     state.setIsProcessing(true);
     try {
       const job = mapJobToProcessedFile(await processJob(targetJobId));
-      state.setProcessedFiles((previous) => mergeProcessedJob(previous, job));
-      state.setCurrentResults(job);
-      return job;
+      return upsertCurrentJob(job);
     } finally {
       state.setIsProcessing(false);
     }
-  }, [state]);
+  }, [state, upsertCurrentJob]);
 
   const refreshJob = useCallback(async (jobId?: number) => {
     const targetJobId = jobId ?? state.currentResults?.jobId;
@@ -78,13 +76,11 @@ export function useProcessingActions(state: ProcessingStateSlice) {
     state.setIsExporting(true);
     try {
       const job = mapJobToProcessedFile(await exportJob(targetJobId));
-      state.setProcessedFiles((previous) => mergeProcessedJob(previous, job));
-      state.setCurrentResults(job);
-      return job;
+      return upsertCurrentJob(job);
     } finally {
       state.setIsExporting(false);
     }
-  }, [state]);
+  }, [state, upsertCurrentJob]);
 
   const selectResult = useCallback(async (id: string) => {
     const jobId = Number(id);
@@ -97,7 +93,7 @@ export function useProcessingActions(state: ProcessingStateSlice) {
   return {
     refreshHistory,
     selectResultByJobId,
-    processFile: processFileAction,
+    processFile,
     runProcessing,
     refreshJob,
     exportCurrentJob,
