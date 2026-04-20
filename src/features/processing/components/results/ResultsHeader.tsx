@@ -30,17 +30,39 @@ function getStatusGuidance(status: ProcessingStatus, errorMessage: string) {
   }
 }
 
+function getOutcomeMessage(status: ProcessingStatus, errorMessage: string) {
+  if (errorMessage || status === 'completed_with_errors') {
+    return 'Hay hallazgos detectados: valida errores y confirma consistencia antes de cerrar.';
+  }
+
+  if (status === 'completed') {
+    return 'Extraccion completada: el dataset esta listo para exportarse.';
+  }
+
+  if (status === 'processing') {
+    return 'Procesamiento en curso: consulta estado y logs hasta confirmar resultado final.';
+  }
+
+  return 'Preparando resultado: avanza por revision y exportacion segun estado.';
+}
+
 export function ResultsHeader({ fileName, status, totalImages, totalRecords, errorMessage }: ResultsHeaderProps) {
   const hasErrors = Boolean(errorMessage);
 
   return (
     <div className='max-w-3xl space-y-5'>
       <div className='space-y-3'>
-        <p className='text-xs font-semibold uppercase tracking-[0.2em] text-teal-700'>Centro de revision</p>
+        <div className='flex flex-wrap items-center gap-2'>
+          <p className='text-xs font-semibold uppercase tracking-[0.2em] text-teal-700'>Centro de revision</p>
+          <span className='rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700'>Paso 3 de 3</span>
+        </div>
         <div className='space-y-2'>
           <h2 className='text-3xl font-semibold tracking-tight text-slate-950'>Resultados del procesamiento</h2>
           <p className='max-w-2xl text-sm leading-6 text-slate-600'>
             Revisa la extraccion, contrasta el documento fuente y corrige cualquier hallazgo antes de exportar.
+          </p>
+          <p className='max-w-2xl rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-700'>
+            {getOutcomeMessage(status, errorMessage)}
           </p>
         </div>
       </div>
