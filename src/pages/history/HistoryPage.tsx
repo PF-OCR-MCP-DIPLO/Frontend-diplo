@@ -24,7 +24,18 @@ export function HistoryPage() {
   }
 
   if (isLoadingHistory) {
-    return <div className='flex h-full items-center justify-center text-slate-600'><Loader2 className='mr-2 size-4 animate-spin' />Cargando historial de ejecuciones...</div>;
+    return (
+      <div className='flex h-full items-center justify-center'>
+        <StatePanel
+          centered
+          tone='neutral'
+          icon={Loader2}
+          iconAnimated
+          title='Cargando historial'
+          description='Estamos consultando las ejecuciones previas para que puedas retomarlas desde esta vista.'
+        />
+      </div>
+    );
   }
 
   if (historyError) {

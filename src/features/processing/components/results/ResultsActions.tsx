@@ -50,7 +50,7 @@ function getPrimaryActionDescription(status: ProcessingStatus, canExport: boolea
 
 export function ResultsActions(props: ResultsActionsProps) {
   return (
-    <div className='w-full max-w-2xl space-y-4'>
+    <div className='w-full max-w-2xl space-y-4 xl:sticky xl:top-24'>
       <div className='rounded-[28px] border border-teal-200 bg-[linear-gradient(135deg,rgba(240,253,250,1),rgba(255,255,255,0.95))] p-5 shadow-sm shadow-teal-900/5'>
         <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
           <div>

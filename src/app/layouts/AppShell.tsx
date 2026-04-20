@@ -72,6 +72,12 @@ export function AppShell() {
 
   return (
     <div className='flex min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.18),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.08),_transparent_24%),linear-gradient(180deg,#f8fafc_0%,#edf2f7_100%)] text-slate-900'>
+      <a
+        href='#app-main'
+        className='absolute left-4 top-3 z-50 -translate-y-16 rounded-xl bg-slate-900 px-3 py-2 text-xs font-medium text-white transition focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-teal-300'
+      >
+        Saltar al contenido principal
+      </a>
       <aside className={`hidden border-r border-slate-200/80 bg-white/88 backdrop-blur lg:flex lg:flex-col ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
         <div className='flex justify-end px-3 py-3'>
           <Button variant='ghost' size='icon' aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'} onClick={() => setCollapsed((value) => !value)}>
@@ -110,8 +116,10 @@ export function AppShell() {
             </div>
           </div>
         </header>
-        <main className='flex-1 p-4 sm:p-6'>
-          <Outlet />
+        <main id='app-main' className='flex-1 p-4 sm:p-6'>
+          <div className='mx-auto w-full max-w-[1400px]'>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

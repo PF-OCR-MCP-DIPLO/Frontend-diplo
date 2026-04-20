@@ -15,6 +15,7 @@ export function SettingsPage() {
           centered
           tone='neutral'
           icon={Loader2}
+          iconAnimated
           title='Cargando configuracion'
           description='Estamos preparando las preferencias de OCR y extraccion para que puedas ajustarlas con contexto.'
         />

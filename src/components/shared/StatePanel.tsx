@@ -8,6 +8,7 @@ interface StatePanelProps {
   tone?: 'neutral' | 'warning' | 'info';
   actions?: ReactNode;
   centered?: boolean;
+  iconAnimated?: boolean;
 }
 
 const toneStyles = {
@@ -32,6 +33,7 @@ export function StatePanel({
   tone = 'neutral',
   actions,
   centered = false,
+  iconAnimated = false,
 }: StatePanelProps) {
   const styles = toneStyles[tone];
 
@@ -39,7 +41,7 @@ export function StatePanel({
     <div className={`rounded-[32px] border p-8 shadow-sm shadow-slate-200/70 ${styles.panel} ${centered ? 'mx-auto max-w-lg text-center' : 'max-w-3xl'}`}>
       <div className={`flex ${centered ? 'flex-col items-center' : 'items-start'} gap-4`}>
         <div className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${styles.icon}`}>
-          <Icon className='size-6' />
+          <Icon className={`size-6 ${iconAnimated ? 'animate-spin' : ''}`} />
         </div>
         <div className={`space-y-4 ${centered ? 'items-center' : ''}`}>
           <div>

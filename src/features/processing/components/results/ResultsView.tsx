@@ -82,7 +82,12 @@ export function ResultsView(props: ResultsViewProps) {
       ) : null}
 
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]'>
-        <div className='flex min-h-[720px] flex-col gap-6'>
+        <section className='flex min-h-[680px] flex-col gap-4' aria-label='Validacion visual del documento'>
+          <div className='px-1'>
+            <p className='text-xs font-semibold uppercase tracking-[0.18em] text-slate-400'>Validacion visual</p>
+            <h3 className='mt-1 text-lg font-semibold tracking-tight text-slate-900'>Documento fuente</h3>
+            <p className='text-sm text-slate-600'>Compara el material original con lo extraido para detectar inconsistencias.</p>
+          </div>
           <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
             <DocumentPreview
               fileName={props.fileName}
@@ -91,14 +96,19 @@ export function ResultsView(props: ResultsViewProps) {
               onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
             />
           </div>
-        </div>
+        </section>
 
-        <div className='flex min-h-[720px] flex-col gap-6'>
+        <section className='flex min-h-[680px] flex-col gap-4' aria-label='Revision tabular de datos'>
+          <div className='px-1'>
+            <p className='text-xs font-semibold uppercase tracking-[0.18em] text-slate-400'>Revision tabular</p>
+            <h3 className='mt-1 text-lg font-semibold tracking-tight text-slate-900'>Datos editables</h3>
+            <p className='text-sm text-slate-600'>Ajusta filas, valida campos y deja lista la salida para exportacion.</p>
+          </div>
           <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
             <EditableTable data={viewState.data} onDataChange={viewState.setData} />
           </div>
           {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} /> : null}
-        </div>
+        </section>
       </div>
 
       <ResultsErrorDialog

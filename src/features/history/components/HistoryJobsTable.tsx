@@ -27,7 +27,7 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
           </TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.id}>
+              <TableRow key={item.id} className='hover:bg-teal-50/40'>
                 <TableCell>
                   <div className='flex items-center gap-2'>
                     <FileText className='size-4 text-slate-500' />
