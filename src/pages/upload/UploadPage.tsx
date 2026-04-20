@@ -48,6 +48,13 @@ export function UploadPage() {
     multiple: false,
     disabled: isProcessing,
   });
+  const uploadStageLabel = isProcessing
+    ? 'Procesando carga'
+    : dropzone.isDragAccept
+      ? 'Archivo validado'
+      : dropzone.isDragReject
+        ? 'Archivo rechazado'
+        : 'Esperando archivo';
 
   return (
     <div className='space-y-6'>
@@ -109,6 +116,14 @@ export function UploadPage() {
           </div>
 
           <aside className='space-y-4 rounded-[28px] border border-slate-200 bg-white p-5'>
+            <div className='rounded-2xl border border-teal-200 bg-teal-50/70 p-3'>
+              <p className='text-xs font-semibold uppercase tracking-[0.12em] text-teal-700'>Estado del paso 2</p>
+              <p className='mt-1 text-sm font-semibold text-slate-900'>{uploadStageLabel}</p>
+              <p className='mt-1 text-sm text-slate-600'>
+                {isProcessing ? 'La ejecucion se esta creando. En breve pasaras al paso 3: resultados.' : 'Carga un archivo valido para continuar al paso de resultados.'}
+              </p>
+            </div>
+
             <h3 className='text-base font-semibold text-slate-900'>Checklist de confianza</h3>
             <ul className='space-y-3 text-sm text-slate-700'>
               <li className='flex items-start gap-2'>
@@ -124,6 +139,14 @@ export function UploadPage() {
                 <span>Transicion directa a resultados para validar y corregir.</span>
               </li>
             </ul>
+            <div className='rounded-2xl border border-slate-200 bg-white p-3'>
+              <p className='text-xs font-semibold uppercase tracking-[0.12em] text-slate-500'>Continuidad del flujo</p>
+              <div className='mt-2 space-y-2 text-sm text-slate-700'>
+                <p><span className='font-medium text-slate-900'>1. Dashboard:</span> define la accion y prepara la demo.</p>
+                <p><span className='font-medium text-slate-900'>2. Upload:</span> valida entrada y crea la ejecucion.</p>
+                <p><span className='font-medium text-slate-900'>3. Results:</span> demuestra valor con revision y exportacion.</p>
+              </div>
+            </div>
             <div className='rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600'>
               Consejo para demo: usa un archivo con varias consignaciones para mostrar validacion y exportacion en un solo recorrido.
             </div>
