@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { DocumentPreview } from '@/features/processing/components/document-preview/DocumentPreview';
 import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import { ResultsActions } from '@/features/processing/components/results/ResultsActions';
@@ -9,7 +10,7 @@ import { ResultsImagePreviewDialog } from '@/features/processing/components/resu
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsSummary } from '@/features/processing/components/results/ResultsSummary';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
-import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
 
 interface ResultsViewProps {
   jobId: number;
@@ -17,7 +18,7 @@ interface ResultsViewProps {
   sourceDocxUrl: string;
   sourceImages: PreviewImage[];
   initialData: ConsignmentRow[];
-  status: string;
+  status: ProcessingStatus;
   totalImages: number;
   totalRecords: number;
   errorMessage: string;
@@ -32,6 +33,16 @@ interface ResultsViewProps {
 
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
+  const canExport = props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl);
+
+  async function handleOpenLogs() {
+    try {
+      await viewState.openLogs();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
+      viewState.setShowLogsDialog(true);
+    }
+  }
 
   return (
     <div className='space-y-6'>
@@ -49,14 +60,16 @@ export function ResultsView(props: ResultsViewProps) {
             isProcessing={props.isProcessing}
             isRefreshing={props.isRefreshing}
             isExporting={props.isExporting}
+            isLoadingLogs={viewState.isLoadingLogs}
             status={props.status}
             excelUrl={props.excelUrl}
             canShowErrors={viewState.errorCount > 0 || Boolean(props.errorMessage)}
+            canExport={canExport}
             onToggleChat={() => viewState.setShowChat((value) => !value)}
             onRefresh={props.onRefresh}
             onProcess={props.onProcess}
             onExport={props.onExport}
-            onOpenLogs={() => void viewState.openLogs()}
+            onOpenLogs={() => void handleOpenLogs()}
             onOpenErrors={() => viewState.setShowErrorDialog(true)}
           />
         </div>
@@ -102,6 +115,7 @@ export function ResultsView(props: ResultsViewProps) {
       <ResultsLogsDialog
         open={viewState.showLogsDialog}
         logs={viewState.logs}
+        error={viewState.logsError}
         onClose={() => viewState.setShowLogsDialog(false)}
       />
     </div>

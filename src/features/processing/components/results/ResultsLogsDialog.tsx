@@ -4,12 +4,15 @@ import { Modal } from '@/components/shared/Modal';
 interface ResultsLogsDialogProps {
   open: boolean;
   logs: ApiExtractionLog[];
+  error: string | null;
   onClose: () => void;
 }
 
-export function ResultsLogsDialog({ open, logs, onClose }: ResultsLogsDialogProps) {
+export function ResultsLogsDialog({ open, logs, error, onClose }: ResultsLogsDialogProps) {
   return (
-    <Modal open={open} onClose={onClose} title='Raw extraction logs' size='lg'>
+    <Modal open={open} onClose={onClose} title='Logs de extracción' size='lg'>
+      {error ? <p className='mb-4 rounded-2xl bg-red-50 p-3 text-sm text-red-700'>{error}</p> : null}
+      {!error && logs.length === 0 ? <p className='text-sm text-slate-600'>No hay logs disponibles para este job.</p> : null}
       <div className='space-y-2'>
         {logs.map((item) => (
           <div key={item.id} className={`rounded-2xl border p-3 text-sm ${item.is_error ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-slate-50'}`}>
