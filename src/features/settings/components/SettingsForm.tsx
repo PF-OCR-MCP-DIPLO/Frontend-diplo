@@ -17,7 +17,7 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions }: SettingsFormProps) {
   return (
-    <Card className='max-w-5xl rounded-[32px] border-slate-200 p-6 shadow-sm'>
+    <Card className='max-w-5xl rounded-[32px] border-slate-200 bg-white/95 p-6 shadow-sm'>
       <div className='space-y-8'>
         <OcrSettingsSection
           settings={settings}
@@ -35,12 +35,12 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           onChange={onChange}
         />
 
-        <div className='rounded-2xl bg-slate-50 p-4 text-sm text-slate-700'>
+        <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700'>
           Ultima actualizacion: {new Date(settings.updated_at).toLocaleString('es-CO')}
         </div>
 
         <div className='flex flex-wrap justify-end gap-3'>
-          <Button onClick={onSave} disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar cambios'}</Button>
+          <Button onClick={onSave} className='rounded-2xl' disabled={isSaving}>{isSaving ? 'Guardando cambios...' : 'Guardar cambios'}</Button>
         </div>
       </div>
     </Card>
