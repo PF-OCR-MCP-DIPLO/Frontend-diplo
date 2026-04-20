@@ -25,15 +25,15 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
   const currentImage = images[safeIndex];
 
   return (
-    <Card className='flex h-full flex-col overflow-hidden rounded-3xl border-slate-200 shadow-sm'>
-      <div className='flex items-center justify-between gap-4 border-b border-slate-200 p-4'>
+    <Card className='flex h-full flex-col overflow-hidden rounded-[24px] border-slate-200 shadow-none'>
+      <div className='flex flex-col gap-4 border-b border-slate-200 p-5 lg:flex-row lg:items-center lg:justify-between'>
         <div className='flex items-center gap-3'>
-          <div className='flex size-10 items-center justify-center rounded-2xl bg-slate-100'>
+          <div className='flex size-11 items-center justify-center rounded-2xl bg-sky-50'>
             <FileText className='size-5 text-slate-500' />
           </div>
           <div>
             <h3 className='font-semibold text-slate-900'>Documento</h3>
-            <p className='text-sm text-slate-500'>Navega el material fuente del job.</p>
+            <p className='text-sm text-slate-500'>Contrasta la extraccion con el material fuente de la ejecucion.</p>
           </div>
         </div>
         <DocumentPreviewToolbar
@@ -44,9 +44,12 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
       </div>
 
       {!collapsed ? (
-        <div className='flex-1 overflow-auto bg-slate-100/80 p-4'>
-          <div className='mb-4 flex items-center justify-between gap-3'>
-            <div className='text-sm text-slate-500'>Vista principal del documento procesado</div>
+        <div className='flex-1 overflow-auto bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,245,249,0.8))] p-5'>
+          <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+            <div>
+              <p className='text-sm font-medium text-slate-700'>Vista principal del documento</p>
+              <p className='text-sm text-slate-500'>{fileName}</p>
+            </div>
             <ImageNavigator
               currentIndex={safeIndex}
               total={images.length}

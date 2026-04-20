@@ -23,11 +23,11 @@ export function EditableTable({ data, onDataChange, onRowClick }: EditableTableP
   const table = useEditableTable(data, onDataChange);
 
   return (
-    <Card className='flex h-full flex-col overflow-hidden rounded-3xl border-slate-200 shadow-sm'>
+    <Card className='flex h-full flex-col overflow-hidden rounded-[24px] border-slate-200 shadow-none'>
       <ConsignmentTableHeader errorCount={table.errorCount} />
       <div className='flex-1 overflow-auto'>
         <Table>
-          <TableHeader>
+          <TableHeader className='bg-slate-50/90'>
             <TableRow>
               {columns.map((column) => (
                 <TableHead key={column.key} className={column.className}>{column.label}</TableHead>

@@ -46,8 +46,8 @@ export function ResultsView(props: ResultsViewProps) {
 
   return (
     <div className='space-y-6'>
-      <section className='rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm'>
-        <div className='flex flex-wrap items-start justify-between gap-4'>
+      <section className='rounded-[36px] border border-slate-200 bg-white/90 p-6 shadow-sm shadow-slate-200/70 backdrop-blur'>
+        <div className='flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between'>
           <ResultsHeader
             fileName={props.fileName}
             status={props.status}
@@ -77,9 +77,13 @@ export function ResultsView(props: ResultsViewProps) {
 
       <ResultsSummary errorCount={viewState.errorCount} totalImages={props.totalImages} totalRecords={props.totalRecords} />
 
-      <div className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'>
+      {viewState.errorCount > 0 || props.errorMessage ? (
+        <ResultsErrorPanel data={viewState.data} onErrorClick={viewState.handleErrorClick} />
+      ) : null}
+
+      <div className='grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]'>
         <div className='flex min-h-[720px] flex-col gap-6'>
-          <div className='flex-1'>
+          <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
             <DocumentPreview
               fileName={props.fileName}
               sourceDocxUrl={props.sourceDocxUrl}
@@ -87,13 +91,10 @@ export function ResultsView(props: ResultsViewProps) {
               onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
             />
           </div>
-          {viewState.errorCount > 0 || props.errorMessage ? (
-            <ResultsErrorPanel data={viewState.data} onErrorClick={viewState.handleErrorClick} />
-          ) : null}
         </div>
 
         <div className='flex min-h-[720px] flex-col gap-6'>
-          <div className='flex-1'>
+          <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
             <EditableTable data={viewState.data} onDataChange={viewState.setData} />
           </div>
           {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} /> : null}

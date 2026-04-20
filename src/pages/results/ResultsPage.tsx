@@ -1,6 +1,8 @@
+import { FileSearch } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { StatePanel } from '@/components/shared/StatePanel';
 import { Button } from '@/components/ui/button';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
 import {
@@ -19,18 +21,18 @@ export function ResultsPage() {
   const handleProcess = useCallback(async () => {
     try {
       const result = await runProcessing();
-      if (result) toast.success(`Job ${result.jobId} procesado`);
+      if (result) toast.success(`Ejecucion ${result.jobId} procesada`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo procesar el job');
+      toast.error(error instanceof Error ? error.message : 'No se pudo procesar la ejecucion');
     }
   }, [runProcessing]);
 
   const handleRefresh = useCallback(async () => {
     try {
       const result = await refreshJob();
-      if (result) toast.success(`Estado del job ${result.jobId} actualizado`);
+      if (result) toast.success(`Estado de la ejecucion ${result.jobId} actualizado`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo consultar el job');
+      toast.error(error instanceof Error ? error.message : 'No se pudo consultar la ejecucion');
     }
   }, [refreshJob]);
 
@@ -50,11 +52,14 @@ export function ResultsPage() {
   if (!currentResults) {
     return (
       <div className='flex h-full items-center justify-center'>
-        <div className='max-w-md rounded-[32px] border border-slate-200 bg-white p-8 text-center shadow-sm'>
-          <h2 className='mb-2 text-lg font-semibold text-slate-900'>No hay resultados para mostrar</h2>
-          <p className='mb-6 text-sm text-slate-600'>Procesa un documento para ver los resultados aqui.</p>
-          <Button onClick={() => navigate('/upload')}>Ir a carga</Button>
-        </div>
+        <StatePanel
+          centered
+          tone='info'
+          icon={FileSearch}
+          title='Todavia no hay un resultado activo'
+          description='Carga un documento nuevo o recupera una ejecucion desde el historial para entrar a la mesa de revision.'
+          actions={<Button onClick={() => navigate('/upload')}>Ir a carga de documentos</Button>}
+        />
       </div>
     );
   }
