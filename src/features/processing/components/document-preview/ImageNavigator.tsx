@@ -15,13 +15,13 @@ export function ImageNavigator({ currentIndex, total, onPrevious, onNext }: Imag
 
   return (
     <div className='flex items-center gap-2'>
-      <Button variant='outline' size='sm' onClick={onPrevious} disabled={currentIndex === 0}>
+      <Button variant='outline' size='sm' aria-label='Imagen anterior' onClick={onPrevious} disabled={currentIndex === 0}>
         <ChevronLeft className='size-4' />
       </Button>
       <span className='text-sm text-slate-500'>
         {currentIndex + 1} / {total}
       </span>
-      <Button variant='outline' size='sm' onClick={onNext} disabled={currentIndex === total - 1}>
+      <Button variant='outline' size='sm' aria-label='Imagen siguiente' onClick={onNext} disabled={currentIndex === total - 1}>
         <ChevronRight className='size-4' />
       </Button>
     </div>

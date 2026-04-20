@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,7 @@ interface ResultsErrorPanelProps {
 
 export function ResultsErrorPanel({ data, onErrorClick }: ResultsErrorPanelProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+  const panelIdPrefix = useId();
   const errorsData = data.filter((row) => row.estado === 'error');
 
   if (errorsData.length === 0) {
@@ -27,9 +28,12 @@ export function ResultsErrorPanel({ data, onErrorClick }: ResultsErrorPanelProps
       <div className='space-y-2'>
         {errorsData.map((row) => {
           const isExpanded = expanded.includes(row.id);
+          const contentId = `${panelIdPrefix}-${row.id}`;
           return (
             <div key={row.id} className='rounded-2xl border border-red-200 bg-red-50 p-3'>
               <button
+                aria-expanded={isExpanded}
+                aria-controls={contentId}
                 onClick={() => setExpanded((prev) => prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id])}
                 className='flex w-full items-center justify-between text-left'
               >
@@ -40,10 +44,10 @@ export function ResultsErrorPanel({ data, onErrorClick }: ResultsErrorPanelProps
                 <span className='text-sm text-red-600'>{row.errors.length} errores</span>
               </button>
               {isExpanded ? (
-                <div className='mt-3 space-y-2 border-t border-red-200 pt-3'>
+                <div id={contentId} className='mt-3 space-y-2 border-t border-red-200 pt-3'>
                   {row.errors.map((error, index) => (
                     <div key={`${row.id}-${index}`} className='text-sm'>
-                      <p className='font-medium text-red-700'>Campo: Monto</p>
+                      <p className='font-medium text-red-700'>Campo: validacion</p>
                       <p className='text-red-600'>Razon: {error}</p>
                     </div>
                   ))}

@@ -22,6 +22,8 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
               key={item.to}
               to={item.to}
               onClick={onNavigate}
+              aria-label={item.label}
+              title={collapsed ? item.label : undefined}
               className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition ${active ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               <Icon className='size-4 shrink-0' />
@@ -44,12 +46,13 @@ export function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const currentNavigationItem = appNavigation.find((item) => item.to === location.pathname);
 
   return (
     <div className='flex min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.16),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] text-slate-900'>
       <aside className={`hidden border-r border-slate-200 bg-white/90 backdrop-blur lg:flex lg:flex-col ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
         <div className='flex justify-end px-3 py-3'>
-          <Button variant='ghost' size='icon' onClick={() => setCollapsed((value) => !value)}>
+          <Button variant='ghost' size='icon' aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'} onClick={() => setCollapsed((value) => !value)}>
             {collapsed ? <PanelLeftOpen className='size-4' /> : <PanelLeftClose className='size-4' />}
           </Button>
         </div>
@@ -68,12 +71,12 @@ export function AppShell() {
         <header className='sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur'>
           <div className='flex items-center justify-between gap-4 px-4 py-4 sm:px-6'>
             <div className='flex items-center gap-3'>
-              <Button variant='outline' size='icon' className='lg:hidden' onClick={() => setMobileOpen(true)}>
+              <Button variant='outline' size='icon' aria-label='Abrir menu de navegacion' className='lg:hidden' onClick={() => setMobileOpen(true)}>
                 <Menu className='size-4' />
               </Button>
               <div>
                 <p className='text-sm font-medium text-slate-900'>Workspace</p>
-                <p className='text-xs text-slate-500'>{location.pathname === '/' ? 'Dashboard principal' : location.pathname}</p>
+                <p className='text-xs text-slate-500'>{currentNavigationItem?.label ?? 'Dashboard'}</p>
               </div>
             </div>
           </div>
