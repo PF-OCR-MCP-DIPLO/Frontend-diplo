@@ -47,6 +47,7 @@ export function EditableTable({ data, onDataChange, onRowClick }: EditableTableP
                       onEdit={table.startEditing}
                       onChange={table.updateCell}
                       onBlur={table.stopEditing}
+                      onKeyDown={table.handleInputKeyDown}
                     />
                   </TableCell>
                 ))}

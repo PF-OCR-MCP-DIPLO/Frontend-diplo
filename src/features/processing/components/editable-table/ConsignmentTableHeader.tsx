@@ -6,7 +6,7 @@ export function ConsignmentTableHeader({ errorCount }: { errorCount: number }) {
     <div className='flex items-center justify-between border-b border-slate-200 p-4'>
       <div>
         <h3 className='font-semibold text-slate-900'>Datos extraidos</h3>
-        <p className='text-sm text-slate-500'>Doble clic en una celda para corregir valores.</p>
+        <p className='text-sm text-slate-500'>Usa Enter o clic para editar cada celda y Escape para salir.</p>
       </div>
       {errorCount > 0 ? (
         <Badge variant='destructive' className='gap-1'>

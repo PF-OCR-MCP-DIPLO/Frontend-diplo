@@ -33,11 +33,18 @@ export function useEditableTable(data: ConsignmentRow[], onDataChange: (data: Co
     onDataChange(nextRows);
   }
 
+  function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape' || event.key === 'Enter') {
+      stopEditing();
+    }
+  }
+
   return {
     editingCell,
     errorCount,
     startEditing,
     stopEditing,
     updateCell,
+    handleInputKeyDown,
   };
 }
