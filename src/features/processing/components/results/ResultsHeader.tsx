@@ -46,6 +46,22 @@ function getOutcomeMessage(status: ProcessingStatus, errorMessage: string) {
   return 'Preparando resultado: avanza por revision y exportacion segun estado.';
 }
 
+function getValueNarrative(status: ProcessingStatus, errorMessage: string) {
+  if (status === 'completed' && !errorMessage) {
+    return 'Valor demostrado: el sistema transformo documento fuente en una salida estructurada lista para negocio.';
+  }
+
+  if (status === 'completed_with_errors' || errorMessage) {
+    return 'Valor demostrado: la plataforma no solo extrae, tambien expone hallazgos para correccion guiada antes de exportar.';
+  }
+
+  if (status === 'processing') {
+    return 'Valor demostrado: el flujo mantiene trazabilidad mientras el backend procesa y prepara resultado verificable.';
+  }
+
+  return 'Valor demostrado: el recorrido conserva contexto de punta a punta para acelerar decisiones operativas.';
+}
+
 export function ResultsHeader({ fileName, status, totalImages, totalRecords, errorMessage }: ResultsHeaderProps) {
   const hasErrors = Boolean(errorMessage);
 
@@ -63,6 +79,9 @@ export function ResultsHeader({ fileName, status, totalImages, totalRecords, err
           </p>
           <p className='max-w-2xl rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-700'>
             {getOutcomeMessage(status, errorMessage)}
+          </p>
+          <p className='max-w-2xl text-sm font-medium text-teal-700'>
+            {getValueNarrative(status, errorMessage)}
           </p>
         </div>
       </div>
