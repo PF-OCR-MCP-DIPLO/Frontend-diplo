@@ -12,7 +12,7 @@ export function ProcessingProvider({ children }: { children: ReactNode }) {
     actions.refreshHistory().catch(() => {
       state.setIsLoadingHistory(false);
     });
-  }, [actions, state]);
+  }, [actions.refreshHistory, state.setIsLoadingHistory]);
 
   const value = useMemo(
     () => ({
@@ -30,7 +30,21 @@ export function ProcessingProvider({ children }: { children: ReactNode }) {
       selectResult: actions.selectResult,
       selectResultByJobId: actions.selectResultByJobId,
     }),
-    [actions, state.currentResults, state.isExporting, state.isLoadingHistory, state.isProcessing, state.isRefreshing, state.processedFiles]
+    [
+      actions.exportCurrentJob,
+      actions.processFile,
+      actions.refreshHistory,
+      actions.refreshJob,
+      actions.runProcessing,
+      actions.selectResult,
+      actions.selectResultByJobId,
+      state.currentResults,
+      state.isExporting,
+      state.isLoadingHistory,
+      state.isProcessing,
+      state.isRefreshing,
+      state.processedFiles,
+    ]
   );
 
   return <ProcessingContext.Provider value={value}>{children}</ProcessingContext.Provider>;

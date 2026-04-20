@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ProcessedFile } from '@/features/processing/types/processing.types';
 
 export interface ProcessingState {
@@ -24,18 +24,21 @@ export function useProcessingState(): ProcessingState {
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [currentResults, setCurrentResults] = useState<ProcessedFile | null>(null);
 
-  return {
-    isProcessing,
-    setIsProcessing,
-    isExporting,
-    setIsExporting,
-    isLoadingHistory,
-    setIsLoadingHistory,
-    isRefreshing,
-    setIsRefreshing,
-    processedFiles,
-    setProcessedFiles,
-    currentResults,
-    setCurrentResults,
-  };
+  return useMemo(
+    () => ({
+      isProcessing,
+      setIsProcessing,
+      isExporting,
+      setIsExporting,
+      isLoadingHistory,
+      setIsLoadingHistory,
+      isRefreshing,
+      setIsRefreshing,
+      processedFiles,
+      setProcessedFiles,
+      currentResults,
+      setCurrentResults,
+    }),
+    [currentResults, isExporting, isLoadingHistory, isProcessing, isRefreshing, processedFiles]
+  );
 }
