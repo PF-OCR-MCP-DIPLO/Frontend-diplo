@@ -35,11 +35,16 @@ export function ResultsSummary({ errorCount, totalImages, totalRecords }: Result
   ];
 
   return (
-    <div className='grid gap-4 md:grid-cols-3'>
+    <section className='rounded-[28px] border border-slate-200 bg-white/90 p-4 shadow-sm'>
+      <div className='mb-4 px-2'>
+        <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>Resumen del resultado</p>
+        <h3 className='mt-1 text-lg font-semibold tracking-tight text-slate-900'>Indicadores para priorizar la revision</h3>
+      </div>
+      <div className='grid gap-4 md:grid-cols-3'>
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <div key={card.label} className='rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-sm shadow-slate-200/60'>
+          <div key={card.label} className='rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60'>
             <div className='flex items-start justify-between gap-3'>
               <div>
                 <p className='text-sm font-medium text-slate-500'>{card.label}</p>
@@ -53,6 +58,7 @@ export function ResultsSummary({ errorCount, totalImages, totalRecords }: Result
           </div>
         );
       })}
-    </div>
+      </div>
+    </section>
   );
 }
