@@ -136,7 +136,16 @@ export function DashboardPage() {
               }
             />
           ) : processedFiles.length === 0 ? (
-            <p className='text-sm leading-6 text-slate-600'>Cuando termines tu primera ejecucion, aqui veras la actividad reciente para retomarla con rapidez.</p>
+            <div className='rounded-2xl border border-slate-200 bg-slate-50/70 p-5'>
+              <p className='text-sm font-medium text-slate-900'>Aun no hay ejecuciones recientes</p>
+              <p className='mt-1 text-sm leading-6 text-slate-600'>
+                Inicia tu primera carga para habilitar la trazabilidad completa del flujo y mostrar evidencia de punta a punta.
+              </p>
+              <div className='mt-4 flex flex-wrap gap-2'>
+                <Button className='rounded-2xl' onClick={() => navigate('/upload')}>Iniciar flujo ahora</Button>
+                <Button variant='outline' className='rounded-2xl' onClick={() => navigate('/history')}>Abrir historial</Button>
+              </div>
+            </div>
           ) : (
             <div className='space-y-3'>
               {processedFiles.slice(0, 5).map((file) => (
@@ -149,8 +158,11 @@ export function DashboardPage() {
                     <p className='truncate font-medium text-slate-900'>{file.name}</p>
                     <p className='text-sm text-slate-500'>{file.date.toLocaleDateString('es-ES')}</p>
                   </div>
-                  <div className={`rounded-full border px-3 py-1 text-xs font-medium ${statusClass[file.status] ?? 'border-slate-200 bg-slate-100 text-slate-700'}`}>
-                    {statusLabel[file.status] ?? file.status}
+                  <div className='flex items-center gap-2'>
+                    <div className={`rounded-full border px-3 py-1 text-xs font-medium ${statusClass[file.status] ?? 'border-slate-200 bg-slate-100 text-slate-700'}`}>
+                      {statusLabel[file.status] ?? file.status}
+                    </div>
+                    <ArrowRight className='size-4 text-slate-400' />
                   </div>
                 </button>
               ))}
