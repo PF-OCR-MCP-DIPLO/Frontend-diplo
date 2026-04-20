@@ -1,15 +1,11 @@
-import { AlertCircle, CheckCircle2, Eye, FileText, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { HistoryJobsTable } from '@/features/history/components/HistoryJobsTable';
 import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
 import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
-import { statusClass, statusLabel } from '@/lib/constants/status';
-import { formatDateTime } from '@/lib/utils/format';
 
 export function HistoryPage() {
   const navigate = useNavigate();
@@ -49,45 +45,7 @@ export function HistoryPage() {
         description='Revisa documentos anteriores, consulta estado y abre cualquier ejecucion para seguir trabajando.'
         actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar</Button>}
       />
-      <Card className='overflow-hidden rounded-[32px] border-slate-200 shadow-sm'>
-        <div className='overflow-auto'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Archivo</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className='text-right'>Accion</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {processedFiles.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div className='flex items-center gap-2'>
-                      <FileText className='size-4 text-slate-500' />
-                      <span className='font-medium'>{item.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell><span className='text-slate-600'>{formatDateTime(item.date)}</span></TableCell>
-                  <TableCell>
-                    <Badge variant='outline' className={`gap-1 ${statusClass[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-700'}`}>
-                      {item.displayStatus === 'success' ? <CheckCircle2 className='size-3' /> : <AlertCircle className='size-3' />}
-                      {statusLabel[item.status] ?? item.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className='text-right'>
-                    <Button variant='outline' size='sm' onClick={() => void openResult(item.id, 'No se pudo abrir el job')} className='gap-2'>
-                      <Eye className='size-4' />
-                      Ver
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </Card>
+      <HistoryJobsTable items={processedFiles} onOpenResult={(id) => void openResult(id, 'No se pudo abrir el job')} />
     </div>
   );
 }
