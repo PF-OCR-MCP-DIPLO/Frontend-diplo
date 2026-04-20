@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
@@ -23,27 +23,31 @@ export function useSettingsForm() {
   const [values, setValues] = useState<SettingsFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const [loadedSettings, loadedOptions] = await Promise.all([
+        getProcessingSettings(),
+        getProcessingSettingsOptions(),
+      ]);
+      setSettings(loadedSettings);
+      setOptions(loadedOptions);
+      setValues(createFormValues(loadedSettings));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo cargar la configuracion';
+      setLoadError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function load() {
-      setIsLoading(true);
-      try {
-        const [loadedSettings, loadedOptions] = await Promise.all([
-          getProcessingSettings(),
-          getProcessingSettingsOptions(),
-        ]);
-        setSettings(loadedSettings);
-        setOptions(loadedOptions);
-        setValues(createFormValues(loadedSettings));
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'No se pudo cargar la configuracion');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     void load();
-  }, []);
+  }, [load]);
 
   const modelOptions = useMemo(() => {
     if (!options || !values) {
@@ -80,6 +84,8 @@ export function useSettingsForm() {
     modelOptions,
     isLoading,
     isSaving,
+    loadError,
+    reload: load,
     save,
   };
 }

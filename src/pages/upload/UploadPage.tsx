@@ -6,11 +6,12 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
+import { useProcessingActionsContext, useProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
 
 export function UploadPage() {
   const navigate = useNavigate();
-  const { processFile, isProcessing } = useProcessing();
+  const { processFile } = useProcessingActionsContext();
+  const { isProcessing } = useProcessingStateContext();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];

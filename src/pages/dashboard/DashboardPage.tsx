@@ -1,16 +1,17 @@
-import { Clock, FileUp, Loader2 } from 'lucide-react';
+import { AlertTriangle, Clock, FileUp, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
-import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
+import { useProcessingActionsContext, useProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
 import { statusClass, statusLabel } from '@/lib/constants/status';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const openResult = useOpenResult();
-  const { processedFiles, isLoadingHistory } = useProcessing();
+  const { refreshHistory } = useProcessingActionsContext();
+  const { processedFiles, isLoadingHistory, historyError } = useProcessingStateContext();
 
   return (
     <div className='space-y-6'>
@@ -47,6 +48,22 @@ export function DashboardPage() {
             <div className='flex items-center justify-center py-10 text-slate-600'>
               <Loader2 className='mr-2 size-4 animate-spin' />
               Cargando jobs...
+            </div>
+          ) : historyError ? (
+            <div className='rounded-3xl border border-amber-200 bg-amber-50 p-4'>
+              <div className='flex items-start gap-3'>
+                <AlertTriangle className='mt-0.5 size-5 text-amber-600' />
+                <div className='space-y-3'>
+                  <div>
+                    <p className='font-medium text-slate-900'>No pudimos cargar el historial</p>
+                    <p className='text-sm text-slate-700'>{historyError}</p>
+                  </div>
+                  <Button variant='outline' onClick={() => void refreshHistory()} className='gap-2'>
+                    <RefreshCw className='size-4' />
+                    Reintentar
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : processedFiles.length === 0 ? (
             <p className='text-sm text-slate-600'>Todavia no hay jobs creados en el backend.</p>

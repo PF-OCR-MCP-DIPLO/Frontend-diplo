@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useProcessing } from '@/features/processing/hooks/useProcessingContext';
+import { useProcessingActionsContext } from '@/features/processing/hooks/useProcessingContext';
 
 export function useOpenResult() {
   const navigate = useNavigate();
-  const { selectResult } = useProcessing();
+  const { selectResult } = useProcessingActionsContext();
 
   return async (id: string, errorMessage: string) => {
     try {

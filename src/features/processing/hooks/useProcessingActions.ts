@@ -12,6 +12,7 @@ export function useProcessingActions({
   setIsProcessing,
   setIsRefreshing,
   setProcessedFiles,
+  setHistoryError,
 }: ProcessingState) {
   const currentJobId = currentResults?.jobId;
 
@@ -23,16 +24,21 @@ export function useProcessingActions({
 
   const refreshHistory = useCallback(async () => {
     setIsLoadingHistory(true);
+    setHistoryError(null);
     try {
       const jobs = await listJobs();
       setProcessedFiles((previous) => {
         const preserved = new Map(previous.map((item) => [item.jobId, item]));
         return jobs.map((job) => preserved.get(job.id) ?? mapJobListItemToPlaceholder(job));
       });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo cargar el historial';
+      setHistoryError(message);
+      throw error;
     } finally {
       setIsLoadingHistory(false);
     }
-  }, [setIsLoadingHistory, setProcessedFiles]);
+  }, [setHistoryError, setIsLoadingHistory, setProcessedFiles]);
 
   const selectResultByJobId = useCallback(async (jobId: number) => {
     setIsRefreshing(true);

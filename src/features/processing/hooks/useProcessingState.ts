@@ -10,6 +10,8 @@ export interface ProcessingState {
   setIsLoadingHistory: React.Dispatch<React.SetStateAction<boolean>>;
   isRefreshing: boolean;
   setIsRefreshing: React.Dispatch<React.SetStateAction<boolean>>;
+  historyError: string | null;
+  setHistoryError: React.Dispatch<React.SetStateAction<string | null>>;
   processedFiles: ProcessedFile[];
   setProcessedFiles: React.Dispatch<React.SetStateAction<ProcessedFile[]>>;
   currentResults: ProcessedFile | null;
@@ -21,6 +23,7 @@ export function useProcessingState(): ProcessingState {
   const [isExporting, setIsExporting] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [currentResults, setCurrentResults] = useState<ProcessedFile | null>(null);
 
@@ -34,11 +37,13 @@ export function useProcessingState(): ProcessingState {
       setIsLoadingHistory,
       isRefreshing,
       setIsRefreshing,
+      historyError,
+      setHistoryError,
       processedFiles,
       setProcessedFiles,
       currentResults,
       setCurrentResults,
     }),
-    [currentResults, isExporting, isLoadingHistory, isProcessing, isRefreshing, processedFiles]
+    [currentResults, historyError, isExporting, isLoadingHistory, isProcessing, isRefreshing, processedFiles]
   );
 }
