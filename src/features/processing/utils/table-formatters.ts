@@ -1,5 +1,9 @@
 export function parseCurrencyInput(value: string) {
-  return Number(value.replace(/[^\d.-]/g, ''));
+  const normalized = value.replace(/[^\d.-]/g, '').trim();
+  if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') {
+    return Number.NaN;
+  }
+  return Number(normalized);
 }
 
 export function isValidCurrencyInput(value: string) {
