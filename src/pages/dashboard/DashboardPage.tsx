@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, FileUp, Loader2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock, FileSearch, FileUp, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatePanel } from '@/components/shared/StatePanel';
@@ -13,37 +13,109 @@ export function DashboardPage() {
   const openResult = useOpenResult();
   const { refreshHistory } = useProcessingActionsContext();
   const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
+  const totalRuns = processedFiles.length;
+  const completedRuns = processedFiles.filter((file) => file.status === 'completed' || file.status === 'completed_with_errors').length;
+  const pendingRuns = processedFiles.filter((file) => file.status === 'uploaded' || file.status === 'processing').length;
+  const runsWithObservations = processedFiles.filter((file) => file.status === 'completed_with_errors' || file.status === 'failed').length;
+
+  const kpiCards = [
+    {
+      label: 'Ejecuciones totales',
+      value: String(totalRuns),
+      description: 'Visibilidad general del flujo',
+      icon: FileSearch,
+      iconClass: 'bg-sky-50 text-sky-700',
+    },
+    {
+      label: 'Listas para cierre',
+      value: String(completedRuns),
+      description: 'Procesamientos con salida disponible',
+      icon: CheckCircle2,
+      iconClass: 'bg-emerald-50 text-emerald-700',
+    },
+    {
+      label: 'Con observaciones',
+      value: String(runsWithObservations),
+      description: 'Ejecuciones que requieren revison',
+      icon: AlertTriangle,
+      iconClass: 'bg-amber-50 text-amber-700',
+    },
+    {
+      label: 'En curso',
+      value: String(pendingRuns),
+      description: 'Pendientes de confirmar o completar',
+      icon: Clock,
+      iconClass: 'bg-slate-100 text-slate-700',
+    },
+  ];
 
   return (
     <div className='space-y-6'>
       <PageHeader
         eyebrow='Resumen'
         title='Centro de operaciones documentales'
-        description='Inicia nuevas ejecuciones, revisa el estado del flujo y retoma resultados recientes desde un solo tablero.'
-        actions={<Button onClick={() => navigate('/upload')} className='gap-2 rounded-2xl'><FileUp className='size-4' />Cargar .docx</Button>}
+        description='Coordina el recorrido completo de demo: iniciar carga, validar extraccion y cerrar exportacion con evidencia clara.'
+        actions={
+          <>
+            <Button onClick={() => navigate('/upload')} className='gap-2 rounded-2xl'><FileUp className='size-4' />Iniciar nueva carga</Button>
+            <Button variant='outline' onClick={() => navigate('/history')} className='gap-2 rounded-2xl'>Ver historial</Button>
+          </>
+        }
       />
 
-      <div className='grid gap-6 xl:grid-cols-[1.2fr_0.8fr]'>
-        <Card className='rounded-[32px] border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,253,250,0.8))] p-8 shadow-sm'>
-          <div className='max-w-xl space-y-5'>
-            <div className='flex size-20 items-center justify-center rounded-[28px] bg-teal-50'>
-              <FileUp className='size-10 text-teal-700' />
+      <Card className='rounded-[32px] border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,253,250,0.82))] p-6 shadow-sm md:p-8'>
+        <div className='grid gap-6 xl:grid-cols-[1.15fr_0.85fr]'>
+          <div className='space-y-5'>
+            <div className='inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-teal-700'>
+              Paso 1 de 3 - Inicio del flujo
             </div>
             <div>
-              <h2 className='text-3xl font-semibold tracking-tight text-slate-900'>Centraliza la carga, revision y exportacion en una sola interfaz.</h2>
-              <p className='mt-3 leading-7 text-slate-600'>Usa este panel para iniciar nuevas ejecuciones, retomar revisiones pendientes y detectar rapido cualquier hallazgo antes de exportar.</p>
+              <h2 className='text-3xl font-semibold tracking-tight text-slate-900'>Desde aqui defines el siguiente movimiento operativo.</h2>
+              <p className='mt-3 max-w-2xl leading-7 text-slate-600'>
+                Inicia una carga para demostrar velocidad de puesta en marcha, o retoma resultados recientes para evidenciar control y trazabilidad.
+              </p>
             </div>
-            <Button size='lg' className='h-14 rounded-2xl px-6' onClick={() => navigate('/upload')}>Subir documento</Button>
+            <div className='flex flex-wrap gap-3'>
+              <Button size='lg' className='h-12 gap-2 rounded-2xl px-6' onClick={() => navigate('/upload')}>
+                Ir a carga documental
+                <ArrowRight className='size-4' />
+              </Button>
+              <Button size='lg' variant='outline' className='h-12 rounded-2xl px-6' onClick={() => navigate('/history')}>
+                Revisar ejecuciones previas
+              </Button>
+            </div>
           </div>
-        </Card>
 
+          <div className='grid gap-3 sm:grid-cols-2'>
+            {kpiCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div key={card.label} className='rounded-2xl border border-slate-200 bg-white/90 p-4'>
+                  <div className='flex items-start justify-between gap-3'>
+                    <div>
+                      <p className='text-xs font-medium uppercase tracking-[0.08em] text-slate-500'>{card.label}</p>
+                      <p className='mt-2 text-3xl font-semibold tracking-tight text-slate-900'>{card.value}</p>
+                    </div>
+                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.iconClass}`}>
+                      <Icon className='size-5' />
+                    </div>
+                  </div>
+                  <p className='mt-2 text-sm text-slate-600'>{card.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+
+      <div className='grid gap-6 xl:grid-cols-[1.25fr_0.75fr]'>
         <Card className='rounded-[32px] border-slate-200 p-6 shadow-sm'>
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <Clock className='size-5 text-slate-500' />
               <h3 className='font-semibold text-slate-900'>Actividad reciente</h3>
             </div>
-            <Button variant='ghost' size='sm' onClick={() => navigate('/history')} className='text-teal-700'>Ver historial completo</Button>
+            <Button variant='ghost' size='sm' onClick={() => navigate('/history')} className='text-teal-700'>Ver todo</Button>
           </div>
           {isLoadingHistory ? (
             <div className='flex items-center justify-center py-10 text-slate-600'>
@@ -84,6 +156,26 @@ export function DashboardPage() {
               ))}
             </div>
           )}
+        </Card>
+
+        <Card className='rounded-[32px] border-slate-200 bg-slate-50/80 p-6 shadow-sm'>
+          <div className='space-y-4'>
+            <h3 className='text-lg font-semibold tracking-tight text-slate-900'>Recorrido recomendado para demo</h3>
+            <ol className='space-y-3 text-sm text-slate-700'>
+              <li className='rounded-2xl border border-slate-200 bg-white p-3'>
+                <p className='font-medium text-slate-900'>1. Inicia la carga documental</p>
+                <p className='mt-1'>Sube un `.docx` y muestra que el sistema crea la ejecucion sin pasos extra.</p>
+              </li>
+              <li className='rounded-2xl border border-slate-200 bg-white p-3'>
+                <p className='font-medium text-slate-900'>2. Valida resultados y hallazgos</p>
+                <p className='mt-1'>Entra a `Results` para comparar fuente, tabla editable y panel de observaciones.</p>
+              </li>
+              <li className='rounded-2xl border border-slate-200 bg-white p-3'>
+                <p className='font-medium text-slate-900'>3. Cierra con exportacion</p>
+                <p className='mt-1'>Genera y descarga Excel para evidenciar salida util del proceso.</p>
+              </li>
+            </ol>
+          </div>
         </Card>
       </div>
     </div>
