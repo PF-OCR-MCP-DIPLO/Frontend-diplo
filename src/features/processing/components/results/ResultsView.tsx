@@ -38,6 +38,8 @@ export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [workspaceSection, setWorkspaceSection] = useState<'review' | 'tools'>('review');
   const canExport = props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl);
+  const errorRows = viewState.data.filter((row) => row.estado === 'error');
+  const topErrorRows = errorRows.slice(0, 4);
 
   async function handleOpenLogs() {
     try {
@@ -76,7 +78,9 @@ export function ResultsView(props: ResultsViewProps) {
       <ResultsSummary errorCount={viewState.errorCount} totalImages={props.totalImages} totalRecords={props.totalRecords} />
 
       <section className='rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-sm'>
-        <div className='flex flex-wrap items-center gap-2'>
+        <div className='flex flex-wrap items-center justify-between gap-3'>
+          <p className='text-sm text-slate-600'>Flujo de trabajo recomendado: revisar evidencia visual, ajustar tabla, resolver hallazgos y cerrar exportacion.</p>
+          <div className='flex flex-wrap items-center gap-2'>
           <Button
             type='button'
             variant={workspaceSection === 'review' ? 'default' : 'outline'}
@@ -95,6 +99,7 @@ export function ResultsView(props: ResultsViewProps) {
           >
             Hallazgos y herramientas tecnicas
           </Button>
+          </div>
         </div>
       </section>
 
@@ -123,8 +128,42 @@ export function ResultsView(props: ResultsViewProps) {
               <p className='text-sm text-slate-600'>Ajusta filas, resuelve errores y prepara salida exportable.</p>
             </div>
             <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
-              <EditableTable data={viewState.data} onDataChange={viewState.setData} />
+              <EditableTable data={viewState.data} onDataChange={viewState.setData} onRowClick={(row) => viewState.handleErrorClick(row.id)} />
             </div>
+            <section className='rounded-[24px] border border-slate-200 bg-slate-50/80 p-4'>
+              <div className='flex flex-wrap items-start justify-between gap-3'>
+                <div>
+                  <p className='text-xs font-semibold uppercase tracking-[0.14em] text-slate-400'>Bloque 3</p>
+                  <h4 className='mt-1 font-semibold text-slate-900'>Hallazgos prioritarios</h4>
+                  <p className='text-sm text-slate-600'>Resuelve primero estos puntos para reducir retrabajo antes de exportar.</p>
+                </div>
+                <Button variant='outline' className='rounded-2xl' onClick={() => setWorkspaceSection('tools')}>
+                  Abrir panel tecnico
+                </Button>
+              </div>
+              {topErrorRows.length > 0 ? (
+                <div className='mt-4 space-y-2'>
+                  {topErrorRows.map((row) => (
+                    <button
+                      key={row.id}
+                      type='button'
+                      className='flex w-full items-center justify-between rounded-2xl border border-red-200 bg-white px-3 py-2 text-left transition hover:bg-red-50/60'
+                      onClick={() => viewState.handleErrorClick(row.id)}
+                    >
+                      <span className='truncate text-sm font-medium text-slate-900'>{row.referencia || 'Fila sin referencia'}</span>
+                      <span className='text-xs font-semibold text-red-700'>{row.errors.length} observaciones</span>
+                    </button>
+                  ))}
+                  {errorRows.length > topErrorRows.length ? (
+                    <p className='pt-1 text-xs text-slate-500'>+{errorRows.length - topErrorRows.length} hallazgos adicionales en el panel tecnico.</p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className='mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800'>
+                  No hay hallazgos pendientes en la tabla actual.
+                </div>
+              )}
+            </section>
           </section>
         </div>
       ) : (
