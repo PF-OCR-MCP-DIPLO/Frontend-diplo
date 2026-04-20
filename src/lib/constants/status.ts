@@ -2,7 +2,7 @@ export const statusLabel: Record<string, string> = {
   uploaded: 'Cargado',
   processing: 'Procesando',
   completed: 'Completado',
-  completed_with_errors: 'Completado con errores',
+  completed_with_errors: 'Con observaciones',
   failed: 'Fallido',
 };
 

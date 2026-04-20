@@ -14,15 +14,15 @@ interface HistoryJobsTableProps {
 
 export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps) {
   return (
-    <Card className='overflow-hidden rounded-[32px] border-slate-200 shadow-sm'>
+    <Card className='overflow-hidden rounded-[32px] border-slate-200 bg-white/95 shadow-sm'>
       <div className='overflow-auto'>
         <Table>
-          <TableHeader>
+          <TableHeader className='bg-slate-50/90'>
             <TableRow>
               <TableHead>Archivo</TableHead>
-              <TableHead>Fecha</TableHead>
+              <TableHead>Creado</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className='text-right'>Accion</TableHead>
+              <TableHead className='text-right'>Abrir</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -44,9 +44,9 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
                   </Badge>
                 </TableCell>
                 <TableCell className='text-right'>
-                  <Button variant='outline' size='sm' onClick={() => onOpenResult(item.id)} className='gap-2'>
+                  <Button variant='outline' size='sm' onClick={() => onOpenResult(item.id)} className='gap-2 rounded-2xl'>
                     <Eye className='size-4' />
-                    Ver
+                    Abrir
                   </Button>
                 </TableCell>
               </TableRow>

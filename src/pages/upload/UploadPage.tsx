@@ -23,7 +23,7 @@ export function UploadPage() {
 
     try {
       const job = await processFile(file);
-      toast.success(`Job ${job.jobId} creado correctamente`);
+      toast.success(`Ejecucion ${job.jobId} creada correctamente`);
       navigate('/results');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo subir el documento');
@@ -41,8 +41,12 @@ export function UploadPage() {
 
   return (
     <div className='space-y-6'>
-      <PageHeader eyebrow='Upload' title='Cargar nuevo documento' description='Sube archivos Word para crear un job y continuar al tablero de resultados.' />
-      <Card className='rounded-[36px] border-slate-200 p-6 shadow-sm sm:p-10'>
+      <PageHeader
+        eyebrow='Carga'
+        title='Nueva carga documental'
+        description='Sube un archivo Word y entra de inmediato al espacio de revision cuando el backend registre la ejecucion.'
+      />
+      <Card className='rounded-[36px] border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] p-6 shadow-sm sm:p-10'>
         <div
           {...dropzone.getRootProps()}
           className={`flex min-h-[420px] flex-col items-center justify-center rounded-[32px] border-2 border-dashed px-6 text-center transition ${dropzone.isDragActive ? 'border-teal-500 bg-teal-50' : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'} ${isProcessing ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
@@ -54,12 +58,12 @@ export function UploadPage() {
           {isProcessing ? (
             <div>
               <p className='text-xl font-semibold text-slate-900'>Subiendo documento...</p>
-              <p className='mt-2 text-slate-600'>Creando el job en el backend</p>
+              <p className='mt-2 text-slate-600'>Estamos creando la ejecucion en el backend para llevarte al tablero de revision.</p>
             </div>
           ) : (
             <div>
-              <p className='text-xl font-semibold text-slate-900'>{dropzone.isDragActive ? 'Suelta el archivo aqui' : 'Arrastra tu archivo .docx o haz clic'}</p>
-              <p className='mt-2 text-slate-600'>Soporta unicamente documentos Word (.docx)</p>
+              <p className='text-xl font-semibold text-slate-900'>{dropzone.isDragActive ? 'Suelta el archivo aqui' : 'Arrastra tu archivo .docx o haz clic para seleccionarlo'}</p>
+              <p className='mt-2 text-slate-600'>Solo se admiten documentos Word (.docx) en una sola carga.</p>
               <Button type='button' size='lg' className='mt-6 rounded-2xl'>
                 <Upload className='mr-2 size-5' />
                 Seleccionar archivo
