@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { getJobLogs } from '@/features/processing/api/processing.api';
 import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
@@ -13,10 +13,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
   const logsCacheRef = useRef(new Map<number, ApiExtractionLog[]>());
-
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
 
   const errorCount = useMemo(() => data.filter((row) => row.estado === 'error').length, [data]);
 
