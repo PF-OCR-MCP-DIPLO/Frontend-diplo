@@ -1,23 +1,17 @@
-import { Download, FileDown, Loader2, MessageSquare, Play, RefreshCw, ScrollText, XCircle } from 'lucide-react';
+import { Download, FileDown, Play, RefreshCw } from 'lucide-react';
 import type { ProcessingStatus } from '@/features/processing/types/processing.types';
 import { Button } from '@/components/ui/button';
 
 interface ResultsActionsProps {
-  showChat: boolean;
   isProcessing: boolean;
   isRefreshing: boolean;
   isExporting: boolean;
-  isLoadingLogs: boolean;
   status: ProcessingStatus;
   excelUrl: string | null;
-  canShowErrors: boolean;
   canExport: boolean;
-  onToggleChat: () => void;
   onRefresh: () => void;
   onProcess: () => void;
   onExport: () => void;
-  onOpenLogs: () => void;
-  onOpenErrors: () => void;
 }
 
 function getPrimaryActionLabel(status: ProcessingStatus) {
@@ -68,27 +62,15 @@ export function ResultsActions(props: ResultsActionsProps) {
       <div className='space-y-4 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-sm'>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>Herramientas de revision</p>
-            <p className='mt-1 text-sm leading-6 text-slate-600'>Consulta el estado, abre evidencia tecnica y mantente en la misma vista mientras corriges.</p>
+            <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>Acciones operativas</p>
+            <p className='mt-1 text-sm leading-6 text-slate-600'>Usa estas acciones para controlar ciclo del procesamiento sin salir del flujo principal.</p>
           </div>
-          <div className='rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500'>Acciones de apoyo</div>
+          <div className='rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500'>Control de ejecucion</div>
         </div>
         <div className='flex flex-wrap gap-2'>
           <Button variant='outline' onClick={props.onRefresh} className='gap-2 rounded-2xl' disabled={props.isRefreshing}>
             <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
             {props.isRefreshing ? 'Actualizando...' : 'Actualizar estado'}
-          </Button>
-          <Button variant='outline' onClick={props.onOpenLogs} disabled={props.isLoadingLogs} className='gap-2 rounded-2xl'>
-            {props.isLoadingLogs ? <Loader2 className='size-4 animate-spin' /> : <ScrollText className='size-4' />}
-            Ver logs
-          </Button>
-          <Button variant='outline' onClick={props.onOpenErrors} className='gap-2 rounded-2xl' disabled={!props.canShowErrors}>
-            <XCircle className='size-4' />
-            Ver hallazgos
-          </Button>
-          <Button variant='outline' onClick={props.onToggleChat} className='gap-2 rounded-2xl'>
-            <MessageSquare className='size-4' />
-            {props.showChat ? 'Ocultar asistente' : 'Mostrar asistente'}
           </Button>
         </div>
       </div>
