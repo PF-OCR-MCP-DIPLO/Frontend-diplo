@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
-import { useProcessingActionsContext, useProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
+import {
+  useProcessingActionsContext,
+  useProcessingCurrentResultContext,
+  useProcessingFlagsContext,
+} from '@/features/processing/hooks/useProcessingContext';
 import { mapSourceImagesToPreview } from '@/features/processing/mappers/processing.mappers';
 
 export function ResultsPage() {
   const navigate = useNavigate();
   const { runProcessing, refreshJob, exportCurrentJob } = useProcessingActionsContext();
-  const { currentResults, isProcessing, isRefreshing, isExporting } = useProcessingStateContext();
+  const { currentResults } = useProcessingCurrentResultContext();
+  const { isProcessing, isRefreshing, isExporting } = useProcessingFlagsContext();
 
   const handleProcess = useCallback(async () => {
     try {
@@ -56,6 +61,7 @@ export function ResultsPage() {
 
   return (
     <ResultsView
+      key={currentResults.jobId}
       jobId={currentResults.jobId}
       fileName={currentResults.name}
       sourceDocxUrl={currentResults.sourceDocxUrl}

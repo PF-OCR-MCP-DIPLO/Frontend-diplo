@@ -5,13 +5,13 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { HistoryJobsTable } from '@/features/history/components/HistoryJobsTable';
 import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
-import { useProcessingActionsContext, useProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
+import { useProcessingActionsContext, useProcessingHistoryContext } from '@/features/processing/hooks/useProcessingContext';
 
 export function HistoryPage() {
   const navigate = useNavigate();
   const openResult = useOpenResult();
   const { refreshHistory } = useProcessingActionsContext();
-  const { processedFiles, isLoadingHistory, historyError } = useProcessingStateContext();
+  const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
 
   async function handleRefresh() {
     try {

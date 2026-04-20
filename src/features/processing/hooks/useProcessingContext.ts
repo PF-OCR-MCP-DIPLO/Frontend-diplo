@@ -18,14 +18,20 @@ export interface ProcessingContextValue {
   selectResultByJobId: (jobId: number) => Promise<ProcessedFile | null>;
 }
 
-export interface ProcessingStateContextValue {
-  isProcessing: boolean;
-  isExporting: boolean;
+export interface ProcessingHistoryContextValue {
   isLoadingHistory: boolean;
-  isRefreshing: boolean;
   historyError: string | null;
   processedFiles: ProcessedFile[];
+}
+
+export interface ProcessingCurrentResultContextValue {
   currentResults: ProcessedFile | null;
+}
+
+export interface ProcessingFlagsContextValue {
+  isProcessing: boolean;
+  isExporting: boolean;
+  isRefreshing: boolean;
 }
 
 export interface ProcessingActionsContextValue {
@@ -38,13 +44,31 @@ export interface ProcessingActionsContextValue {
   selectResultByJobId: (jobId: number) => Promise<ProcessedFile | null>;
 }
 
-export const ProcessingStateContext = createContext<ProcessingStateContextValue | null>(null);
+export const ProcessingHistoryContext = createContext<ProcessingHistoryContextValue | null>(null);
+export const ProcessingCurrentResultContext = createContext<ProcessingCurrentResultContextValue | null>(null);
+export const ProcessingFlagsContext = createContext<ProcessingFlagsContextValue | null>(null);
 export const ProcessingActionsContext = createContext<ProcessingActionsContextValue | null>(null);
 
-export function useProcessingStateContext() {
-  const context = useContext(ProcessingStateContext);
+export function useProcessingHistoryContext() {
+  const context = useContext(ProcessingHistoryContext);
   if (!context) {
-    throw new Error('useProcessingStateContext must be used within ProcessingProvider');
+    throw new Error('useProcessingHistoryContext must be used within ProcessingProvider');
+  }
+  return context;
+}
+
+export function useProcessingCurrentResultContext() {
+  const context = useContext(ProcessingCurrentResultContext);
+  if (!context) {
+    throw new Error('useProcessingCurrentResultContext must be used within ProcessingProvider');
+  }
+  return context;
+}
+
+export function useProcessingFlagsContext() {
+  const context = useContext(ProcessingFlagsContext);
+  if (!context) {
+    throw new Error('useProcessingFlagsContext must be used within ProcessingProvider');
   }
   return context;
 }
@@ -59,7 +83,9 @@ export function useProcessingActionsContext() {
 
 export function useProcessing() {
   return {
-    ...useProcessingStateContext(),
+    ...useProcessingHistoryContext(),
+    ...useProcessingCurrentResultContext(),
+    ...useProcessingFlagsContext(),
     ...useProcessingActionsContext(),
   };
 }

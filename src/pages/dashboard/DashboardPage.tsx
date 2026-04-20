@@ -4,14 +4,14 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
-import { useProcessingActionsContext, useProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
+import { useProcessingActionsContext, useProcessingHistoryContext } from '@/features/processing/hooks/useProcessingContext';
 import { statusClass, statusLabel } from '@/lib/constants/status';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const openResult = useOpenResult();
   const { refreshHistory } = useProcessingActionsContext();
-  const { processedFiles, isLoadingHistory, historyError } = useProcessingStateContext();
+  const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
 
   return (
     <div className='space-y-6'>

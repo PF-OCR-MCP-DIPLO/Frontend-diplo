@@ -1,35 +1,58 @@
 import type { ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
-import { ProcessingActionsContext, ProcessingStateContext } from '@/features/processing/hooks/useProcessingContext';
+import {
+  ProcessingActionsContext,
+  ProcessingCurrentResultContext,
+  ProcessingFlagsContext,
+  ProcessingHistoryContext,
+} from '@/features/processing/hooks/useProcessingContext';
 import { useProcessingActions } from '@/features/processing/hooks/useProcessingActions';
 import { useProcessingState } from '@/features/processing/hooks/useProcessingState';
 
 export function ProcessingProvider({ children }: { children: ReactNode }) {
   const state = useProcessingState();
   const actions = useProcessingActions(state);
+  const { refreshHistory } = actions;
+  const { setIsLoadingHistory } = state;
 
   useEffect(() => {
-    actions.refreshHistory().catch(() => {
-      state.setIsLoadingHistory(false);
+    refreshHistory().catch(() => {
+      setIsLoadingHistory(false);
     });
-  }, [actions.refreshHistory, state.setIsLoadingHistory]);
+  }, [refreshHistory, setIsLoadingHistory]);
 
-  const stateValue = useMemo(
+  const historyValue = useMemo(
+    () => ({
+      isLoadingHistory: state.isLoadingHistory,
+      historyError: state.historyError,
+      processedFiles: state.processedFiles,
+    }),
+    [state.historyError, state.isLoadingHistory, state.processedFiles]
+  );
+
+  const currentResultValue = useMemo(
+    () => ({
+      currentResults: state.currentResults,
+    }),
+    [state.currentResults]
+  );
+
+  const flagsValue = useMemo(
     () => ({
       isProcessing: state.isProcessing,
       isExporting: state.isExporting,
-      isLoadingHistory: state.isLoadingHistory,
       isRefreshing: state.isRefreshing,
-      historyError: state.historyError,
-      processedFiles: state.processedFiles,
-      currentResults: state.currentResults,
     }),
-    [state.currentResults, state.historyError, state.isExporting, state.isLoadingHistory, state.isProcessing, state.isRefreshing, state.processedFiles]
+    [state.isExporting, state.isProcessing, state.isRefreshing]
   );
 
   return (
-    <ProcessingStateContext.Provider value={stateValue}>
-      <ProcessingActionsContext.Provider value={actions}>{children}</ProcessingActionsContext.Provider>
-    </ProcessingStateContext.Provider>
+    <ProcessingHistoryContext.Provider value={historyValue}>
+      <ProcessingCurrentResultContext.Provider value={currentResultValue}>
+        <ProcessingFlagsContext.Provider value={flagsValue}>
+          <ProcessingActionsContext.Provider value={actions}>{children}</ProcessingActionsContext.Provider>
+        </ProcessingFlagsContext.Provider>
+      </ProcessingCurrentResultContext.Provider>
+    </ProcessingHistoryContext.Provider>
   );
 }
