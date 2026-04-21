@@ -1,0 +1,122 @@
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { AppLogo } from '@/components/shared/AppLogo';
+import { Button } from '@/components/ui/button';
+import { appNavigation } from '@/lib/constants/navigation';
+
+type SidebarProps = {
+  collapsed: boolean;
+  onToggle: () => void;
+  onNavigate?: () => void;
+};
+
+export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
+  const location = useLocation();
+
+  return (
+    <aside
+      className={`hidden border-r border-slate-200/80 bg-white/88 backdrop-blur lg:flex lg:flex-col ${
+        collapsed ? 'lg:w-24' : 'lg:w-80'
+      }`}
+    >
+      <div className='flex justify-end px-3 py-3'>
+        <Button
+          variant='ghost'
+          size='icon'
+          aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+          onClick={onToggle}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className='size-4' />
+          ) : (
+            <PanelLeftClose className='size-4' />
+          )}
+        </Button>
+      </div>
+
+      <div className='flex h-full flex-col'>
+        <div className='flex justify-center border-b border-slate-200/80 px-4 py-5'>
+          <AppLogo collapsed={collapsed} />
+        </div>
+
+        <div className='px-4 pt-4'>
+          {!collapsed ? (
+            <div className='rounded-[24px] border border-teal-100 bg-[linear-gradient(135deg,rgba(240,253,250,1),rgba(255,255,255,0.94))] p-4'>
+              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-teal-700'>
+                Espacio de trabajo
+              </p>
+              <p className='mt-2 text-sm font-medium text-slate-900'>
+                Supervisa la carga, la revision y la exportacion desde un solo lugar.
+              </p>
+              <p className='mt-1 text-xs leading-5 text-slate-600'>
+                Cada vista mantiene el foco operativo y evita saltos innecesarios entre tareas.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <nav className='flex-1 space-y-2 p-3 pt-4'>
+          {appNavigation.map((item) => {
+            const Icon = item.icon;
+            const active = location.pathname === item.to;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onNavigate}
+                aria-label={item.label}
+                title={collapsed ? item.label : undefined}
+                className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition ${
+                  active
+                    ? 'border-teal-500 bg-[linear-gradient(135deg,#0f766e,#14b8a6)] text-white shadow-lg shadow-teal-900/15'
+                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-900 hover:shadow-sm'
+                }`}
+              >
+                <div
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-2xl transition ${
+                    active
+                      ? 'bg-white/14 text-white'
+                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white'
+                  }`}
+                >
+                  <Icon className='size-4 shrink-0' />
+                </div>
+
+                {!collapsed ? (
+                  <div className='min-w-0 flex-1'>
+                    <p className='font-medium'>{item.label}</p>
+                    <p className={`truncate text-xs ${active ? 'text-teal-50/90' : 'text-slate-400'}`}>
+                      {item.description}
+                    </p>
+                  </div>
+                ) : null}
+
+                {!collapsed ? (
+                  <span
+                    className={`size-2 rounded-full ${
+                      active ? 'bg-white' : 'bg-transparent group-hover:bg-slate-300'
+                    }`}
+                    aria-hidden='true'
+                  />
+                ) : null}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        <div className='border-t border-slate-200/80 px-4 py-4'>
+          {!collapsed ? (
+            <div className='rounded-2xl bg-slate-100/80 p-4 text-xs leading-5 text-slate-600'>
+              Flujo pensado para revisar rapido, corregir con contexto y exportar sin perder trazabilidad.
+            </div>
+          ) : (
+            <div className='flex justify-center'>
+              <div className='size-2 rounded-full bg-teal-500' aria-hidden='true' />
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
