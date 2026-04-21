@@ -1,10 +1,14 @@
 export class HttpError extends Error {
   status: number;
+  code?: string;
+  details?: unknown;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, extras?: { code?: string; details?: unknown }) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
+    this.code = extras?.code;
+    this.details = extras?.details;
   }
 }
 
@@ -35,6 +39,23 @@ async function extractErrorMessage(response: Response) {
 
   try {
     const payload = await response.json();
+    if (payload && typeof payload === 'object' && payload.error && typeof payload.error === 'object') {
+      const apiError = payload.error as { message?: unknown; code?: unknown; details?: unknown };
+      if (typeof apiError.message === 'string' && apiError.message.trim()) {
+        return apiError.message;
+      }
+
+      // If we have validation details, show the first field error (most actionable).
+      if (apiError.details && typeof apiError.details === 'object' && !Array.isArray(apiError.details)) {
+        const detailsObj = apiError.details as Record<string, unknown>;
+        const firstEntry = Object.entries(detailsObj)[0];
+        if (firstEntry) {
+          const [, value] = firstEntry;
+          if (typeof value === 'string') return value;
+          if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+        }
+      }
+    }
     if (typeof payload.detail === 'string') {
       return payload.detail;
     }
@@ -63,7 +84,20 @@ async function extractErrorMessage(response: Response) {
 export async function httpRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(buildApiUrl(path), init);
   if (!response.ok) {
-    throw new HttpError(response.status, await extractErrorMessage(response));
+    // We attempt to parse the standard API error envelope, but remain backwards compatible.
+    let code: string | undefined;
+    let details: unknown;
+    try {
+      const payload = await response.clone().json();
+      if (payload && typeof payload === 'object' && payload.error && typeof payload.error === 'object') {
+        const apiError = payload.error as { code?: unknown; details?: unknown };
+        if (typeof apiError.code === 'string') code = apiError.code;
+        details = apiError.details;
+      }
+    } catch {
+      // ignore
+    }
+    throw new HttpError(response.status, await extractErrorMessage(response), { code, details });
   }
 
   if (response.status === 204) {
