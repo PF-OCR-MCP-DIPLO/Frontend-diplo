@@ -13,9 +13,17 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'src/**/__tests__/**/*.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**', 'playwright.config.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
+      thresholds: {
+        statements: 50,
+        lines: 50,
+        functions: 40,
+        branches: 35,
+      },
       include: [
         'src/app/**/*.{ts,tsx}',
         'src/pages/**/*.{ts,tsx}',

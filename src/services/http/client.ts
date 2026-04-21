@@ -13,6 +13,7 @@ export class HttpError extends Error {
 }
 
 const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+const apiKey = import.meta.env.VITE_API_KEY ?? '';
 const apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
 const backendBaseUrl = apiBaseUrl.replace(/\/api$/, '');
 
@@ -82,7 +83,12 @@ async function extractErrorMessage(response: Response) {
 }
 
 export async function httpRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(buildApiUrl(path), init);
+  const headers = new Headers(init?.headers);
+  if (apiKey) {
+    headers.set('X-API-Key', apiKey);
+  }
+
+  const response = await fetch(buildApiUrl(path), { ...init, headers });
   if (!response.ok) {
     // We attempt to parse the standard API error envelope, but remain backwards compatible.
     let code: string | undefined;

@@ -20,4 +20,5 @@ jobs:
         run: npm run typecheck
       - name: Tests (with coverage)
         run: npm run test:coverage
-
+      - name: Build
+        run: npm run build
