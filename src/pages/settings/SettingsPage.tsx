@@ -28,8 +28,8 @@ export function SettingsPage() {
       <div className='page-stack'>
         <PageHeader
           eyebrow='Configuracion'
-          title='Configuracion del procesamiento'
-          description='Ajusta OCR, proveedor visual, LLM y tiempos de respuesta para que la extraccion se adapte a tu flujo.'
+          title='Configuracion'
+          description='Ajusta OCR, modelo y tiempo de espera.'
           actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
         />
         <StatePanel
@@ -52,8 +52,8 @@ export function SettingsPage() {
     <div className='page-stack'>
       <PageHeader
         eyebrow='Configuracion'
-        title='Configuracion del procesamiento'
-        description='Ajusta OCR, proveedor visual, LLM y tiempos de respuesta para que la extraccion se adapte a tu flujo.'
+        title='Configuracion'
+        description='Ajusta OCR, modelo y tiempo de espera.'
         actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
       />
       <SettingsForm

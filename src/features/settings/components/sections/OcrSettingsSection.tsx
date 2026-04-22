@@ -18,10 +18,10 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
   const ocrRequirements = options.provider_requirements[values.ocr_provider];
 
   return (
-    <SettingsSection title='OCR'>
+    <SettingsSection title='OCR' description='Configura la lectura inicial del documento.'>
       <div className='grid gap-5 sm:grid-cols-2'>
         <div className='field-stack'>
-          <Label htmlFor='ocr-mode'>OCR mode</Label>
+          <Label htmlFor='ocr-mode'>Modo OCR</Label>
           <Select
             id='ocr-mode'
             value={values.ocr_mode}
@@ -29,11 +29,11 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
           >
             {options.ocr_modes.map((mode) => <option key={mode} value={mode}>{mode}</option>)}
           </Select>
-          <p className='field-help'>tesseract usa OCR local; vision y auto permiten proveedor remoto.</p>
+          <p className='field-help'>`tesseract` es local. `vision` y `auto` usan proveedor remoto.</p>
         </div>
         {shouldShowOcrProvider ? (
           <div className='field-stack'>
-            <Label htmlFor='ocr-provider'>OCR provider</Label>
+            <Label htmlFor='ocr-provider'>Proveedor OCR</Label>
             <Select
               id='ocr-provider'
               value={values.ocr_provider}
@@ -47,7 +47,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
 
       <div className='grid gap-5 sm:grid-cols-2'>
         <div className='field-stack'>
-          <Label htmlFor='ocr-model'>OCR model</Label>
+          <Label htmlFor='ocr-model'>Modelo OCR</Label>
           <Input
             id='ocr-model'
             value={values.ocr_model}
@@ -62,7 +62,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
         </div>
         {shouldShowOcrProvider && ocrRequirements?.requires_api_key ? (
           <div className='field-stack'>
-            <Label htmlFor='ocr-api-key'>OCR provider API key</Label>
+            <Label htmlFor='ocr-api-key'>API key OCR</Label>
             <Input
               id='ocr-api-key'
               type='password'
@@ -75,7 +75,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
       </div>
 
       {shouldShowOcrProvider && ocrRequirements && !ocrRequirements.operational ? (
-        <p className='notice-warning'>El provider OCR seleccionado aun no esta operativo en este MVP.</p>
+        <p className='notice-warning'>Este proveedor OCR aun no esta operativo.</p>
       ) : null}
     </SettingsSection>
   );

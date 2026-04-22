@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { CheckCircle2, FileText, Loader2, Upload } from 'lucide-react';
+import { FileText, Loader2, Upload } from 'lucide-react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -60,11 +60,11 @@ export function UploadPage() {
     <div className='page-stack'>
       <PageHeader
         eyebrow='Carga'
-        title='Carga documental guiada'
-        description='Paso 2 de 3: sube un `.docx`, crea la ejecucion y avanza directo a la revision operativa de resultados.'
+        title='Cargar archivo'
+        description='Sube un `.docx` para crear una nueva ejecucion.'
       />
       <Card className='surface-card-hero p-6 sm:p-8'>
-        <div className='grid gap-6 lg:grid-cols-[1fr_320px]'>
+        <div className='space-y-4'>
           <div
             {...dropzone.getRootProps()}
             className={`flex min-h-[420px] flex-col items-center justify-center rounded-[32px] border-2 border-dashed px-6 text-center transition ${
@@ -81,31 +81,27 @@ export function UploadPage() {
             <div className='mb-6 flex size-24 items-center justify-center rounded-full border border-border/70 bg-white/94 shadow-[var(--shadow-soft)]'>
               {isProcessing ? <Loader2 className='size-12 animate-spin text-primary' /> : <FileText className='size-12 text-muted-foreground' />}
             </div>
+            <span className='meta-pill'>{uploadStageLabel}</span>
             {isProcessing ? (
               <div>
-                <p className='text-xl font-semibold text-foreground'>Subiendo documento...</p>
-                <p className='mt-2 text-body text-muted-foreground'>Estamos creando la ejecucion en el backend para llevarte al tablero de revision.</p>
-                <p className='mt-3 text-sm font-semibold text-primary'>Siguiente paso: abrir resultados para validar extraccion.</p>
+                <p className='mt-4 text-xl font-semibold text-foreground'>Subiendo documento...</p>
+                <p className='mt-2 text-body text-muted-foreground'>En cuanto termine, iras directo a resultados.</p>
               </div>
             ) : (
               <div>
-                <div className='mb-3 flex flex-wrap justify-center gap-2'>
-                  <span className='meta-pill'>Formato admitido: .docx</span>
-                  <span className='meta-pill'>1 archivo por carga</span>
-                </div>
-                <p className='text-xl font-semibold text-foreground'>
+                <p className='mt-4 text-xl font-semibold text-foreground'>
                   {dropzone.isDragReject
                     ? 'Archivo no compatible'
                     : dropzone.isDragAccept
                       ? 'Archivo listo para cargar'
                       : dropzone.isDragActive
                         ? 'Suelta el archivo aqui'
-                        : 'Arrastra tu archivo .docx o haz clic para seleccionarlo'}
+                        : 'Arrastra un .docx o haz clic para seleccionarlo'}
                 </p>
                 <p className='mt-2 text-body text-muted-foreground'>
                   {dropzone.isDragReject
                     ? 'Solo se admiten documentos Word (.docx).'
-                    : 'Tu documento se enviara y quedara listo para revision en la siguiente pantalla.'}
+                    : 'Se creara una ejecucion nueva y pasaras a la revision.'}
                 </p>
                 <Button type='button' size='lg' className='mt-6'>
                   <Upload className='mr-2 size-5' />
@@ -115,42 +111,20 @@ export function UploadPage() {
             )}
           </div>
 
-          <aside className='space-y-4 surface-card p-5'>
-            <div className='content-block-accent p-4'>
-              <p className='section-eyebrow text-accent'>Estado del paso 2</p>
-              <p className='mt-1 text-sm font-semibold text-foreground'>{uploadStageLabel}</p>
-              <p className='mt-1 text-sm text-surface-accent-foreground/82'>
-                {isProcessing ? 'La ejecucion se esta creando. En breve pasaras al paso 3: resultados.' : 'Carga un archivo valido para continuar al paso de resultados.'}
-              </p>
+          <div className='grid gap-3 md:grid-cols-3'>
+            <div className='content-block-subtle p-4'>
+              <p className='section-kicker'>Formato</p>
+              <p className='mt-1 font-medium text-foreground'>`.docx`</p>
             </div>
-
-            <h3 className='text-base font-semibold text-foreground'>Checklist de confianza</h3>
-            <ul className='feature-list'>
-              <li className='feature-list-item'>
-                <CheckCircle2 className='mt-0.5 size-4 text-success' />
-                <span>Entrada controlada: solo `.docx`.</span>
-              </li>
-              <li className='feature-list-item'>
-                <CheckCircle2 className='mt-0.5 size-4 text-success' />
-                <span>Creacion inmediata de ejecucion para continuar sin friccion.</span>
-              </li>
-              <li className='feature-list-item'>
-                <CheckCircle2 className='mt-0.5 size-4 text-success' />
-                <span>Transicion directa a resultados para validar y corregir.</span>
-              </li>
-            </ul>
-            <div className='content-block p-4'>
-              <p className='section-kicker'>Continuidad del flujo</p>
-              <div className='mt-2 space-y-2 text-sm text-surface-foreground'>
-                <p><span className='font-medium text-foreground'>1. Dashboard:</span> define la accion y prepara la demo.</p>
-                <p><span className='font-medium text-foreground'>2. Upload:</span> valida entrada y crea la ejecucion.</p>
-                <p><span className='font-medium text-foreground'>3. Results:</span> demuestra valor con revision y exportacion.</p>
-              </div>
+            <div className='content-block-subtle p-4'>
+              <p className='section-kicker'>Cantidad</p>
+              <p className='mt-1 font-medium text-foreground'>1 archivo por carga</p>
             </div>
-            <div className='info-strip'>
-              Consejo para demo: usa un archivo con varias consignaciones para mostrar validacion y exportacion en un solo recorrido.
+            <div className='content-block-subtle p-4'>
+              <p className='section-kicker'>Siguiente paso</p>
+              <p className='mt-1 font-medium text-foreground'>Revisar resultados</p>
             </div>
-          </aside>
+          </div>
         </div>
       </Card>
     </div>

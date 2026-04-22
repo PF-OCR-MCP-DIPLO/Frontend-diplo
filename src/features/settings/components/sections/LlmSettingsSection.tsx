@@ -17,10 +17,10 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
   const llmRequirements = options.provider_requirements[values.llm_provider];
 
   return (
-    <SettingsSection title='Extraccion estructurada (LLM)'>
+    <SettingsSection title='LLM' description='Configura la extraccion estructurada.'>
       <div className='grid gap-5 sm:grid-cols-2'>
         <div className='field-stack'>
-          <Label htmlFor='llm-provider'>LLM provider</Label>
+          <Label htmlFor='llm-provider'>Proveedor</Label>
           <Select
             id='llm-provider'
             value={values.llm_provider}
@@ -30,7 +30,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
           </Select>
         </div>
         <div className='field-stack'>
-          <Label htmlFor='llm-model'>LLM model</Label>
+          <Label htmlFor='llm-model'>Modelo</Label>
           <Input
             id='llm-model'
             value={values.llm_model}
@@ -44,7 +44,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
       <div className='grid gap-5 sm:grid-cols-2'>
         {llmRequirements?.requires_api_key ? (
           <div className='field-stack'>
-            <Label htmlFor='llm-api-key'>LLM provider API key</Label>
+            <Label htmlFor='llm-api-key'>API key</Label>
             <Input
               id='llm-api-key'
               type='password'
@@ -55,7 +55,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
           </div>
         ) : null}
         <div className='field-stack'>
-          <Label htmlFor='timeout'>Request timeout (seconds)</Label>
+          <Label htmlFor='timeout'>Timeout (segundos)</Label>
           <Input
             id='timeout'
             type='number'
@@ -63,12 +63,12 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             value={values.request_timeout_seconds}
             onChange={(event) => onChange({ ...values, request_timeout_seconds: Number(event.target.value) || 30 })}
           />
-          <p className='field-help'>Aplica a proveedores remotos y extraccion LLM.</p>
+          <p className='field-help'>Aplica a solicitudes remotas.</p>
         </div>
       </div>
 
       {llmRequirements && !llmRequirements.operational ? (
-        <p className='notice-warning'>El provider LLM seleccionado aun no esta operativo en este MVP.</p>
+        <p className='notice-warning'>Este proveedor LLM aun no esta operativo.</p>
       ) : null}
     </SettingsSection>
   );

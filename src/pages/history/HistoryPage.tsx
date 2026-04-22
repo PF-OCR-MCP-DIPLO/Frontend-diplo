@@ -43,8 +43,8 @@ export function HistoryPage() {
       <div className='page-stack'>
         <PageHeader
           eyebrow='Historial'
-          title='Historial de ejecuciones'
-          description='Consulta procesos anteriores, revisa su estado y vuelve a abrir cualquier resultado.'
+          title='Historial'
+          description='Abre una ejecucion anterior y continua la revision.'
         />
         <StatePanel
           tone='warning'
@@ -81,9 +81,9 @@ export function HistoryPage() {
     <div className='page-stack'>
       <PageHeader
         eyebrow='Historial'
-        title='Historial de ejecuciones'
-        description='Consulta procesos anteriores, revisa su estado y vuelve a abrir cualquier resultado.'
-        actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar historial</Button>}
+        title='Historial'
+        description='Abre una ejecucion anterior y continua la revision.'
+        actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar</Button>}
       />
       <HistoryJobsTable items={processedFiles} onOpenResult={(id) => void openResult(id, 'No se pudo abrir la ejecucion')} />
     </div>

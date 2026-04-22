@@ -1,11 +1,19 @@
 import type { ReactNode } from 'react';
 
-export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+export function SettingsSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
     <section className='form-section space-y-5'>
       <div>
-        <p className='section-kicker'>Configuracion</p>
-        <h3 className='mt-2 text-lg font-semibold text-foreground'>{title}</h3>
+        <h3 className='text-lg font-semibold text-foreground'>{title}</h3>
+        {description ? <p className='mt-1 text-sm text-muted-foreground'>{description}</p> : null}
       </div>
       {children}
     </section>

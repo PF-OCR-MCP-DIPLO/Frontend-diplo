@@ -14,6 +14,10 @@ interface HistoryJobsTableProps {
 export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps) {
   return (
     <Card className='overflow-hidden'>
+      <div className='border-b border-border/70 px-5 py-4'>
+        <h2 className='font-semibold text-foreground'>Ejecuciones</h2>
+        <p className='text-sm text-muted-foreground'>{items.length} resultado{items.length === 1 ? '' : 's'} disponible{items.length === 1 ? '' : 's'}.</p>
+      </div>
       <div className='overflow-auto'>
         <Table>
           <TableHeader>
@@ -26,7 +30,7 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
           </TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.id}>
+              <TableRow key={item.id} className='cursor-pointer' onClick={() => onOpenResult(item.id)}>
                 <TableCell>
                   <div className='flex items-center gap-2'>
                     <div className='icon-chip-primary size-9'>
@@ -45,7 +49,15 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
                   </div>
                 </TableCell>
                 <TableCell className='text-right'>
-                  <Button variant='outline' size='sm' onClick={() => onOpenResult(item.id)} className='gap-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenResult(item.id);
+                    }}
+                    className='gap-2'
+                  >
                     <Eye className='size-4' />
                     Abrir
                   </Button>
