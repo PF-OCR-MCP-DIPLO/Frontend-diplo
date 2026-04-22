@@ -8,7 +8,7 @@ vi.mock('@/services/http/client', () => ({
   resolveAssetUrl: (path: string) => resolveAssetUrlMock(path),
 }));
 
-import { getJob, listJobs } from '@/features/processing/api/processing.api';
+import { getJob, listJobs, saveJobCorrections } from '@/features/processing/api/processing.api';
 
 describe('processing.api', () => {
   beforeEach(() => {
@@ -61,5 +61,51 @@ describe('processing.api', () => {
     expect(job.excel_file).toBe('RESOLVED:/media/out.xlsx');
     expect(job.source_images[0].image_file).toBe('RESOLVED:/media/image1.png');
   });
-});
 
+  it('sends bulk correction payload to the dedicated endpoint', async () => {
+    httpRequestMock.mockResolvedValueOnce({
+      id: 1,
+      original_filename: 'file.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 1,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+
+    await saveJobCorrections(1, {
+      items: [
+        {
+          id: 99,
+          fecha_consignacion: '22/04/2026',
+          hora_consignacion: '15:45',
+          referencia: 'REF999',
+          valor: '175000',
+        },
+      ],
+    });
+
+    expect(httpRequestMock).toHaveBeenCalledWith('jobs/1/deposits/', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: [
+          {
+            id: 99,
+            fecha_consignacion: '22/04/2026',
+            hora_consignacion: '15:45',
+            referencia: 'REF999',
+            valor: '175000',
+          },
+        ],
+      }),
+    });
+  });
+});

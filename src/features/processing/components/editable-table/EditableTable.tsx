@@ -12,11 +12,12 @@ interface EditableTableProps {
   onRowClick?: (row: ConsignmentRow) => void;
 }
 
-const columns: Array<{ key: keyof ConsignmentRow; label: string; className?: string }> = [
+const columns: Array<{ key: keyof ConsignmentRow; label: string; className?: string; editable?: boolean }> = [
   { key: 'fecha', label: 'Fecha', className: 'w-[120px]' },
+  { key: 'hora', label: 'Hora', className: 'w-[100px]' },
   { key: 'monto', label: 'Monto', className: 'w-[140px]' },
   { key: 'referencia', label: 'Referencia', className: 'w-[160px]' },
-  { key: 'banco', label: 'Banco', className: 'w-[140px]' },
+  { key: 'sourceName', label: 'Archivo origen', className: 'w-[160px]', editable: false },
 ];
 
 export function EditableTable({ data, onDataChange, onRowClick }: EditableTableProps) {
@@ -43,6 +44,7 @@ export function EditableTable({ data, onDataChange, onRowClick }: EditableTableP
                     <EditableCell
                       row={row}
                       field={column.key}
+                      editable={column.editable !== false}
                       isEditing={table.editingCell?.rowId === row.id && table.editingCell?.field === column.key}
                       onEdit={table.startEditing}
                       onChange={table.updateCell}

@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getJobLogs } from '@/features/processing/api/processing.api';
 import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
 
 export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]) {
   const [data, setData] = useState<ConsignmentRow[]>(initialData);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
@@ -15,6 +16,20 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
   const logsCacheRef = useRef(new Map<number, ApiExtractionLog[]>());
 
   const errorCount = useMemo(() => data.filter((row) => row.estado === 'error').length, [data]);
+
+  useEffect(() => {
+    setData(initialData);
+    setHasUnsavedChanges(false);
+  }, [initialData, jobId]);
+
+  function updateData(nextData: ConsignmentRow[]) {
+    setData(nextData);
+    setHasUnsavedChanges(true);
+  }
+
+  function markSaved() {
+    setHasUnsavedChanges(false);
+  }
 
   function handleErrorClick(rowId: string) {
     const element = document.getElementById(rowId);
@@ -51,7 +66,9 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
 
   return {
     data,
-    setData,
+    setData: updateData,
+    hasUnsavedChanges,
+    markSaved,
     errorCount,
     showChat,
     setShowChat,

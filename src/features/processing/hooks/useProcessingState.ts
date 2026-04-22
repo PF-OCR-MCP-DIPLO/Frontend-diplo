@@ -6,6 +6,8 @@ export interface ProcessingState {
   setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   isExporting: boolean;
   setIsExporting: React.Dispatch<React.SetStateAction<boolean>>;
+  isSavingCorrections: boolean;
+  setIsSavingCorrections: React.Dispatch<React.SetStateAction<boolean>>;
   isLoadingHistory: boolean;
   setIsLoadingHistory: React.Dispatch<React.SetStateAction<boolean>>;
   isRefreshing: boolean;
@@ -21,6 +23,7 @@ export interface ProcessingState {
 export function useProcessingState(): ProcessingState {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSavingCorrections, setIsSavingCorrections] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -33,6 +36,8 @@ export function useProcessingState(): ProcessingState {
       setIsProcessing,
       isExporting,
       setIsExporting,
+      isSavingCorrections,
+      setIsSavingCorrections,
       isLoadingHistory,
       setIsLoadingHistory,
       isRefreshing,
@@ -44,6 +49,6 @@ export function useProcessingState(): ProcessingState {
       currentResults,
       setCurrentResults,
     }),
-    [currentResults, historyError, isExporting, isLoadingHistory, isProcessing, isRefreshing, processedFiles]
+    [currentResults, historyError, isExporting, isLoadingHistory, isProcessing, isRefreshing, isSavingCorrections, processedFiles]
   );
 }

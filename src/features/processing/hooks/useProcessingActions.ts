@@ -1,8 +1,14 @@
 import { useCallback, useMemo } from 'react';
-import { exportJob, getJob, listJobs, processJob, uploadDocument } from '@/features/processing/api/processing.api';
+import { exportJob, getJob, listJobs, processJob, saveJobCorrections, uploadDocument } from '@/features/processing/api/processing.api';
 import type { ProcessingState } from '@/features/processing/hooks/useProcessingState';
 import { mapJobListItemToPlaceholder, mapJobToProcessedFile } from '@/features/processing/mappers/processing.mappers';
+import type { ConsignmentRow } from '@/features/processing/types/processing.types';
 import { mergeProcessedJob } from '@/features/processing/utils/processing-store';
+
+const TERMINAL_STATUSES = new Set(['completed', 'completed_with_errors', 'failed']);
+const PROCESSING_POLL_INTERVAL_MS = 1500;
+const PROCESSING_POLL_TIMEOUT_MS = 90_000;
+export const ACTIVE_JOB_STORAGE_KEY = 'diplo.active-job-id';
 
 export function useProcessingActions({
   currentResults,
@@ -11,6 +17,7 @@ export function useProcessingActions({
   setIsLoadingHistory,
   setIsProcessing,
   setIsRefreshing,
+  setIsSavingCorrections,
   setProcessedFiles,
   setHistoryError,
 }: ProcessingState) {
@@ -19,6 +26,9 @@ export function useProcessingActions({
   const upsertCurrentJob = useCallback((job: ReturnType<typeof mapJobToProcessedFile>) => {
     setProcessedFiles((previous) => mergeProcessedJob(previous, job));
     setCurrentResults(job);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(ACTIVE_JOB_STORAGE_KEY, String(job.jobId));
+    }
     return job;
   }, [setCurrentResults, setProcessedFiles]);
 
@@ -50,6 +60,21 @@ export function useProcessingActions({
     }
   }, [setIsRefreshing, upsertCurrentJob]);
 
+  const pollJobUntilSettled = useCallback(async (jobId: number) => {
+    const startedAt = Date.now();
+    let latestJob = await selectResultByJobId(jobId);
+
+    while (latestJob && !TERMINAL_STATUSES.has(latestJob.status)) {
+      if (Date.now() - startedAt >= PROCESSING_POLL_TIMEOUT_MS) {
+        throw new Error('El procesamiento sigue en curso. Usa "Actualizar estado" para consultar el resultado final.');
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, PROCESSING_POLL_INTERVAL_MS));
+      latestJob = await selectResultByJobId(jobId);
+    }
+
+    return latestJob;
+  }, [selectResultByJobId]);
+
   const processFile = useCallback(async (file: File) => {
     setIsProcessing(true);
     try {
@@ -69,11 +94,15 @@ export function useProcessingActions({
     setIsProcessing(true);
     try {
       const job = mapJobToProcessedFile(await processJob(targetJobId));
-      return upsertCurrentJob(job);
+      const updatedJob = upsertCurrentJob(job);
+      if (TERMINAL_STATUSES.has(updatedJob.status)) {
+        return updatedJob;
+      }
+      return await pollJobUntilSettled(targetJobId);
     } finally {
       setIsProcessing(false);
     }
-  }, [currentJobId, setIsProcessing, upsertCurrentJob]);
+  }, [currentJobId, pollJobUntilSettled, setIsProcessing, upsertCurrentJob]);
 
   const refreshJob = useCallback(async (jobId?: number) => {
     const targetJobId = jobId ?? currentJobId;
@@ -98,6 +127,31 @@ export function useProcessingActions({
     }
   }, [currentJobId, setIsExporting, upsertCurrentJob]);
 
+  const saveCurrentCorrections = useCallback(async (rows: ConsignmentRow[], jobId?: number) => {
+    const targetJobId = jobId ?? currentJobId;
+    if (!targetJobId) {
+      return null;
+    }
+
+    setIsSavingCorrections(true);
+    try {
+      const job = mapJobToProcessedFile(
+        await saveJobCorrections(targetJobId, {
+          items: rows.map((row) => ({
+            id: row.depositId,
+            fecha_consignacion: row.fecha === 'Sin fecha' ? '' : row.fecha,
+            hora_consignacion: row.hora,
+            referencia: row.referencia,
+            valor: row.monto,
+          })),
+        })
+      );
+      return upsertCurrentJob(job);
+    } finally {
+      setIsSavingCorrections(false);
+    }
+  }, [currentJobId, setIsSavingCorrections, upsertCurrentJob]);
+
   const selectResult = useCallback(async (id: string) => {
     const jobId = Number(id);
     if (Number.isNaN(jobId)) {
@@ -112,10 +166,11 @@ export function useProcessingActions({
       selectResultByJobId,
       processFile,
       runProcessing,
+      saveCurrentCorrections,
       refreshJob,
       exportCurrentJob,
       selectResult,
     }),
-    [exportCurrentJob, processFile, refreshHistory, refreshJob, runProcessing, selectResult, selectResultByJobId]
+    [exportCurrentJob, processFile, refreshHistory, refreshJob, runProcessing, saveCurrentCorrections, selectResult, selectResultByJobId]
   );
 }

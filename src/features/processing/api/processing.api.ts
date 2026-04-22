@@ -1,5 +1,10 @@
 import { httpRequest, resolveAssetUrl } from '@/services/http/client';
-import type { ApiExtractionLog, ApiJobDetail, ApiJobListItem } from '@/features/processing/types/processing.api';
+import type {
+  ApiBulkDepositCorrectionPayload,
+  ApiExtractionLog,
+  ApiJobDetail,
+  ApiJobListItem,
+} from '@/features/processing/types/processing.api';
 
 function normalizeJobDetail(job: ApiJobDetail): ApiJobDetail {
   return {
@@ -26,6 +31,16 @@ export function uploadDocument(file: File) {
 export function processJob(jobId: number) {
   return httpRequest<ApiJobDetail>(`jobs/${jobId}/process/`, {
     method: 'POST',
+  }).then(normalizeJobDetail);
+}
+
+export function saveJobCorrections(jobId: number, payload: ApiBulkDepositCorrectionPayload) {
+  return httpRequest<ApiJobDetail>(`jobs/${jobId}/deposits/`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   }).then(normalizeJobDetail);
 }
 

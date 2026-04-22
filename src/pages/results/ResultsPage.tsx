@@ -11,12 +11,13 @@ import {
   useProcessingFlagsContext,
 } from '@/features/processing/hooks/useProcessingContext';
 import { mapSourceImagesToPreview } from '@/features/processing/mappers/processing.mappers';
+import type { ConsignmentRow } from '@/features/processing/types/processing.types';
 
 export function ResultsPage() {
   const navigate = useNavigate();
-  const { runProcessing, refreshJob, exportCurrentJob } = useProcessingActionsContext();
+  const { runProcessing, refreshJob, exportCurrentJob, saveCurrentCorrections } = useProcessingActionsContext();
   const { currentResults } = useProcessingCurrentResultContext();
-  const { isProcessing, isRefreshing, isExporting } = useProcessingFlagsContext();
+  const { isProcessing, isRefreshing, isExporting, isSavingCorrections } = useProcessingFlagsContext();
 
   const handleProcess = useCallback(async () => {
     try {
@@ -49,6 +50,18 @@ export function ResultsPage() {
     }
   }, [exportCurrentJob]);
 
+  const handleSaveCorrections = useCallback(async (rows: ConsignmentRow[]) => {
+    try {
+      const result = await saveCurrentCorrections(rows);
+      if (result) {
+        toast.success('Correcciones guardadas y sincronizadas con la exportacion');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron guardar las correcciones');
+      throw error;
+    }
+  }, [saveCurrentCorrections]);
+
   if (!currentResults) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -80,9 +93,11 @@ export function ResultsPage() {
       isProcessing={isProcessing}
       isRefreshing={isRefreshing}
       isExporting={isExporting}
+      isSavingCorrections={isSavingCorrections}
       onProcess={() => void handleProcess()}
       onRefresh={() => void handleRefresh()}
       onExport={() => void handleExport()}
+      onSaveCorrections={handleSaveCorrections}
     />
   );
 }

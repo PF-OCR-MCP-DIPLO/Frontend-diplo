@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ApiJobDetail, ApiJobListItem, ApiSourceImage } from '@/features/processing/types/processing.api';
 
-vi.mock('@/lib/utils/format', () => ({
-  formatCurrency: (value: unknown) => `COP:${String(value)}`,
-}));
-
 import { mapJobListItemToPlaceholder, mapJobToConsignmentRows, mapJobToProcessedFile, mapSourceImagesToPreview } from '@/features/processing/mappers/processing.mappers';
 
 describe('processing.mappers', () => {
@@ -58,9 +54,11 @@ describe('processing.mappers', () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
+      depositId: 99,
+      hora: '10:00',
       referencia: 'REF001',
-      monto: 'COP:50000',
-      banco: 'image1.png',
+      monto: '50000',
+      sourceName: 'image1.png',
       estado: 'error',
     });
     expect(rows[0].errors).toEqual(['Fecha fuera del mes actual', 'OCR falló']);

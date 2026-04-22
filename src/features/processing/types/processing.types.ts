@@ -5,10 +5,13 @@ export type RowStatus = 'valid' | 'error';
 
 export interface ConsignmentRow {
   id: string;
+  depositId: number;
+  sourceImageId: number;
   fecha: string;
+  hora: string;
   monto: string;
   referencia: string;
-  banco: string;
+  sourceName: string;
   estado: RowStatus;
   errors: string[];
 }

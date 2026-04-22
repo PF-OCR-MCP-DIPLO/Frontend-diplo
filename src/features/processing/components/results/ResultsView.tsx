@@ -29,17 +29,20 @@ interface ResultsViewProps {
   isProcessing: boolean;
   isRefreshing: boolean;
   isExporting: boolean;
+  isSavingCorrections: boolean;
   onProcess: () => void;
   onRefresh: () => void;
   onExport: () => void;
+  onSaveCorrections: (rows: ConsignmentRow[]) => Promise<void>;
 }
 
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [workspaceSection, setWorkspaceSection] = useState<'review' | 'tools'>('review');
-  const canExport = props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl);
+  const canExport = (props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl)) && !viewState.hasUnsavedChanges;
   const errorRows = viewState.data.filter((row) => row.estado === 'error');
   const topErrorRows = errorRows.slice(0, 4);
+  const canSaveCorrections = !props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges;
 
   async function handleOpenLogs() {
     try {
@@ -130,6 +133,31 @@ export function ResultsView(props: ResultsViewProps) {
             <div className='rounded-[28px] border border-slate-200 bg-white/90 p-3 shadow-sm'>
               <EditableTable data={viewState.data} onDataChange={viewState.setData} onRowClick={(row) => viewState.handleErrorClick(row.id)} />
             </div>
+            <section className='rounded-[24px] border border-slate-200 bg-white p-4'>
+              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div>
+                  <h4 className='font-semibold text-slate-900'>Persistencia de correcciones</h4>
+                  <p className='text-sm text-slate-600'>
+                    {viewState.hasUnsavedChanges
+                      ? 'Tienes cambios locales pendientes. Guarda antes de exportar para que el Excel refleje la version corregida.'
+                      : 'La tabla esta sincronizada con el backend. Cualquier exportacion usara estos datos persistidos.'}
+                  </p>
+                </div>
+                <Button
+                  type='button'
+                  className='rounded-2xl'
+                  disabled={!canSaveCorrections}
+                  onClick={() =>
+                    void props
+                      .onSaveCorrections(viewState.data)
+                      .then(() => viewState.markSaved())
+                      .catch(() => undefined)
+                  }
+                >
+                  {props.isSavingCorrections ? 'Guardando...' : 'Guardar correcciones'}
+                </Button>
+              </div>
+            </section>
             <section className='rounded-[24px] border border-slate-200 bg-slate-50/80 p-4'>
               <div className='flex flex-wrap items-start justify-between gap-3'>
                 <div>

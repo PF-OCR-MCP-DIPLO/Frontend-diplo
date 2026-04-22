@@ -11,6 +11,7 @@ export interface ProcessingContextValue {
   currentResults: ProcessedFile | null;
   processFile: (file: File) => Promise<ProcessedFile>;
   runProcessing: (jobId?: number) => Promise<ProcessedFile | null>;
+  saveCurrentCorrections: (rows: ProcessedFile['data'], jobId?: number) => Promise<ProcessedFile | null>;
   refreshJob: (jobId?: number) => Promise<ProcessedFile | null>;
   refreshHistory: () => Promise<void>;
   exportCurrentJob: (jobId?: number) => Promise<ProcessedFile | null>;
@@ -31,12 +32,14 @@ export interface ProcessingCurrentResultContextValue {
 export interface ProcessingFlagsContextValue {
   isProcessing: boolean;
   isExporting: boolean;
+  isSavingCorrections: boolean;
   isRefreshing: boolean;
 }
 
 export interface ProcessingActionsContextValue {
   processFile: (file: File) => Promise<ProcessedFile>;
   runProcessing: (jobId?: number) => Promise<ProcessedFile | null>;
+  saveCurrentCorrections: (rows: ProcessedFile['data'], jobId?: number) => Promise<ProcessedFile | null>;
   refreshJob: (jobId?: number) => Promise<ProcessedFile | null>;
   refreshHistory: () => Promise<void>;
   exportCurrentJob: (jobId?: number) => Promise<ProcessedFile | null>;

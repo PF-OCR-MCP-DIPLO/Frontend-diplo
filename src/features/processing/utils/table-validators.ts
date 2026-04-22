@@ -2,7 +2,17 @@ import type { ConsignmentRow, RowStatus } from '@/features/processing/types/proc
 import { isValidCurrencyInput } from '@/features/processing/utils/table-formatters';
 
 function validateFecha(value: string) {
-  return value.trim() ? [] : ['La fecha es obligatoria'];
+  if (!value.trim()) {
+    return [];
+  }
+  return /^\d{2}\/\d{2}\/\d{4}$/.test(value.trim()) ? [] : ['La fecha debe tener formato DD/MM/YYYY'];
+}
+
+function validateHora(value: string) {
+  if (!value.trim()) {
+    return [];
+  }
+  return /^\d{2}:\d{2}$/.test(value.trim()) ? [] : ['La hora debe tener formato HH:MM'];
 }
 
 function validateMonto(value: string) {
@@ -13,16 +23,17 @@ function validateReferencia(value: string) {
   return value.trim().length >= 3 ? [] : ['La referencia debe tener al menos 3 caracteres'];
 }
 
-function validateBanco(value: string) {
-  return value.trim() ? [] : ['El banco es obligatorio'];
+function validateSourceName(value: string) {
+  return value.trim() ? [] : ['El archivo origen es obligatorio'];
 }
 
 export function validateRow(row: ConsignmentRow): { estado: RowStatus; errors: string[] } {
   const nextErrors = [
     ...validateFecha(row.fecha),
+    ...validateHora(row.hora),
     ...validateMonto(row.monto),
     ...validateReferencia(row.referencia),
-    ...validateBanco(row.banco),
+    ...validateSourceName(row.sourceName),
   ];
 
   return {

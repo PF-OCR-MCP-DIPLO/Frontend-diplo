@@ -62,3 +62,15 @@ export interface ApiExtractionLog {
   is_error: boolean;
   created_at: string;
 }
+
+export interface ApiDepositCorrectionItem {
+  id: number;
+  fecha_consignacion: string;
+  hora_consignacion: string;
+  referencia: string;
+  valor: string;
+}
+
+export interface ApiBulkDepositCorrectionPayload {
+  items: ApiDepositCorrectionItem[];
+}

@@ -21,7 +21,7 @@ export function AIChat({ errors }: AIChatProps) {
     {
       id: "1",
       role: "assistant",
-      content: `He detectado ${errors} errores en el documento. ¿En qué puedo ayudarte?`,
+      content: `Este panel ofrece orientacion local basada en la cantidad de hallazgos detectados (${errors}). No consulta un modelo externo ni modifica el backend por si solo.`,
       timestamp: new Date(),
     },
   ]);
@@ -56,9 +56,12 @@ export function AIChat({ errors }: AIChatProps) {
     <Card className="flex h-full flex-col">
       <div className="border-b border-gray-200 p-4">
         <div className="flex items-center gap-2">
-          <Bot className="size-5 text-blue-600" />
-          <h3 className="font-semibold text-gray-900">Asistente IA</h3>
+                  <Bot className="size-5 text-blue-600" />
+          <h3 className="font-semibold text-gray-900">Asistente de revision</h3>
         </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Sugerencias guiadas para la demo. No reemplaza la validacion humana ni persiste cambios automaticamente.
+        </p>
       </div>
 
       <ScrollArea className="flex-1 p-4">

@@ -1,4 +1,3 @@
-import { formatCurrency } from '@/lib/utils/format';
 import type { ApiJobDetail, ApiJobListItem } from '@/features/processing/types/processing.api';
 import type { ConsignmentRow, PreviewImage, ProcessedFile, RowStatus } from '@/features/processing/types/processing.types';
 
@@ -11,10 +10,13 @@ export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
     .flatMap((image) =>
       image.deposits.map((deposit): ConsignmentRow => ({
         id: `${image.id}-${deposit.id}`,
+        depositId: deposit.id,
+        sourceImageId: image.id,
         fecha: deposit.fecha_consignacion || 'Sin fecha',
-        monto: formatCurrency(deposit.valor),
+        hora: deposit.hora_consignacion || '',
+        monto: String(deposit.valor),
         referencia: deposit.referencia,
-        banco: image.source_name,
+        sourceName: image.source_name,
         estado: resolveRowStatus(image.ocr_status === 'failed', deposit.observations.length > 0),
         errors: [...deposit.observations, ...(image.error_message ? [image.error_message] : [])],
       }))

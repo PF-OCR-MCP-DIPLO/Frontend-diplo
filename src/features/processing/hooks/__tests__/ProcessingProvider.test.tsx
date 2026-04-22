@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ProcessingProvider } from '@/features/processing/hooks/ProcessingProvider';
 import { useProcessingHistoryContext } from '@/features/processing/hooks/useProcessingContext';
+import { ACTIVE_JOB_STORAGE_KEY } from '@/features/processing/hooks/useProcessingActions';
 
 const listJobsMock = vi.fn();
 
@@ -27,6 +28,7 @@ function Consumer() {
 describe('ProcessingProvider', () => {
   beforeEach(() => {
     listJobsMock.mockReset();
+    window.localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY);
   });
 
   it('loads history once on mount and exposes jobs', async () => {

@@ -48,6 +48,7 @@ vi.mock('@/features/processing/hooks/useProcessingContext', () => ({
   }),
   useProcessingFlagsContext: () => ({
     isProcessing: false,
+    isSavingCorrections: false,
   }),
 }));
 

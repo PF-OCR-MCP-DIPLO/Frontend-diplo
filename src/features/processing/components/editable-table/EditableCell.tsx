@@ -4,6 +4,7 @@ import type { ConsignmentRow } from '@/features/processing/types/processing.type
 interface EditableCellProps {
   row: ConsignmentRow;
   field: keyof ConsignmentRow;
+  editable: boolean;
   isEditing: boolean;
   onEdit: (rowId: string, field: keyof ConsignmentRow) => void;
   onChange: (rowId: string, field: keyof ConsignmentRow, value: string) => void;
@@ -11,7 +12,7 @@ interface EditableCellProps {
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-export function EditableCell({ row, field, isEditing, onEdit, onChange, onBlur, onKeyDown }: EditableCellProps) {
+export function EditableCell({ row, field, editable, isEditing, onEdit, onChange, onBlur, onKeyDown }: EditableCellProps) {
   const value = String(row[field]);
   const hasError = row.estado === 'error';
   const label = `Editar ${field} de la fila ${row.referencia || row.id}`;
@@ -28,6 +29,10 @@ export function EditableCell({ row, field, isEditing, onEdit, onChange, onBlur, 
         className={`h-8 ${hasError ? 'border-red-500' : ''}`}
       />
     );
+  }
+
+  if (!editable) {
+    return <span className='block px-2 py-1 text-slate-600'>{value}</span>;
   }
 
   return (

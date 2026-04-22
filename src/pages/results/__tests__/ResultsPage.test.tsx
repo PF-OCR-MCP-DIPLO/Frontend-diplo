@@ -17,6 +17,7 @@ vi.mock('@/features/processing/hooks/useProcessingContext', () => ({
     runProcessing: vi.fn(),
     refreshJob: vi.fn(),
     exportCurrentJob: vi.fn(),
+    saveCurrentCorrections: vi.fn(),
   }),
   useProcessingCurrentResultContext: () => ({
     currentResults: null,
@@ -25,6 +26,7 @@ vi.mock('@/features/processing/hooks/useProcessingContext', () => ({
     isProcessing: false,
     isRefreshing: false,
     isExporting: false,
+    isSavingCorrections: false,
   }),
 }));
 
@@ -41,4 +43,3 @@ describe('ResultsPage', () => {
     expect(navigateMock).toHaveBeenCalledWith('/upload');
   });
 });
-

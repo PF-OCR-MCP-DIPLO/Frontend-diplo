@@ -5,10 +5,12 @@ import type { ProcessingState } from '@/features/processing/hooks/useProcessingS
 
 const uploadDocumentMock = vi.fn();
 const processJobMock = vi.fn();
+const saveJobCorrectionsMock = vi.fn();
 
 vi.mock('@/features/processing/api/processing.api', () => ({
   uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
   processJob: (...args: unknown[]) => processJobMock(...args),
+  saveJobCorrections: (...args: unknown[]) => saveJobCorrectionsMock(...args),
   getJob: vi.fn(),
   listJobs: vi.fn(),
   exportJob: vi.fn(),
@@ -28,6 +30,7 @@ describe('useProcessingActions', () => {
       processedFiles: [],
       historyError: null,
       isExporting: false,
+      isSavingCorrections: false,
       isLoadingHistory: false,
       isRefreshing: false,
       setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
@@ -35,6 +38,7 @@ describe('useProcessingActions', () => {
       setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
       setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
       setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
       setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
       setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
     } satisfies ProcessingState;
@@ -71,6 +75,7 @@ describe('useProcessingActions', () => {
       processedFiles: [],
       historyError: null,
       isExporting: false,
+      isSavingCorrections: false,
       isLoadingHistory: false,
       isRefreshing: false,
       setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
@@ -78,6 +83,7 @@ describe('useProcessingActions', () => {
       setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
       setIsProcessing: setIsProcessingMock as unknown as ProcessingState['setIsProcessing'],
       setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
       setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
       setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
     } satisfies ProcessingState;

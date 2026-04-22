@@ -4,10 +4,13 @@ import type { ConsignmentRow } from '@/features/processing/types/processing.type
 
 const baseRow: ConsignmentRow = {
   id: '1',
-  fecha: '2025-01-01',
+  depositId: 1,
+  sourceImageId: 10,
+  fecha: '01/01/2025',
+  hora: '09:30',
   monto: '$ 1200',
   referencia: 'ABC123',
-  banco: 'Bancolombia',
+  sourceName: 'image1.png',
   estado: 'valid',
   errors: [],
 };
@@ -28,18 +31,20 @@ describe('table validators', () => {
     expect(
       validateRow({
         ...baseRow,
-        fecha: '',
+        fecha: '2025-01-01',
+        hora: '123',
         monto: 'abc',
         referencia: 'x',
-        banco: '',
+        sourceName: '',
       })
     ).toEqual({
       estado: 'error',
       errors: [
-        'La fecha es obligatoria',
+        'La fecha debe tener formato DD/MM/YYYY',
+        'La hora debe tener formato HH:MM',
         'El monto debe ser numerico',
         'La referencia debe tener al menos 3 caracteres',
-        'El banco es obligatorio',
+        'El archivo origen es obligatorio',
       ],
     });
   });
