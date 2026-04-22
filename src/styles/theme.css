@@ -329,6 +329,7 @@
 }
 
 @layer components {
+
   .page-stack {
     @apply space-y-8;
   }
@@ -419,9 +420,81 @@
   }
 
   .brand-mark {
-    @apply flex size-11 items-center justify-center rounded-2xl text-sm font-semibold text-white;
-    background-image: linear-gradient(135deg, var(--primary-900), color-mix(in srgb, var(--primary-700) 92%, white 8%), color-mix(in srgb, var(--accent-600) 92%, white 8%));
+    @apply flex items-center justify-center rounded-2xl text-sm font-semibold text-white;
+    background-image: linear-gradient(135deg,
+        var(--primary-900),
+        color-mix(in srgb, var(--primary-700) 92%, white 8%),
+        color-mix(in srgb, var(--accent-600) 92%, white 8%));
     box-shadow: var(--shadow-panel);
+  }
+
+  .app-logo {
+    @apply flex items-center gap-3;
+  }
+
+  .app-logo-expanded {
+    @apply w-full;
+  }
+
+  .app-logo-collapsed {
+    @apply justify-center;
+  }
+
+  .app-logo-mark-expanded {
+    @apply h-11 w-11 shrink-0;
+  }
+
+  .app-logo-mark-collapsed {
+    @apply size-11 shrink-0;
+  }
+
+  .app-logo-copy {
+    @apply min-w-0 space-y-1;
+  }
+
+  .app-logo-title {
+    @apply truncate font-display text-base font-semibold tracking-tight text-sidebar-foreground;
+  }
+
+  .app-logo-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .app-symbol {
+    position: relative;
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .app-symbol-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 2px solid color-mix(in srgb, white 82%, transparent);
+    opacity: 0.95;
+  }
+
+  .app-symbol-ring-1 {
+    transform: rotate(0deg) scaleX(1) scaleY(0.62);
+  }
+
+  .app-symbol-ring-2 {
+    transform: rotate(60deg) scaleX(1) scaleY(0.62);
+  }
+
+  .app-symbol-ring-3 {
+    transform: rotate(120deg) scaleX(1) scaleY(0.62);
+  }
+
+  .app-symbol-center {
+    position: absolute;
+    inset: 50%;
+    width: 0.38rem;
+    height: 0.38rem;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: color-mix(in srgb, white 92%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, white 12%, transparent);
   }
 
   .icon-chip {

@@ -2,23 +2,39 @@ type AppLogoProps = {
   collapsed?: boolean;
 };
 
+function AppSymbol() {
+  return (
+    <div className="app-symbol" aria-hidden="true">
+      <span className="app-symbol-ring app-symbol-ring-1" />
+      <span className="app-symbol-ring app-symbol-ring-2" />
+      <span className="app-symbol-ring app-symbol-ring-3" />
+      <span className="app-symbol-center" />
+    </div>
+  );
+}
+
 export function AppLogo({ collapsed = false }: AppLogoProps) {
   return (
     <div
-      className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}
+      className={
+        collapsed ? "app-logo app-logo-collapsed" : "app-logo app-logo-expanded"
+      }
+      aria-label="Procesador de Consignaciones"
     >
-      <div className='flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f766e,#14b8a6)] text-sm font-semibold text-white shadow-lg shadow-teal-900/15'>
-        PC
+      <div
+        className={
+          collapsed
+            ? "brand-mark app-logo-mark-collapsed"
+            : "brand-mark app-logo-mark-expanded"
+        }
+      >
+        <AppSymbol />
       </div>
 
       {!collapsed ? (
-        <div className='min-w-0'>
-          <p className='truncate text-sm font-semibold text-foreground'>
-            Procesador de Consignaciones
-          </p>
-          <p className='text-xs text-muted-foreground'>
-            Operacion documental guiada
-          </p>
+        <div className="app-logo-copy">
+          <p className="app-logo-title">PC Engine</p>
+          <p className="app-logo-subtitle">Procesador de Consignaciones</p>
         </div>
       ) : null}
     </div>
