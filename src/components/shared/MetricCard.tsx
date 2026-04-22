@@ -28,7 +28,7 @@ const toneClass: Record<MetricTone, { icon: string; value: string }> = {
 interface MetricCardProps {
   label: string;
   value: string;
-  description: string;
+  description?: string;
   icon: LucideIcon;
   tone?: MetricTone;
 }
@@ -49,13 +49,13 @@ export function MetricCard({
           <p className='text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground'>
             {label}
           </p>
-          <p className={`mt-3 text-3xl font-semibold tracking-tight ${styles.value}`}>{value}</p>
+          <p className={`mt-2.5 text-3xl font-semibold tracking-tight ${styles.value}`}>{value}</p>
         </div>
         <div className={`metric-icon ${styles.icon}`}>
           <Icon className='size-5' />
         </div>
       </div>
-      <p className='mt-4 text-body text-muted-foreground'>{description}</p>
+      {description ? <p className='mt-3 text-sm text-muted-foreground'>{description}</p> : null}
     </article>
   );
 }

@@ -62,23 +62,14 @@ export function AppShell() {
               </Button>
 
               <div className='space-y-1'>
-                <p className='section-kicker'>
-                  Plataforma
-                </p>
-                <div>
-                  <p className='text-sm font-semibold text-foreground sm:text-base'>
-                    {currentNavigationItem.label}
-                  </p>
-                  <p className='text-xs text-muted-foreground sm:text-sm'>
-                    {currentNavigationItem.description}
-                  </p>
-                </div>
+                <p className='section-kicker'>Plataforma</p>
+                <p className='text-sm font-semibold text-foreground sm:text-base'>{currentNavigationItem.label}</p>
               </div>
             </div>
 
             <div className='hidden items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent shadow-[var(--shadow-soft)] sm:flex'>
               <span className='size-2 rounded-full bg-accent' aria-hidden='true' />
-              Operacion documental conectada
+              Conectado
             </div>
           </div>
         </header>

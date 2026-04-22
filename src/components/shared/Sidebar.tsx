@@ -39,23 +39,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
           <AppLogo collapsed={collapsed} />
         </div>
 
-        <div className='px-4 pt-4'>
-          {!collapsed ? (
-            <div className='content-block-accent'>
-              <p className='section-eyebrow text-accent'>
-                Espacio de trabajo
-              </p>
-              <p className='mt-2 text-sm font-semibold text-foreground'>
-                Supervisa la carga, la revision y la exportacion desde un mismo centro operativo.
-              </p>
-              <p className='mt-2 text-xs leading-5 text-surface-accent-foreground/82'>
-                La navegacion mantiene contexto continuo entre estados de red, evidencias y salida exportable.
-              </p>
-            </div>
-          ) : null}
-        </div>
-
-        <nav className='flex-1 space-y-2 p-3 pt-4'>
+        <nav className='flex-1 space-y-2 p-3 pt-5'>
           {appNavigation.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.to;
@@ -86,9 +70,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
                 {!collapsed ? (
                   <div className='min-w-0 flex-1'>
                     <p className='font-medium'>{item.label}</p>
-                    <p className={`truncate text-xs ${active ? 'text-white/76' : 'text-muted-foreground/80'}`}>
-                      {item.description}
-                    </p>
+                    <p className={`truncate text-xs ${active ? 'text-white/76' : 'text-muted-foreground/80'}`}>{item.description}</p>
                   </div>
                 ) : null}
 
@@ -104,18 +86,6 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
             );
           })}
         </nav>
-
-        <div className='border-t border-sidebar-border px-4 py-4'>
-          {!collapsed ? (
-            <div className='rounded-2xl border border-border/70 bg-white/74 p-4 text-xs leading-5 text-muted-foreground'>
-              Flujo pensado para operar con trazabilidad: inspeccionar origen, validar datos y exportar sin perder control.
-            </div>
-          ) : (
-            <div className='flex justify-center'>
-              <div className='size-2 rounded-full bg-accent' aria-hidden='true' />
-            </div>
-          )}
-        </div>
       </div>
     </aside>
   );
