@@ -33,13 +33,13 @@ vi.mock('@/features/processing/hooks/useProcessingContext', () => ({
 describe('ResultsPage', () => {
   it('shows empty state when there is no active result', () => {
     render(<ResultsPage />);
-    expect(screen.getByText(/Todavia no hay un resultado activo/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Ir al paso 2/i })).toBeInTheDocument();
+    expect(screen.getByText(/No hay un resultado activo/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ir a carga/i })).toBeInTheDocument();
   });
 
   it('navigates to upload from empty state CTA', () => {
     render(<ResultsPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Ir al paso 2/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Ir a carga/i }));
     expect(navigateMock).toHaveBeenCalledWith('/upload');
   });
 });

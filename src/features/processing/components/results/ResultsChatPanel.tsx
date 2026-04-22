@@ -5,7 +5,7 @@ export function ResultsChatPanel({ errors }: { errors: number }) {
     <div className='surface-card overflow-hidden'>
       <div className='panel-header'>
         <p className='panel-title'>Asistente de revision</p>
-        <p className='mt-1 panel-copy'>Recibe apoyo contextual mientras corriges {errors} hallazgo{errors === 1 ? '' : 's'}.</p>
+        <p className='mt-1 panel-copy'>Ayuda contextual para revisar {errors} hallazgo{errors === 1 ? '' : 's'}.</p>
       </div>
       <div className='h-[320px] sm:h-[400px]'>
         <AIChat errors={errors} />

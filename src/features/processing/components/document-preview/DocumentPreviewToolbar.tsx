@@ -12,13 +12,13 @@ export function DocumentPreviewToolbar({ collapsed, sourceDocxUrl, onToggleColla
     <div className='flex items-center gap-2'>
       <Button variant='outline' size='sm' onClick={onToggleCollapsed} className='gap-2' aria-label={collapsed ? 'Expandir documento' : 'Minimizar documento'}>
         {collapsed ? <Maximize2 className='size-4' /> : <Minimize2 className='size-4' />}
-        {collapsed ? 'Expandir' : 'Minimizar'}
+        {collapsed ? 'Expandir' : 'Ocultar'}
       </Button>
       {sourceDocxUrl ? (
         <Button asChild variant='outline' size='sm'>
           <a href={sourceDocxUrl} target='_blank' rel='noreferrer'>
             <ExternalLink className='size-4' />
-            Abrir .docx
+            Abrir archivo
           </a>
         </Button>
       ) : null}

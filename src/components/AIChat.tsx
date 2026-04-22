@@ -21,7 +21,7 @@ export function AIChat({ errors }: AIChatProps) {
     {
       id: "1",
       role: "assistant",
-      content: `Este panel ofrece orientacion local basada en la cantidad de hallazgos detectados (${errors}). No consulta un modelo externo ni modifica el backend por si solo.`,
+      content: `Asistente local para revisar ${errors} hallazgo${errors === 1 ? "" : "s"}. No modifica datos por si solo.`,
       timestamp: new Date(),
     },
   ]);
@@ -62,7 +62,7 @@ export function AIChat({ errors }: AIChatProps) {
           <h3 className="font-semibold text-foreground">Asistente de revision</h3>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Sugerencias guiadas para la demo. No reemplaza la validacion humana ni persiste cambios automaticamente.
+          Sugerencias de apoyo. No reemplaza la validacion humana.
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function AIChat({ errors }: AIChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="¿Por qué este error?"
+            placeholder="Pregunta por un hallazgo"
             className="flex-1"
           />
           <Button onClick={handleSend} size="icon">

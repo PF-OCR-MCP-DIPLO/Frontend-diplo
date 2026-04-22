@@ -19,76 +19,60 @@ function getPrimaryActionLabel(status: ProcessingStatus) {
     return 'Procesar de nuevo';
   }
   if (status === 'processing') {
-    return 'Procesando en curso';
+    return 'Procesando';
   }
-  return 'Iniciar procesamiento';
+  return 'Procesar';
 }
 
 function getPrimaryActionDescription(status: ProcessingStatus, canExport: boolean) {
   if (status === 'processing') {
-    return 'La ejecucion ya se esta procesando. Actualiza el estado para confirmar cuando termine.';
+    return 'La ejecucion ya se esta procesando.';
   }
 
   if (status === 'completed' || status === 'completed_with_errors') {
     return canExport
-      ? 'Puedes exportar el resultado actual o volver a ejecutar la extraccion si necesitas una nueva corrida.'
-      : 'Los datos ya fueron procesados. Revisa la tabla y define si conviene volver a ejecutar.';
+      ? 'Puedes exportar el resultado actual o volver a ejecutarlo.'
+      : 'Guarda los cambios antes de exportar.';
   }
 
   if (status === 'failed') {
-    return 'Revisa los logs y vuelve a intentar cuando tengas claro el origen del fallo.';
+    return 'Revisa los logs antes de volver a intentarlo.';
   }
 
-  return 'Cuando inicies el procesamiento, esta vista se convertira en tu espacio principal de validacion.';
+  return 'Inicia el procesamiento para cargar los resultados.';
 }
 
 export function ResultsActions(props: ResultsActionsProps) {
   return (
-    <div className='w-full max-w-2xl space-y-4 xl:sticky xl:top-24'>
-      <div className='content-block-accent'>
-        <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+    <div className='w-full max-w-xl space-y-3 xl:sticky xl:top-24'>
+      <div className='content-block-accent p-4'>
+        <div className='flex flex-col gap-4'>
           <div>
-            <p className='section-eyebrow text-accent'>Siguiente paso recomendado</p>
+            <p className='section-eyebrow text-accent'>Accion principal</p>
             <p className='mt-2 text-lg font-semibold text-foreground'>{getPrimaryActionLabel(props.status)}</p>
-            <p className='mt-1 max-w-lg text-body text-surface-accent-foreground/82'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
+            <p className='mt-1 text-sm text-surface-accent-foreground/82'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
           </div>
-          <Button onClick={props.onProcess} className='gap-2' disabled={props.isProcessing || props.status === 'processing'}>
+          <Button onClick={props.onProcess} className='gap-2 self-start' disabled={props.isProcessing || props.status === 'processing'}>
             <Play className='size-4' />
             {props.isProcessing ? 'Procesando...' : getPrimaryActionLabel(props.status)}
           </Button>
         </div>
       </div>
 
-      <div className='content-block'>
-        <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
-          <div>
-            <p className='section-kicker'>Acciones operativas</p>
-            <p className='mt-1 text-body text-muted-foreground'>Usa estas acciones para controlar ciclo del procesamiento sin salir del flujo principal.</p>
-          </div>
-          <div className='meta-pill'>Control de ejecucion</div>
-        </div>
-        <div className='flex flex-wrap gap-2'>
-          <Button variant='outline' onClick={props.onRefresh} className='gap-2' disabled={props.isRefreshing}>
-            <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
-            {props.isRefreshing ? 'Actualizando...' : 'Actualizar estado'}
-          </Button>
-        </div>
-      </div>
-
-      <div className='content-block-subtle flex flex-wrap items-center gap-3 p-4'>
-        <div className='min-w-[180px] flex-1'>
-          <p className='text-sm font-medium text-foreground'>Salida del trabajo</p>
-          <p className='text-sm text-muted-foreground'>Genera un Excel nuevo o descarga el ultimo archivo disponible.</p>
-        </div>
+      <div className='content-block-subtle flex flex-wrap items-center gap-2 p-4'>
+        <Button variant='outline' onClick={props.onRefresh} className='gap-2' disabled={props.isRefreshing}>
+          <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
+          {props.isRefreshing ? 'Actualizando...' : 'Actualizar'}
+        </Button>
         <Button variant='outline' onClick={props.onExport} className='gap-2' disabled={props.isExporting || !props.canExport}>
           <Download className='size-4' />
-          {props.isExporting ? 'Generando Excel...' : 'Generar Excel'}
+          {props.isExporting ? 'Generando...' : 'Generar Excel'}
         </Button>
         {props.excelUrl ? (
           <Button asChild className='gap-2'>
             <a href={props.excelUrl} target='_blank' rel='noreferrer'>
               <FileDown className='size-4' />
-              Descargar Excel
+              Descargar
             </a>
           </Button>
         ) : null}

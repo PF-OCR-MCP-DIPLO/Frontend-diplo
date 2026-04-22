@@ -32,8 +32,8 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
             <FileText className='size-5' />
           </div>
           <div>
-            <h3 className='font-semibold text-foreground'>Documento</h3>
-            <p className='text-sm text-muted-foreground'>Contrasta la extraccion con el material fuente de la ejecucion.</p>
+            <h3 className='font-semibold text-foreground'>Vista previa</h3>
+            <p className='text-sm text-muted-foreground'>Compara el resultado con el documento fuente.</p>
           </div>
         </div>
         <DocumentPreviewToolbar
@@ -47,7 +47,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
         <div className='flex-1 overflow-auto bg-[linear-gradient(180deg,rgba(249,251,253,1),rgba(242,246,250,0.9))] p-5'>
           <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
             <div>
-              <p className='text-sm font-medium text-surface-foreground'>Vista principal del documento</p>
+              <p className='text-sm font-medium text-surface-foreground'>Documento fuente</p>
               <p className='text-sm text-muted-foreground'>{fileName}</p>
             </div>
             <ImageNavigator

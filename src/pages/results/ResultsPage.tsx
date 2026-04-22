@@ -69,9 +69,9 @@ export function ResultsPage() {
           centered
           tone='info'
           icon={FileSearch}
-          title='Todavia no hay un resultado activo para revisar'
-          description='Cuando completes la carga documental, esta vista mostrara estado del procesamiento, tabla editable y salida exportable.'
-          actions={<Button onClick={() => navigate('/upload')}>Ir al paso 2: carga documental</Button>}
+          title='No hay un resultado activo'
+          description='Carga un `.docx` para empezar una nueva revision.'
+          actions={<Button onClick={() => navigate('/upload')}>Ir a carga</Button>}
         />
       </div>
     );
