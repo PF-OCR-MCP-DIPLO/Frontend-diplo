@@ -58,8 +58,8 @@ export function DashboardPage() {
         description='Coordina el recorrido completo de demo: iniciar carga, validar extraccion y cerrar exportacion con evidencia clara.'
         actions={
           <>
-            <Button onClick={() => navigate('/upload')} className='gap-2 rounded-2xl'><FileUp className='size-4' />Iniciar nueva carga</Button>
-            <Button variant='outline' onClick={() => navigate('/history')} className='gap-2 rounded-2xl'>Ver historial</Button>
+            <Button onClick={() => navigate('/upload')} className='gap-2'><FileUp className='size-4' />Iniciar nueva carga</Button>
+            <Button variant='outline' onClick={() => navigate('/history')} className='gap-2'>Ver historial</Button>
           </>
         }
       />
@@ -135,7 +135,7 @@ export function DashboardPage() {
             />
           ) : processedFiles.length === 0 ? (
             <div className='content-block-subtle'>
-              <p className='text-sm font-semibold text-foreground'>Aun no hay ejecuciones recientes</p>
+              <p className='panel-title'>Aun no hay ejecuciones recientes</p>
               <p className='mt-1 text-body text-muted-foreground'>
                 Inicia tu primera carga para habilitar la trazabilidad completa del flujo y mostrar evidencia de punta a punta.
               </p>
@@ -150,7 +150,7 @@ export function DashboardPage() {
                 <button
                   key={file.id}
                   onClick={() => void openResult(file.id, 'No se pudo cargar la ejecucion')}
-                  className='focus-ring flex w-full items-center justify-between gap-3 rounded-2xl border border-border/72 bg-white/82 p-4 text-left transition hover:border-primary/18 hover:bg-primary/5'
+                  className='interactive-row'
                 >
                   <div className='min-w-0 flex-1'>
                     <p className='truncate font-medium text-foreground'>{file.name}</p>
@@ -173,15 +173,15 @@ export function DashboardPage() {
               <h3 className='mt-2 text-lg font-semibold tracking-tight text-foreground'>Recorrido recomendado para demo</h3>
             </div>
             <ol className='space-y-3 text-sm text-surface-foreground'>
-              <li className='rounded-2xl border border-border/72 bg-white/90 p-3'>
+              <li className='list-card'>
                 <p className='font-medium text-foreground'>1. Inicia la carga documental</p>
                 <p className='mt-1'>Sube un `.docx` y muestra que el sistema crea la ejecucion sin pasos extra.</p>
               </li>
-              <li className='rounded-2xl border border-border/72 bg-white/90 p-3'>
+              <li className='list-card'>
                 <p className='font-medium text-foreground'>2. Valida resultados y hallazgos</p>
                 <p className='mt-1'>Entra a `Results` para comparar fuente, tabla editable y panel de observaciones.</p>
               </li>
-              <li className='rounded-2xl border border-border/72 bg-white/90 p-3'>
+              <li className='list-card'>
                 <p className='font-medium text-foreground'>3. Cierra con exportacion</p>
                 <p className='mt-1'>Genera y descarga Excel para evidenciar salida util del proceso.</p>
               </li>

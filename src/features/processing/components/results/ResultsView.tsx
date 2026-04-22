@@ -172,7 +172,7 @@ export function ResultsView(props: ResultsViewProps) {
                     <button
                       key={row.id}
                       type='button'
-                      className='focus-ring flex w-full items-center justify-between rounded-2xl border border-danger/16 bg-white/88 px-3 py-2 text-left transition hover:bg-danger/8'
+                      className='interactive-row-danger'
                       onClick={() => viewState.handleErrorClick(row.id)}
                     >
                       <span className='truncate text-sm font-medium text-foreground'>{row.referencia || 'Fila sin referencia'}</span>
@@ -184,7 +184,7 @@ export function ResultsView(props: ResultsViewProps) {
                   ) : null}
                 </div>
               ) : (
-                <div className='mt-4 rounded-2xl border border-success/18 bg-success/12 px-3 py-3 text-sm text-success'>
+                <div className='notice-success mt-4'>
                   No hay hallazgos pendientes en la tabla actual.
                 </div>
               )}

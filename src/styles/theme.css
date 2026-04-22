@@ -4,31 +4,44 @@
   --font-size: 16px;
   --font-sans-family: "Aptos", "Segoe UI Variable", "Segoe UI", "IBM Plex Sans", "Helvetica Neue", sans-serif;
   --font-display-family: "Aptos Display", "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
+  --primary-900: #0b3d6b;
+  --primary-700: #0f4f8a;
+  --accent-600: #0f8f73;
+  --accent-500: #18a37a;
+  --surface-base: #edf3f8;
+  --surface-panel: #f7fafc;
+  --surface-panel-subtle: #f2f6fa;
+  --text-strong: #142235;
+  --text-muted: #5f7187;
+  --border-soft: #cad7e4;
+  --success-600: #1b8c62;
+  --warning-600: #c58b23;
+  --danger-600: #c25158;
   --background: #edf3f8;
   --foreground: #142235;
   --card: rgba(255, 255, 255, 0.96);
   --card-foreground: #142235;
   --popover: #ffffff;
   --popover-foreground: #142235;
-  --primary: #0f4f8a;
-  --primary-strong: #0b3d6b;
+  --primary: var(--primary-700);
+  --primary-strong: var(--primary-900);
   --primary-foreground: #f6fbff;
   --secondary: #dce7f1;
   --secondary-foreground: #19324b;
-  --accent: #0f8f73;
-  --accent-strong: #0c745d;
+  --accent: var(--accent-600);
+  --accent-strong: var(--accent-500);
   --accent-foreground: #f4fffb;
-  --success: #1b8c62;
+  --success: var(--success-600);
   --success-foreground: #f4fff9;
-  --warning: #c58b23;
+  --warning: var(--warning-600);
   --warning-foreground: #fff9ed;
-  --danger: #c25158;
+  --danger: var(--danger-600);
   --danger-foreground: #fff8f8;
   --muted: #e6edf4;
-  --muted-foreground: #5f7187;
-  --surface: #f7fafc;
+  --muted-foreground: var(--text-muted);
+  --surface: var(--surface-panel);
   --surface-foreground: #284056;
-  --surface-subtle: #f2f6fa;
+  --surface-subtle: var(--surface-panel-subtle);
   --surface-elevated: rgba(255, 255, 255, 0.98);
   --surface-accent: #ecf6f4;
   --surface-accent-foreground: #0f5a48;
@@ -36,7 +49,7 @@
   --surface-danger-foreground: #9b3940;
   --surface-warning: #fdf6e8;
   --surface-warning-foreground: #8b6317;
-  --border: #cad7e4;
+  --border: var(--border-soft);
   --input: #f7fafc;
   --input-background: #f9fbfd;
   --switch-background: #bfccd8;
@@ -64,31 +77,44 @@
 }
 
 .dark {
+  --primary-900: #8bb6df;
+  --primary-700: #73a8da;
+  --accent-600: #49c2a0;
+  --accent-500: #63ceb0;
+  --surface-base: #0d1723;
+  --surface-panel: #102132;
+  --surface-panel-subtle: #152536;
+  --text-strong: #edf4fb;
+  --text-muted: #9fb2c7;
+  --border-soft: #2b3f53;
+  --success-600: #54c695;
+  --warning-600: #e1ad53;
+  --danger-600: #df767d;
   --background: #0d1723;
   --foreground: #edf4fb;
   --card: rgba(17, 28, 40, 0.96);
   --card-foreground: #edf4fb;
   --popover: #122031;
   --popover-foreground: #edf4fb;
-  --primary: #73a8da;
-  --primary-strong: #8bb6df;
+  --primary: var(--primary-700);
+  --primary-strong: var(--primary-900);
   --primary-foreground: #08131f;
   --secondary: #1a2c3f;
   --secondary-foreground: #edf4fb;
-  --accent: #49c2a0;
-  --accent-strong: #63ceb0;
+  --accent: var(--accent-600);
+  --accent-strong: var(--accent-500);
   --accent-foreground: #071610;
-  --success: #54c695;
+  --success: var(--success-600);
   --success-foreground: #081a12;
-  --warning: #e1ad53;
+  --warning: var(--warning-600);
   --warning-foreground: #1f1300;
-  --danger: #df767d;
+  --danger: var(--danger-600);
   --danger-foreground: #220709;
   --muted: #172737;
-  --muted-foreground: #9fb2c7;
-  --surface: #102132;
+  --muted-foreground: var(--text-muted);
+  --surface: var(--surface-panel);
   --surface-foreground: #c4d6e9;
-  --surface-subtle: #152536;
+  --surface-subtle: var(--surface-panel-subtle);
   --surface-elevated: rgba(20, 33, 49, 0.98);
   --surface-accent: #12382f;
   --surface-accent-foreground: #b0f3dc;
@@ -96,7 +122,7 @@
   --surface-danger-foreground: #f6c5c8;
   --surface-warning: #342712;
   --surface-warning-foreground: #f1d49a;
-  --border: #2b3f53;
+  --border: var(--border-soft);
   --input: #132334;
   --input-background: #132334;
   --switch-background: #41576b;
@@ -125,6 +151,8 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-900: var(--primary-900);
+  --color-primary-700: var(--primary-700);
   --color-primary-strong: var(--primary-strong);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -132,13 +160,18 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
+  --color-accent-600: var(--accent-600);
+  --color-accent-500: var(--accent-500);
   --color-accent-strong: var(--accent-strong);
   --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
+  --color-success-600: var(--success-600);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
+  --color-warning-600: var(--warning-600);
   --color-warning-foreground: var(--warning-foreground);
   --color-danger: var(--danger);
+  --color-danger-600: var(--danger-600);
   --color-danger-foreground: var(--danger-foreground);
   --color-destructive: var(--danger);
   --color-destructive-foreground: var(--danger-foreground);
@@ -336,6 +369,18 @@
     @apply rounded-2xl border border-border/75 bg-surface-subtle px-4 py-3 text-sm text-muted-foreground;
   }
 
+  .notice-success {
+    @apply rounded-2xl border border-success/18 bg-success/12 px-4 py-3 text-sm text-success;
+  }
+
+  .notice-warning {
+    @apply rounded-2xl border border-warning/18 bg-warning/12 px-4 py-3 text-sm text-warning;
+  }
+
+  .notice-danger {
+    @apply rounded-2xl border border-danger/18 bg-danger/12 px-4 py-3 text-sm text-danger;
+  }
+
   .feature-list {
     @apply space-y-3 text-sm text-surface-foreground;
   }
@@ -371,6 +416,88 @@
 
   .metric-icon {
     @apply flex size-12 items-center justify-center rounded-2xl;
+  }
+
+  .brand-mark {
+    @apply flex size-11 items-center justify-center rounded-2xl text-sm font-semibold text-white;
+    background-image: linear-gradient(135deg, var(--primary-900), color-mix(in srgb, var(--primary-700) 92%, white 8%), color-mix(in srgb, var(--accent-600) 92%, white 8%));
+    box-shadow: var(--shadow-panel);
+  }
+
+  .icon-chip {
+    @apply flex size-11 items-center justify-center rounded-2xl;
+  }
+
+  .icon-chip-primary {
+    @apply flex size-11 items-center justify-center rounded-2xl bg-primary/8 text-primary;
+  }
+
+  .icon-chip-accent {
+    @apply flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent;
+  }
+
+  .icon-chip-subtle {
+    @apply flex size-11 items-center justify-center rounded-2xl bg-secondary/82 text-secondary-foreground;
+  }
+
+  .panel-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .panel-copy {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .panel-header {
+    @apply border-b border-border/70 px-5 py-4;
+  }
+
+  .frame-card {
+    @apply flex h-full flex-col overflow-hidden rounded-[24px] border border-border/72 shadow-none;
+  }
+
+  .list-card {
+    @apply rounded-2xl border border-border/72 bg-white/90 p-3;
+  }
+
+  .interactive-row {
+    @apply focus-ring flex w-full items-center justify-between gap-3 rounded-2xl border border-border/72 bg-white/82 p-4 text-left transition hover:border-primary/18 hover:bg-primary/5;
+  }
+
+  .interactive-row-danger {
+    @apply focus-ring flex w-full items-center justify-between rounded-2xl border border-danger/16 bg-white/88 px-3 py-2 text-left transition hover:bg-danger/8;
+  }
+
+  .danger-card {
+    @apply rounded-2xl border border-danger/16 bg-white/88 p-3;
+  }
+
+  .surface-code {
+    @apply overflow-auto rounded-2xl border border-border/70 bg-white/88 p-3 text-xs text-surface-foreground;
+  }
+
+  .chat-avatar {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full;
+  }
+
+  .chat-avatar-assistant {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary;
+  }
+
+  .chat-avatar-user {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/86 text-secondary-foreground;
+  }
+
+  .chat-bubble {
+    @apply max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-6;
+  }
+
+  .chat-bubble-assistant {
+    @apply max-w-[80%] rounded-2xl bg-surface-subtle px-4 py-3 text-sm leading-6 text-surface-foreground;
+  }
+
+  .chat-bubble-user {
+    @apply max-w-[80%] rounded-2xl bg-primary px-4 py-3 text-sm leading-6 text-primary-foreground;
   }
 
   .field-stack {

@@ -25,10 +25,10 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
   const currentImage = images[safeIndex];
 
   return (
-    <Card className='flex h-full flex-col overflow-hidden rounded-[24px] border-border/72 shadow-none'>
+    <Card className='frame-card'>
       <div className='flex flex-col gap-4 border-b border-border/70 p-5 lg:flex-row lg:items-center lg:justify-between'>
         <div className='flex items-center gap-3'>
-          <div className='flex size-11 items-center justify-center rounded-2xl bg-primary/8 text-primary'>
+          <div className='icon-chip-primary'>
             <FileText className='size-5' />
           </div>
           <div>

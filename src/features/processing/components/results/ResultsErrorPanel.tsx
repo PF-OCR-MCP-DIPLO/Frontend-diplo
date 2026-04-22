@@ -33,7 +33,7 @@ export function ResultsErrorPanel({ data, onErrorClick }: ResultsErrorPanelProps
           const isExpanded = expanded.includes(row.id);
           const contentId = `${panelIdPrefix}-${row.id}`;
           return (
-            <div key={row.id} className='rounded-2xl border border-danger/16 bg-white/88 p-3'>
+            <div key={row.id} className='danger-card'>
               <button
                 aria-expanded={isExpanded}
                 aria-controls={contentId}

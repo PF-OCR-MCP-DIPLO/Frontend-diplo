@@ -53,13 +53,15 @@ export function AIChat({ errors }: AIChatProps) {
   };
 
   return (
-    <Card className="flex h-full flex-col">
-      <div className="border-b border-gray-200 p-4">
+    <Card className="flex h-full flex-col border-0 shadow-none">
+      <div className="panel-header">
         <div className="flex items-center gap-2">
-                  <Bot className="size-5 text-blue-600" />
-          <h3 className="font-semibold text-gray-900">Asistente de revision</h3>
+          <div className="icon-chip-primary size-10 rounded-full">
+            <Bot className="size-5" />
+          </div>
+          <h3 className="font-semibold text-foreground">Asistente de revision</h3>
         </div>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted-foreground">
           Sugerencias guiadas para la demo. No reemplaza la validacion humana ni persiste cambios automaticamente.
         </p>
       </div>
@@ -74,22 +76,16 @@ export function AIChat({ errors }: AIChatProps) {
               }`}
             >
               {message.role === "assistant" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                  <Bot className="size-4 text-blue-600" />
+                <div className="chat-avatar-assistant">
+                  <Bot className="size-4" />
                 </div>
               )}
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-900"
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
+              <div className={message.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"}>
+                <p>{message.content}</p>
               </div>
               {message.role === "user" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-200">
-                  <User className="size-4 text-gray-600" />
+                <div className="chat-avatar-user">
+                  <User className="size-4" />
                 </div>
               )}
             </div>
@@ -97,7 +93,7 @@ export function AIChat({ errors }: AIChatProps) {
         </div>
       </ScrollArea>
 
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-border/70 p-4">
         <div className="flex gap-2">
           <Input
             value={input}

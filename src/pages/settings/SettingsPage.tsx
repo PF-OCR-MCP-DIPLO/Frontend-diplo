@@ -30,7 +30,7 @@ export function SettingsPage() {
           eyebrow='Configuracion'
           title='Configuracion del procesamiento'
           description='Ajusta OCR, proveedor visual, LLM y tiempos de respuesta para que la extraccion se adapte a tu flujo.'
-          actions={<div className='flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary'><Settings className='size-6' /></div>}
+          actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
         />
         <StatePanel
           tone='warning'
@@ -54,7 +54,7 @@ export function SettingsPage() {
         eyebrow='Configuracion'
         title='Configuracion del procesamiento'
         description='Ajusta OCR, proveedor visual, LLM y tiempos de respuesta para que la extraccion se adapte a tu flujo.'
-        actions={<div className='flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary'><Settings className='size-6' /></div>}
+        actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
       />
       <SettingsForm
         settings={settingsForm.settings}

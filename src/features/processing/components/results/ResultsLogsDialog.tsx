@@ -11,7 +11,7 @@ interface ResultsLogsDialogProps {
 export function ResultsLogsDialog({ open, logs, error, onClose }: ResultsLogsDialogProps) {
   return (
     <Modal open={open} onClose={onClose} title='Logs del procesamiento' size='lg'>
-      {error ? <p className='mb-4 rounded-2xl border border-danger/18 bg-danger/12 p-3 text-sm text-danger'>{error}</p> : null}
+      {error ? <p className='notice-danger mb-4'>{error}</p> : null}
       {!error && logs.length === 0 ? <p className='info-strip'>Todavia no hay eventos de log para esta ejecucion.</p> : null}
       <div className='space-y-2'>
         {logs.map((item) => (
@@ -19,7 +19,7 @@ export function ResultsLogsDialog({ open, logs, error, onClose }: ResultsLogsDia
             <p className='font-medium text-foreground'>#{item.sequence_index} · {item.stage}</p>
             <p className='mt-1 leading-6 text-surface-foreground'>Proveedor: {item.provider || '-'} · Modelo: {item.model || '-'} · Modo: {item.ocr_mode || '-'}</p>
             {item.notes ? <p className='mt-2 leading-6 text-surface-foreground'>{item.notes}</p> : null}
-            {item.raw_text ? <pre className='mt-3 overflow-auto rounded-2xl border border-border/70 bg-white/88 p-3 text-xs text-surface-foreground'>{item.raw_text}</pre> : null}
+            {item.raw_text ? <pre className='surface-code mt-3'>{item.raw_text}</pre> : null}
           </div>
         ))}
       </div>

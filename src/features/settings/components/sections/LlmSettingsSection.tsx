@@ -68,7 +68,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
       </div>
 
       {llmRequirements && !llmRequirements.operational ? (
-        <p className='rounded-2xl border border-warning/18 bg-warning/12 p-3 text-sm text-warning'>El provider LLM seleccionado aun no esta operativo en este MVP.</p>
+        <p className='notice-warning'>El provider LLM seleccionado aun no esta operativo en este MVP.</p>
       ) : null}
     </SettingsSection>
   );

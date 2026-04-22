@@ -75,7 +75,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
       </div>
 
       {shouldShowOcrProvider && ocrRequirements && !ocrRequirements.operational ? (
-        <p className='rounded-2xl border border-warning/18 bg-warning/12 p-3 text-sm text-warning'>El provider OCR seleccionado aun no esta operativo en este MVP.</p>
+        <p className='notice-warning'>El provider OCR seleccionado aun no esta operativo en este MVP.</p>
       ) : null}
     </SettingsSection>
   );

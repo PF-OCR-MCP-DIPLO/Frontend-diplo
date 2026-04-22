@@ -29,7 +29,7 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
               <TableRow key={item.id}>
                 <TableCell>
                   <div className='flex items-center gap-2'>
-                    <div className='flex size-9 items-center justify-center rounded-2xl bg-primary/8 text-primary'>
+                    <div className='icon-chip-primary size-9'>
                       <FileText className='size-4' />
                     </div>
                     <span className='font-medium text-foreground'>{item.name}</span>

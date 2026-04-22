@@ -24,7 +24,7 @@ export function EditableTable({ data, onDataChange, onRowClick }: EditableTableP
   const table = useEditableTable(data, onDataChange);
 
   return (
-    <Card className='flex h-full flex-col overflow-hidden rounded-[24px] border-border/72 shadow-none'>
+    <Card className='frame-card'>
       <ConsignmentTableHeader errorCount={table.errorCount} />
       <div className='flex-1 overflow-auto'>
         <Table>
