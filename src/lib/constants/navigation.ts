@@ -6,5 +6,5 @@ export const appNavigation: NavigationItem[] = [
   { label: 'Carga', to: '/upload', icon: FileUp, description: 'Nuevo archivo' },
   { label: 'Resultados', to: '/results', icon: BarChart3, description: 'Revision y exportacion' },
   { label: 'Historial', to: '/history', icon: History, description: 'Ejecuciones previas' },
-  { label: 'Configuracion', to: '/settings', icon: Settings, description: 'OCR y modelos' },
+  //{ label: 'Configuracion', to: '/settings', icon: Settings, description: 'OCR y modelos' },
 ];

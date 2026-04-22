@@ -1,45 +1,48 @@
-import { AlertTriangle, Loader2, RefreshCw, Settings } from 'lucide-react';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { StatePanel } from '@/components/shared/StatePanel';
-import { Button } from '@/components/ui/button';
-import { SettingsForm } from '@/features/settings/components/SettingsForm';
-import { useSettingsForm } from '@/features/settings/hooks/useSettingsForm';
+import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
+import { StatePanel } from "@/components/shared/StatePanel";
+import { Button } from "@/components/ui/button";
+import { SettingsForm } from "@/features/settings/components/SettingsForm";
+import { useSettingsForm } from "@/features/settings/hooks/useSettingsForm";
 
 export function SettingsPage() {
   const settingsForm = useSettingsForm();
 
   if (settingsForm.isLoading) {
     return (
-      <div className='flex h-full items-center justify-center'>
+      <div className="flex h-full items-center justify-center">
         <StatePanel
           centered
-          tone='neutral'
+          tone="neutral"
           icon={Loader2}
           iconAnimated
-          title='Cargando configuracion'
-          description='Estamos preparando las preferencias de OCR y extraccion para que puedas ajustarlas con contexto.'
+          title="Cargando configuracion"
+          description="Estamos preparando las preferencias de OCR y extraccion para que puedas ajustarlas con contexto."
         />
       </div>
     );
   }
 
-  if (settingsForm.loadError || !settingsForm.settings || !settingsForm.options || !settingsForm.values) {
+  if (
+    settingsForm.loadError ||
+    !settingsForm.settings ||
+    !settingsForm.options ||
+    !settingsForm.values
+  ) {
     return (
-      <div className='page-stack'>
-        <PageHeader
-          eyebrow='Configuracion'
-          title='Configuracion'
-          description='Ajusta OCR, modelo y tiempo de espera.'
-          actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
-        />
+      <div className="page-stack">
         <StatePanel
-          tone='warning'
+          tone="warning"
           icon={AlertTriangle}
-          title='No pudimos cargar la configuracion'
-          description={settingsForm.loadError ?? 'Intenta nuevamente en unos segundos.'}
+          title="No pudimos cargar la configuracion"
+          description={
+            settingsForm.loadError ?? "Intenta nuevamente en unos segundos."
+          }
           actions={
-            <Button onClick={() => void settingsForm.reload()} className='gap-2'>
-              <RefreshCw className='size-4' />
+            <Button
+              onClick={() => void settingsForm.reload()}
+              className="gap-2"
+            >
+              <RefreshCw className="size-4" />
               Reintentar
             </Button>
           }
@@ -49,13 +52,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className='page-stack'>
-      <PageHeader
-        eyebrow='Configuracion'
-        title='Configuracion'
-        description='Ajusta OCR, modelo y tiempo de espera.'
-        actions={<div className='icon-chip-primary size-12'><Settings className='size-6' /></div>}
-      />
+    <div className="page-stack">
       <SettingsForm
         settings={settingsForm.settings}
         options={settingsForm.options}

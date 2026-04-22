@@ -1,6 +1,7 @@
-import { Menu } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavigationItem } from "@/types/navigation";
+import { Link, useLocation } from "react-router-dom";
 
 type AppHeaderProps = {
   currentNavigationItem: NavigationItem;
@@ -11,6 +12,9 @@ export function AppHeader({
   currentNavigationItem,
   onOpenMobileSidebar,
 }: AppHeaderProps) {
+  const location = useLocation();
+  const isSettings = location.pathname === "/settings";
+
   return (
     <header className="sticky top-0 z-30 h-[93px] border-b border-border/70 bg-card/82 backdrop-blur-xl">
       <div className="page-shell flex h-full items-center justify-between gap-4 px-4">
@@ -26,7 +30,6 @@ export function AppHeader({
           </Button>
 
           <div className="space-y-1">
-            <p className="section-kicker">Plataforma</p>
             <p className="text-sm font-semibold text-foreground sm:text-base">
               {currentNavigationItem.label}
             </p>
@@ -36,9 +39,20 @@ export function AppHeader({
           </div>
         </div>
 
-        <div className="hidden items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent shadow-[var(--shadow-soft)] sm:flex">
-          <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
-          Conectado
+        <div className="flex items-center gap-2">
+          <Link to="/settings" aria-label="Ir a configuracion" title="Configuracion">
+            <Button
+              variant="outline"
+              size="icon"
+              className={
+                isSettings
+                  ? "rounded-full border-primary/20 bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                  : "rounded-full"
+              }
+            >
+              <Settings className="size-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
