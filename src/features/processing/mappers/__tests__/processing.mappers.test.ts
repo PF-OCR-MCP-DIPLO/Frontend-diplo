@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { ApiJobDetail, ApiJobListItem, ApiSourceImage } from '@/features/processing/types/processing.api';
 
 import { mapJobListItemToPlaceholder, mapJobToConsignmentRows, mapJobToProcessedFile, mapSourceImagesToPreview } from '@/features/processing/mappers/processing.mappers';
