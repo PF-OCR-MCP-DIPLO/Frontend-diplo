@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 
 export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className='space-y-4 rounded-[28px] border border-slate-200 bg-slate-50/70 p-5'>
-      <h3 className='text-lg font-semibold text-slate-900'>{title}</h3>
+    <section className='form-section space-y-5'>
+      <div>
+        <p className='section-kicker'>Configuracion</p>
+        <h3 className='mt-2 text-lg font-semibold text-foreground'>{title}</h3>
+      </div>
       {children}
     </section>
   );

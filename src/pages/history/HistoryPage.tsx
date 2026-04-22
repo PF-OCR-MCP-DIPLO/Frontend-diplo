@@ -40,7 +40,7 @@ export function HistoryPage() {
 
   if (historyError) {
     return (
-      <div className='space-y-6'>
+      <div className='page-stack'>
         <PageHeader
           eyebrow='Historial'
           title='Historial de ejecuciones'
@@ -78,12 +78,12 @@ export function HistoryPage() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='page-stack'>
       <PageHeader
         eyebrow='Historial'
         title='Historial de ejecuciones'
         description='Consulta procesos anteriores, revisa su estado y vuelve a abrir cualquier resultado.'
-        actions={<Button variant='outline' className='rounded-2xl' onClick={() => void handleRefresh()}>Actualizar historial</Button>}
+        actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar historial</Button>}
       />
       <HistoryJobsTable items={processedFiles} onOpenResult={(id) => void openResult(id, 'No se pudo abrir la ejecucion')} />
     </div>

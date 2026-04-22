@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { SettingsSection } from '@/features/settings/components/SettingsSection';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
@@ -17,19 +18,18 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
 
   return (
     <SettingsSection title='Extraccion estructurada (LLM)'>
-      <div className='grid gap-4 sm:grid-cols-2'>
-        <div className='space-y-2'>
+      <div className='grid gap-5 sm:grid-cols-2'>
+        <div className='field-stack'>
           <Label htmlFor='llm-provider'>LLM provider</Label>
-          <select
+          <Select
             id='llm-provider'
-            className='h-10 w-full rounded-md border border-slate-200 px-3 text-sm'
             value={values.llm_provider}
             onChange={(event) => onChange({ ...values, llm_provider: event.target.value as SettingsFormValues['llm_provider'] })}
           >
             {options.providers.llm.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
-          </select>
+          </Select>
         </div>
-        <div className='space-y-2'>
+        <div className='field-stack'>
           <Label htmlFor='llm-model'>LLM model</Label>
           <Input
             id='llm-model'
@@ -37,13 +37,13 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             onChange={(event) => onChange({ ...values, llm_model: event.target.value })}
             placeholder={modelOptions[0] ?? 'model'}
           />
-          {modelOptions.length > 0 ? <p className='text-xs text-slate-500'>Sugeridos: {modelOptions.join(', ')}</p> : null}
+          {modelOptions.length > 0 ? <p className='field-help'>Sugeridos: {modelOptions.join(', ')}</p> : null}
         </div>
       </div>
 
-      <div className='grid gap-4 sm:grid-cols-2'>
+      <div className='grid gap-5 sm:grid-cols-2'>
         {llmRequirements?.requires_api_key ? (
-          <div className='space-y-2'>
+          <div className='field-stack'>
             <Label htmlFor='llm-api-key'>LLM provider API key</Label>
             <Input
               id='llm-api-key'
@@ -54,7 +54,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             />
           </div>
         ) : null}
-        <div className='space-y-2'>
+        <div className='field-stack'>
           <Label htmlFor='timeout'>Request timeout (seconds)</Label>
           <Input
             id='timeout'
@@ -63,12 +63,12 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             value={values.request_timeout_seconds}
             onChange={(event) => onChange({ ...values, request_timeout_seconds: Number(event.target.value) || 30 })}
           />
-          <p className='text-xs text-slate-500'>Aplica a proveedores remotos y extraccion LLM.</p>
+          <p className='field-help'>Aplica a proveedores remotos y extraccion LLM.</p>
         </div>
       </div>
 
       {llmRequirements && !llmRequirements.operational ? (
-        <p className='rounded-2xl bg-amber-50 p-3 text-sm text-amber-800'>El provider LLM seleccionado aun no esta operativo en este MVP.</p>
+        <p className='rounded-2xl border border-warning/18 bg-warning/12 p-3 text-sm text-warning'>El provider LLM seleccionado aun no esta operativo en este MVP.</p>
       ) : null}
     </SettingsSection>
   );

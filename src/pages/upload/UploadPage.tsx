@@ -57,43 +57,43 @@ export function UploadPage() {
         : 'Esperando archivo';
 
   return (
-    <div className='space-y-6'>
+    <div className='page-stack'>
       <PageHeader
         eyebrow='Carga'
         title='Carga documental guiada'
         description='Paso 2 de 3: sube un `.docx`, crea la ejecucion y avanza directo a la revision operativa de resultados.'
       />
-      <Card className='rounded-[36px] border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] p-6 shadow-sm sm:p-8'>
+      <Card className='surface-card-hero p-6 sm:p-8'>
         <div className='grid gap-6 lg:grid-cols-[1fr_320px]'>
           <div
             {...dropzone.getRootProps()}
             className={`flex min-h-[420px] flex-col items-center justify-center rounded-[32px] border-2 border-dashed px-6 text-center transition ${
               dropzone.isDragAccept
-                ? 'border-emerald-400 bg-emerald-50'
+                ? 'border-success/60 bg-success/10'
                 : dropzone.isDragReject
-                  ? 'border-red-400 bg-red-50'
+                  ? 'border-danger/60 bg-danger/10'
                   : dropzone.isDragActive
-                    ? 'border-teal-500 bg-teal-50'
-                    : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+                    ? 'border-accent/70 bg-accent/8'
+                    : 'border-border/82 bg-surface-subtle hover:border-primary/28 hover:bg-white/88'
             } ${isProcessing ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
           >
             <input {...dropzone.getInputProps()} />
-            <div className='mb-6 flex size-24 items-center justify-center rounded-full bg-white shadow-sm'>
-              {isProcessing ? <Loader2 className='size-12 animate-spin text-teal-700' /> : <FileText className='size-12 text-slate-400' />}
+            <div className='mb-6 flex size-24 items-center justify-center rounded-full border border-border/70 bg-white/94 shadow-[var(--shadow-soft)]'>
+              {isProcessing ? <Loader2 className='size-12 animate-spin text-primary' /> : <FileText className='size-12 text-muted-foreground' />}
             </div>
             {isProcessing ? (
               <div>
-                <p className='text-xl font-semibold text-slate-900'>Subiendo documento...</p>
-                <p className='mt-2 text-slate-600'>Estamos creando la ejecucion en el backend para llevarte al tablero de revision.</p>
-                <p className='mt-3 text-sm font-medium text-teal-700'>Siguiente paso: abrir resultados para validar extraccion.</p>
+                <p className='text-xl font-semibold text-foreground'>Subiendo documento...</p>
+                <p className='mt-2 text-body text-muted-foreground'>Estamos creando la ejecucion en el backend para llevarte al tablero de revision.</p>
+                <p className='mt-3 text-sm font-semibold text-primary'>Siguiente paso: abrir resultados para validar extraccion.</p>
               </div>
             ) : (
               <div>
                 <div className='mb-3 flex flex-wrap justify-center gap-2'>
-                  <span className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>Formato admitido: .docx</span>
-                  <span className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>1 archivo por carga</span>
+                  <span className='meta-pill'>Formato admitido: .docx</span>
+                  <span className='meta-pill'>1 archivo por carga</span>
                 </div>
-                <p className='text-xl font-semibold text-slate-900'>
+                <p className='text-xl font-semibold text-foreground'>
                   {dropzone.isDragReject
                     ? 'Archivo no compatible'
                     : dropzone.isDragAccept
@@ -102,12 +102,12 @@ export function UploadPage() {
                         ? 'Suelta el archivo aqui'
                         : 'Arrastra tu archivo .docx o haz clic para seleccionarlo'}
                 </p>
-                <p className='mt-2 text-slate-600'>
+                <p className='mt-2 text-body text-muted-foreground'>
                   {dropzone.isDragReject
                     ? 'Solo se admiten documentos Word (.docx).'
                     : 'Tu documento se enviara y quedara listo para revision en la siguiente pantalla.'}
                 </p>
-                <Button type='button' size='lg' className='mt-6 rounded-2xl'>
+                <Button type='button' size='lg' className='mt-6'>
                   <Upload className='mr-2 size-5' />
                   Seleccionar archivo
                 </Button>
@@ -115,39 +115,39 @@ export function UploadPage() {
             )}
           </div>
 
-          <aside className='space-y-4 rounded-[28px] border border-slate-200 bg-white p-5'>
-            <div className='rounded-2xl border border-teal-200 bg-teal-50/70 p-3'>
-              <p className='text-xs font-semibold uppercase tracking-[0.12em] text-teal-700'>Estado del paso 2</p>
-              <p className='mt-1 text-sm font-semibold text-slate-900'>{uploadStageLabel}</p>
-              <p className='mt-1 text-sm text-slate-600'>
+          <aside className='space-y-4 surface-card p-5'>
+            <div className='content-block-accent p-4'>
+              <p className='section-eyebrow text-accent'>Estado del paso 2</p>
+              <p className='mt-1 text-sm font-semibold text-foreground'>{uploadStageLabel}</p>
+              <p className='mt-1 text-sm text-surface-accent-foreground/82'>
                 {isProcessing ? 'La ejecucion se esta creando. En breve pasaras al paso 3: resultados.' : 'Carga un archivo valido para continuar al paso de resultados.'}
               </p>
             </div>
 
-            <h3 className='text-base font-semibold text-slate-900'>Checklist de confianza</h3>
-            <ul className='space-y-3 text-sm text-slate-700'>
-              <li className='flex items-start gap-2'>
-                <CheckCircle2 className='mt-0.5 size-4 text-emerald-600' />
+            <h3 className='text-base font-semibold text-foreground'>Checklist de confianza</h3>
+            <ul className='feature-list'>
+              <li className='feature-list-item'>
+                <CheckCircle2 className='mt-0.5 size-4 text-success' />
                 <span>Entrada controlada: solo `.docx`.</span>
               </li>
-              <li className='flex items-start gap-2'>
-                <CheckCircle2 className='mt-0.5 size-4 text-emerald-600' />
+              <li className='feature-list-item'>
+                <CheckCircle2 className='mt-0.5 size-4 text-success' />
                 <span>Creacion inmediata de ejecucion para continuar sin friccion.</span>
               </li>
-              <li className='flex items-start gap-2'>
-                <CheckCircle2 className='mt-0.5 size-4 text-emerald-600' />
+              <li className='feature-list-item'>
+                <CheckCircle2 className='mt-0.5 size-4 text-success' />
                 <span>Transicion directa a resultados para validar y corregir.</span>
               </li>
             </ul>
-            <div className='rounded-2xl border border-slate-200 bg-white p-3'>
-              <p className='text-xs font-semibold uppercase tracking-[0.12em] text-slate-500'>Continuidad del flujo</p>
-              <div className='mt-2 space-y-2 text-sm text-slate-700'>
-                <p><span className='font-medium text-slate-900'>1. Dashboard:</span> define la accion y prepara la demo.</p>
-                <p><span className='font-medium text-slate-900'>2. Upload:</span> valida entrada y crea la ejecucion.</p>
-                <p><span className='font-medium text-slate-900'>3. Results:</span> demuestra valor con revision y exportacion.</p>
+            <div className='content-block p-4'>
+              <p className='section-kicker'>Continuidad del flujo</p>
+              <div className='mt-2 space-y-2 text-sm text-surface-foreground'>
+                <p><span className='font-medium text-foreground'>1. Dashboard:</span> define la accion y prepara la demo.</p>
+                <p><span className='font-medium text-foreground'>2. Upload:</span> valida entrada y crea la ejecucion.</p>
+                <p><span className='font-medium text-foreground'>3. Results:</span> demuestra valor con revision y exportacion.</p>
               </div>
             </div>
-            <div className='rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600'>
+            <div className='info-strip'>
               Consejo para demo: usa un archivo con varias consignaciones para mostrar validacion y exportacion en un solo recorrido.
             </div>
           </aside>
