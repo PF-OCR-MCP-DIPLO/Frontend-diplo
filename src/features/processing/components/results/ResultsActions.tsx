@@ -1,9 +1,8 @@
-import { Download, FileDown, Loader2, MessageSquare, Play, RefreshCw, XCircle } from 'lucide-react';
+import { Download, FileDown, Loader2, Play, RefreshCw, XCircle } from 'lucide-react';
 import type { ProcessingStatus } from '@/features/processing/types/processing.types';
 import { Button } from '@/components/ui/button';
 
 interface ResultsActionsProps {
-  showChat: boolean;
   isProcessing: boolean;
   isRefreshing: boolean;
   isExporting: boolean;
@@ -12,7 +11,6 @@ interface ResultsActionsProps {
   excelUrl: string | null;
   canShowErrors: boolean;
   canExport: boolean;
-  onToggleChat: () => void;
   onRefresh: () => void;
   onProcess: () => void;
   onExport: () => void;
@@ -23,10 +21,6 @@ interface ResultsActionsProps {
 export function ResultsActions(props: ResultsActionsProps) {
   return (
     <div className='flex flex-wrap items-center gap-2'>
-      <Button variant='outline' onClick={props.onToggleChat} className='gap-2'>
-        <MessageSquare className='size-4' />
-        {props.showChat ? 'Ocultar' : 'Mostrar'} asistente
-      </Button>
       <Button variant='outline' onClick={props.onRefresh} className='gap-2' disabled={props.isRefreshing}>
         <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
         Actualizar estado

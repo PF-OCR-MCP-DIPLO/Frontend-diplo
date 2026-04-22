@@ -5,7 +5,6 @@ import type { ConsignmentRow } from '@/features/processing/types/processing.type
 
 export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]) {
   const [data, setData] = useState<ConsignmentRow[]>(initialData);
-  const [showChat, setShowChat] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
@@ -53,8 +52,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     data,
     setData,
     errorCount,
-    showChat,
-    setShowChat,
     showErrorDialog,
     setShowErrorDialog,
     expandedImage,

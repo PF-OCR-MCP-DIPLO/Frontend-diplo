@@ -2,7 +2,6 @@ import { toast } from 'sonner';
 import { DocumentPreview } from '@/features/processing/components/document-preview/DocumentPreview';
 import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import { ResultsActions } from '@/features/processing/components/results/ResultsActions';
-import { ResultsChatPanel } from '@/features/processing/components/results/ResultsChatPanel';
 import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
 import { ResultsErrorPanel } from '@/features/processing/components/results/ResultsErrorPanel';
 import { ResultsHeader } from '@/features/processing/components/results/ResultsHeader';
@@ -56,7 +55,6 @@ export function ResultsView(props: ResultsViewProps) {
             errorMessage={props.errorMessage}
           />
           <ResultsActions
-            showChat={viewState.showChat}
             isProcessing={props.isProcessing}
             isRefreshing={props.isRefreshing}
             isExporting={props.isExporting}
@@ -65,7 +63,6 @@ export function ResultsView(props: ResultsViewProps) {
             excelUrl={props.excelUrl}
             canShowErrors={viewState.errorCount > 0 || Boolean(props.errorMessage)}
             canExport={canExport}
-            onToggleChat={() => viewState.setShowChat((value) => !value)}
             onRefresh={props.onRefresh}
             onProcess={props.onProcess}
             onExport={props.onExport}
@@ -96,7 +93,6 @@ export function ResultsView(props: ResultsViewProps) {
           <div className='flex-1'>
             <EditableTable data={viewState.data} onDataChange={viewState.setData} />
           </div>
-          {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} /> : null}
         </div>
       </div>
 

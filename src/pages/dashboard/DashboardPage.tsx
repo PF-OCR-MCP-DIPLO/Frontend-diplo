@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AssistantComposer } from '@/components/shared/AssistantComposer';
+import { useAppShellContext } from '@/app/layouts/AppShell';
 import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
 import { useProcessingActionsContext, useProcessingHistoryContext } from '@/features/processing/hooks/useProcessingContext';
 import { statusClass, statusLabel } from '@/lib/constants/status';
 
 export function DashboardPage() {
+  const { showAssistant, setShowAssistant } = useAppShellContext();
   const navigate = useNavigate();
   const openResult = useOpenResult();
   const { refreshHistory } = useProcessingActionsContext();
   const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
+  const recentJobId = processedFiles[0]?.id ? Number(processedFiles[0].id) : null;
 
   return (
     <div className='space-y-6'>
@@ -88,6 +92,8 @@ export function DashboardPage() {
           )}
         </Card>
       </div>
+
+      <AssistantComposer open={showAssistant} errors={0} jobId={recentJobId} onClose={() => setShowAssistant(false)} />
     </div>
   );
 }
