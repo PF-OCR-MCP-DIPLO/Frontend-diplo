@@ -84,7 +84,7 @@ export function Modal({ title, open, onClose, children, size = 'md' }: ModalProp
   }
 
   return createPortal(
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm'>
       <div className='absolute inset-0' aria-hidden='true' onClick={onClose} />
       <div
         ref={dialogRef}
@@ -92,10 +92,10 @@ export function Modal({ title, open, onClose, children, size = 'md' }: ModalProp
         aria-modal='true'
         aria-labelledby={titleId}
         onKeyDown={handleKeyDown}
-        className={`relative max-h-[85vh] w-full overflow-auto rounded-3xl bg-white p-5 shadow-2xl focus:outline-none ${sizeClass[size]}`}
+        className={`surface-card relative max-h-[85vh] w-full overflow-auto p-5 focus:outline-none ${sizeClass[size]}`}
       >
-        <div className='mb-4 flex items-center justify-between gap-4'>
-          <h3 id={titleId} className='text-lg font-semibold text-slate-900'>{title}</h3>
+        <div className='mb-4 flex items-center justify-between gap-4 border-b border-border/70 pb-4'>
+          <h3 id={titleId} className='text-lg font-semibold text-foreground'>{title}</h3>
           <Button variant='outline' size='sm' onClick={onClose}>Cerrar</Button>
         </div>
         {children}

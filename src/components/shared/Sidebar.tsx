@@ -15,7 +15,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
 
   return (
     <aside
-      className={`hidden border-r border-slate-200/80 bg-white/88 backdrop-blur lg:flex lg:flex-col ${
+      className={`hidden border-r border-sidebar-border bg-sidebar/92 backdrop-blur-xl lg:flex lg:flex-col ${
         collapsed ? 'lg:w-24' : 'lg:w-80'
       }`}
     >
@@ -35,21 +35,21 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
       </div>
 
       <div className='flex h-full flex-col'>
-        <div className='flex justify-center border-b border-slate-200/80 px-4 py-5'>
+        <div className='flex justify-center border-b border-sidebar-border px-4 py-5'>
           <AppLogo collapsed={collapsed} />
         </div>
 
         <div className='px-4 pt-4'>
           {!collapsed ? (
-            <div className='rounded-[24px] border border-teal-100 bg-[linear-gradient(135deg,rgba(240,253,250,1),rgba(255,255,255,0.94))] p-4'>
-              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-teal-700'>
+            <div className='content-block-accent'>
+              <p className='section-eyebrow text-accent'>
                 Espacio de trabajo
               </p>
-              <p className='mt-2 text-sm font-medium text-slate-900'>
-                Supervisa la carga, la revision y la exportacion desde un solo lugar.
+              <p className='mt-2 text-sm font-semibold text-foreground'>
+                Supervisa la carga, la revision y la exportacion desde un mismo centro operativo.
               </p>
-              <p className='mt-1 text-xs leading-5 text-slate-600'>
-                Cada vista mantiene el foco operativo y evita saltos innecesarios entre tareas.
+              <p className='mt-2 text-xs leading-5 text-surface-accent-foreground/82'>
+                La navegacion mantiene contexto continuo entre estados de red, evidencias y salida exportable.
               </p>
             </div>
           ) : null}
@@ -67,17 +67,17 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
                 onClick={onNavigate}
                 aria-label={item.label}
                 title={collapsed ? item.label : undefined}
-                className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition ${
+                className={`group flex items-center gap-3 rounded-[22px] border px-3 py-3 text-sm transition ${
                   active
-                    ? 'border-teal-500 bg-[linear-gradient(135deg,#0f766e,#14b8a6)] text-white shadow-lg shadow-teal-900/15'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-900 hover:shadow-sm'
+                    ? 'border-primary/18 bg-[linear-gradient(135deg,rgba(11,61,107,1),rgba(15,79,138,0.94),rgba(15,143,115,0.84))] text-white shadow-[var(--shadow-panel)]'
+                    : 'border-transparent text-muted-foreground hover:border-border/80 hover:bg-white/86 hover:text-foreground hover:shadow-[var(--shadow-soft)]'
                 }`}
               >
                 <div
                   className={`flex size-10 shrink-0 items-center justify-center rounded-2xl transition ${
                     active
                       ? 'bg-white/14 text-white'
-                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white'
+                      : 'bg-secondary/80 text-secondary-foreground group-hover:bg-primary group-hover:text-primary-foreground'
                   }`}
                 >
                   <Icon className='size-4 shrink-0' />
@@ -86,7 +86,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
                 {!collapsed ? (
                   <div className='min-w-0 flex-1'>
                     <p className='font-medium'>{item.label}</p>
-                    <p className={`truncate text-xs ${active ? 'text-teal-50/90' : 'text-slate-400'}`}>
+                    <p className={`truncate text-xs ${active ? 'text-white/76' : 'text-muted-foreground/80'}`}>
                       {item.description}
                     </p>
                   </div>
@@ -95,7 +95,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
                 {!collapsed ? (
                   <span
                     className={`size-2 rounded-full ${
-                      active ? 'bg-white' : 'bg-transparent group-hover:bg-slate-300'
+                      active ? 'bg-white' : 'bg-transparent group-hover:bg-primary/30'
                     }`}
                     aria-hidden='true'
                   />
@@ -105,14 +105,14 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: SidebarProps) {
           })}
         </nav>
 
-        <div className='border-t border-slate-200/80 px-4 py-4'>
+        <div className='border-t border-sidebar-border px-4 py-4'>
           {!collapsed ? (
-            <div className='rounded-2xl bg-slate-100/80 p-4 text-xs leading-5 text-slate-600'>
-              Flujo pensado para revisar rapido, corregir con contexto y exportar sin perder trazabilidad.
+            <div className='rounded-2xl border border-border/70 bg-white/74 p-4 text-xs leading-5 text-muted-foreground'>
+              Flujo pensado para operar con trazabilidad: inspeccionar origen, validar datos y exportar sin perder control.
             </div>
           ) : (
             <div className='flex justify-center'>
-              <div className='size-2 rounded-full bg-teal-500' aria-hidden='true' />
+              <div className='size-2 rounded-full bg-accent' aria-hidden='true' />
             </div>
           )}
         </div>
