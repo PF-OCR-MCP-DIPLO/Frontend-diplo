@@ -14,11 +14,11 @@ export function ImageNavigator({ currentIndex, total, onPrevious, onNext }: Imag
   }
 
   return (
-    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 shadow-sm'>
+    <div className='flex items-center gap-2 rounded-full border border-border/72 bg-white/86 px-2 py-1 shadow-[var(--shadow-soft)]'>
       <Button variant='outline' size='sm' className='rounded-full' aria-label='Imagen anterior' onClick={onPrevious} disabled={currentIndex === 0}>
         <ChevronLeft className='size-4' />
       </Button>
-      <span className='min-w-[56px] text-center text-sm text-slate-500'>
+      <span className='min-w-[56px] text-center text-sm text-muted-foreground'>
         {currentIndex + 1} / {total}
       </span>
       <Button variant='outline' size='sm' className='rounded-full' aria-label='Imagen siguiente' onClick={onNext} disabled={currentIndex === total - 1}>

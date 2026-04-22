@@ -45,47 +45,47 @@ function getPrimaryActionDescription(status: ProcessingStatus, canExport: boolea
 export function ResultsActions(props: ResultsActionsProps) {
   return (
     <div className='w-full max-w-2xl space-y-4 xl:sticky xl:top-24'>
-      <div className='rounded-[28px] border border-teal-200 bg-[linear-gradient(135deg,rgba(240,253,250,1),rgba(255,255,255,0.95))] p-5 shadow-sm shadow-teal-900/5'>
+      <div className='content-block-accent'>
         <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
           <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.16em] text-teal-700'>Siguiente paso recomendado</p>
-            <p className='mt-2 text-lg font-semibold text-slate-950'>{getPrimaryActionLabel(props.status)}</p>
-            <p className='mt-1 max-w-lg text-sm leading-6 text-slate-600'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
+            <p className='section-eyebrow text-accent'>Siguiente paso recomendado</p>
+            <p className='mt-2 text-lg font-semibold text-foreground'>{getPrimaryActionLabel(props.status)}</p>
+            <p className='mt-1 max-w-lg text-body text-surface-accent-foreground/82'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
           </div>
-          <Button onClick={props.onProcess} className='h-11 gap-2 rounded-2xl px-5' disabled={props.isProcessing || props.status === 'processing'}>
+          <Button onClick={props.onProcess} className='gap-2' disabled={props.isProcessing || props.status === 'processing'}>
             <Play className='size-4' />
             {props.isProcessing ? 'Procesando...' : getPrimaryActionLabel(props.status)}
           </Button>
         </div>
       </div>
 
-      <div className='space-y-4 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-sm'>
+      <div className='content-block'>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>Acciones operativas</p>
-            <p className='mt-1 text-sm leading-6 text-slate-600'>Usa estas acciones para controlar ciclo del procesamiento sin salir del flujo principal.</p>
+            <p className='section-kicker'>Acciones operativas</p>
+            <p className='mt-1 text-body text-muted-foreground'>Usa estas acciones para controlar ciclo del procesamiento sin salir del flujo principal.</p>
           </div>
-          <div className='rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500'>Control de ejecucion</div>
+          <div className='meta-pill'>Control de ejecucion</div>
         </div>
         <div className='flex flex-wrap gap-2'>
-          <Button variant='outline' onClick={props.onRefresh} className='gap-2 rounded-2xl' disabled={props.isRefreshing}>
+          <Button variant='outline' onClick={props.onRefresh} className='gap-2' disabled={props.isRefreshing}>
             <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
             {props.isRefreshing ? 'Actualizando...' : 'Actualizar estado'}
           </Button>
         </div>
       </div>
 
-      <div className='flex flex-wrap items-center gap-3 rounded-[28px] border border-slate-200 bg-slate-50/80 p-4'>
+      <div className='content-block-subtle flex flex-wrap items-center gap-3 p-4'>
         <div className='min-w-[180px] flex-1'>
-          <p className='text-sm font-medium text-slate-900'>Salida del trabajo</p>
-          <p className='text-sm text-slate-500'>Genera un Excel nuevo o descarga el ultimo archivo disponible.</p>
+          <p className='text-sm font-medium text-foreground'>Salida del trabajo</p>
+          <p className='text-sm text-muted-foreground'>Genera un Excel nuevo o descarga el ultimo archivo disponible.</p>
         </div>
-        <Button variant='outline' onClick={props.onExport} className='gap-2 rounded-2xl' disabled={props.isExporting || !props.canExport}>
+        <Button variant='outline' onClick={props.onExport} className='gap-2' disabled={props.isExporting || !props.canExport}>
           <Download className='size-4' />
           {props.isExporting ? 'Generando Excel...' : 'Generar Excel'}
         </Button>
         {props.excelUrl ? (
-          <Button asChild className='gap-2 rounded-2xl'>
+          <Button asChild className='gap-2'>
             <a href={props.excelUrl} target='_blank' rel='noreferrer'>
               <FileDown className='size-4' />
               Descargar Excel

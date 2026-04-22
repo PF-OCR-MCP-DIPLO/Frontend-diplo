@@ -10,11 +10,11 @@ interface DocumentImageViewerProps {
 export function DocumentImageViewer({ image, fileName, onOpenImage }: DocumentImageViewerProps) {
   if (!image) {
     return (
-      <div className='flex h-full items-center justify-center rounded-[28px] border border-slate-200 bg-white p-12 shadow-sm'>
+      <div className='surface-card flex h-full items-center justify-center p-12'>
         <div className='text-center'>
-          <FileText className='mx-auto mb-4 size-16 text-slate-300' />
-          <p className='text-slate-600'>La ejecucion existe, pero todavia no hay imagenes disponibles para validar el documento.</p>
-          <p className='mt-2 text-sm text-slate-500'>{fileName}</p>
+          <FileText className='mx-auto mb-4 size-16 text-muted-foreground/55' />
+          <p className='text-muted-foreground'>La ejecucion existe, pero todavia no hay imagenes disponibles para validar el documento.</p>
+          <p className='mt-2 text-sm text-muted-foreground'>{fileName}</p>
         </div>
       </div>
     );
@@ -23,13 +23,13 @@ export function DocumentImageViewer({ image, fileName, onOpenImage }: DocumentIm
   return (
     <div className='space-y-4'>
       <div>
-        <p className='font-medium text-slate-900'>{image.name}</p>
-        <p className='text-sm text-slate-500'>Estado OCR: {image.status}</p>
+        <p className='font-medium text-foreground'>{image.name}</p>
+        <p className='text-sm text-muted-foreground'>Estado OCR: {image.status}</p>
       </div>
       <div className='flex justify-center'>
-        <button onClick={() => onOpenImage(image)} className='group relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-2 shadow-sm transition hover:shadow-md'>
+        <button onClick={() => onOpenImage(image)} className='group focus-ring relative overflow-hidden rounded-[28px] border border-border/72 bg-white p-2 shadow-[var(--shadow-soft)] transition hover:shadow-[var(--shadow-panel)]'>
           <img src={image.url} alt={image.name} className='max-h-[520px] rounded-[24px] bg-white' />
-          <span className='absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/70 px-3 py-1 text-xs text-white'>
+          <span className='absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/72 px-3 py-1 text-xs font-semibold text-white'>
             <Expand className='size-3' />
             Ampliar
           </span>

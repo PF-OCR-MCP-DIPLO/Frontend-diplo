@@ -1,4 +1,5 @@
 import { AlertTriangle, FileSearch, Table2 } from 'lucide-react';
+import { MetricCard } from '@/components/shared/MetricCard';
 
 interface ResultsSummaryProps {
   errorCount: number;
@@ -11,53 +12,43 @@ export function ResultsSummary({ errorCount, totalImages, totalRecords }: Result
     {
       label: 'Hallazgos por revisar',
       value: String(errorCount),
-      tone: errorCount > 0 ? 'text-red-600' : 'text-emerald-600',
       description: errorCount > 0 ? 'Prioriza estas filas antes de cerrar la revision.' : 'La tabla no tiene errores pendientes.',
       icon: AlertTriangle,
-      iconTone: errorCount > 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600',
+      tone: errorCount > 0 ? 'danger' as const : 'success' as const,
     },
     {
       label: 'Imagenes disponibles',
       value: String(totalImages),
-      tone: 'text-slate-900',
       description: 'Material fuente listo para validar OCR y contexto documental.',
       icon: FileSearch,
-      iconTone: 'bg-sky-50 text-sky-700',
+      tone: 'primary' as const,
     },
     {
       label: 'Registros extraidos',
       value: String(totalRecords),
-      tone: 'text-slate-900',
       description: 'Filas listas para revisar, ajustar y preparar para exportacion.',
       icon: Table2,
-      iconTone: 'bg-slate-100 text-slate-700',
+      tone: 'neutral' as const,
     },
   ];
 
   return (
-    <section className='rounded-[28px] border border-slate-200 bg-white/90 p-4 shadow-sm'>
+    <section className='surface-card p-4'>
       <div className='mb-4 px-2'>
-        <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>Resumen del resultado</p>
-        <h3 className='mt-1 text-lg font-semibold tracking-tight text-slate-900'>Indicadores para priorizar la revision</h3>
+        <p className='section-kicker'>Resumen del resultado</p>
+        <h3 className='mt-1 text-lg font-semibold tracking-tight text-foreground'>Indicadores para priorizar la revision</h3>
       </div>
       <div className='grid gap-4 md:grid-cols-3'>
-      {cards.map((card) => {
-        const Icon = card.icon;
-        return (
-          <div key={card.label} className='rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60'>
-            <div className='flex items-start justify-between gap-3'>
-              <div>
-                <p className='text-sm font-medium text-slate-500'>{card.label}</p>
-                <p className={`mt-3 text-3xl font-semibold tracking-tight ${card.tone}`}>{card.value}</p>
-              </div>
-              <div className={`flex size-12 items-center justify-center rounded-2xl ${card.iconTone}`}>
-                <Icon className='size-5' />
-              </div>
-            </div>
-            <p className='mt-4 text-sm leading-6 text-slate-600'>{card.description}</p>
-          </div>
-        );
-      })}
+        {cards.map((card) => (
+          <MetricCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            description={card.description}
+            icon={card.icon}
+            tone={card.tone}
+          />
+        ))}
       </div>
     </section>
   );

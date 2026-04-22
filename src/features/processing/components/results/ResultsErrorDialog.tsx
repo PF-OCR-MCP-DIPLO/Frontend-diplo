@@ -13,7 +13,7 @@ interface ResultsErrorDialogProps {
 export function ResultsErrorDialog({ open, errorMessage, data, onClose, onErrorClick }: ResultsErrorDialogProps) {
   return (
     <Modal open={open} onClose={onClose} title='Hallazgos del procesamiento'>
-      {errorMessage ? <p className='mb-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700'>{errorMessage}</p> : null}
+      {errorMessage ? <p className='mb-4 rounded-2xl border border-danger/18 bg-danger/12 p-3 text-sm text-danger'>{errorMessage}</p> : null}
       <ResultsErrorPanel data={data} onErrorClick={onErrorClick} />
     </Modal>
   );

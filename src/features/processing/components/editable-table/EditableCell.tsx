@@ -26,13 +26,13 @@ export function EditableCell({ row, field, editable, isEditing, onEdit, onChange
         onChange={(event) => onChange(row.id, field, event.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className={`h-8 ${hasError ? 'border-red-500' : ''}`}
+        className={`h-9 ${hasError ? 'border-danger ring-danger/12' : ''}`}
       />
     );
   }
 
   if (!editable) {
-    return <span className='block px-2 py-1 text-slate-600'>{value}</span>;
+    return <span className='block px-2 py-1 text-surface-foreground'>{value}</span>;
   }
 
   return (
@@ -40,10 +40,10 @@ export function EditableCell({ row, field, editable, isEditing, onEdit, onChange
       type='button'
       aria-label={label}
       onClick={() => onEdit(row.id, field)}
-      className={`flex w-full items-center justify-between rounded-lg px-2 py-1 text-left transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${hasError ? 'text-red-600' : ''}`}
+      className={`focus-ring flex w-full items-center justify-between rounded-lg px-2 py-1 text-left transition hover:bg-primary/6 ${hasError ? 'text-danger' : ''}`}
     >
       <span>{value}</span>
-      <span className='text-[11px] text-slate-400'>Editar</span>
+      <span className='text-[11px] text-muted-foreground'>Editar</span>
     </button>
   );
 }

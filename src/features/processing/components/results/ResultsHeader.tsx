@@ -1,5 +1,5 @@
 import type { ProcessingStatus } from '@/features/processing/types/processing.types';
-import { statusClass, statusLabel } from '@/lib/constants/status';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 interface ResultsHeaderProps {
   fileName: string;
@@ -69,37 +69,35 @@ export function ResultsHeader({ fileName, status, totalImages, totalRecords, err
     <div className='max-w-3xl space-y-5'>
       <div className='space-y-3'>
         <div className='flex flex-wrap items-center gap-2'>
-          <p className='text-xs font-semibold uppercase tracking-[0.2em] text-teal-700'>Centro de revision</p>
-          <span className='rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700'>Paso 3 de 3</span>
+          <p className='section-eyebrow'>Centro de revision</p>
+          <span className='eyebrow-chip'>Paso 3 de 3</span>
         </div>
         <div className='space-y-2'>
-          <h2 className='text-3xl font-semibold tracking-tight text-slate-950'>Resultados del procesamiento</h2>
-          <p className='max-w-2xl text-sm leading-6 text-slate-600'>
+          <h2 className='section-title text-[clamp(2rem,1.8rem+0.5vw,2.45rem)]'>Resultados del procesamiento</h2>
+          <p className='section-body max-w-2xl'>
             Revisa la extraccion, contrasta el documento fuente y corrige cualquier hallazgo antes de exportar.
           </p>
-          <p className='max-w-2xl rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-700'>
+          <p className='info-strip max-w-2xl'>
             {getOutcomeMessage(status, errorMessage)}
           </p>
-          <p className='max-w-2xl text-sm font-medium text-teal-700'>
+          <p className='max-w-2xl text-sm font-semibold text-primary'>
             {getValueNarrative(status, errorMessage)}
           </p>
         </div>
       </div>
 
       <div className='flex flex-wrap items-start gap-3'>
-        <div className='min-w-[240px] rounded-2xl border border-slate-200 bg-white/80 px-4 py-3'>
-          <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>Archivo activo</p>
-          <p className='mt-2 truncate text-sm font-medium text-slate-900'>{fileName}</p>
+        <div className='content-block min-w-[240px] p-4'>
+          <p className='section-kicker'>Archivo activo</p>
+          <p className='mt-2 truncate text-sm font-medium text-foreground'>{fileName}</p>
         </div>
-        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${statusClass[status] ?? 'border-slate-200 bg-slate-100 text-slate-700'}`}>
-          Estado: {statusLabel[status] ?? status}
-        </span>
-        <span className='rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-600'>Imagenes: {totalImages}</span>
-        <span className='rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-600'>Registros: {totalRecords}</span>
+        <StatusBadge status={status} prefix='Estado' />
+        <span className='meta-pill'>Imagenes: {totalImages}</span>
+        <span className='meta-pill'>Registros: {totalRecords}</span>
       </div>
 
-      <div className={`rounded-3xl border px-5 py-4 text-sm ${hasErrors ? 'border-red-200 bg-red-50/90 text-red-700' : 'border-slate-200 bg-slate-50/90 text-slate-700'}`}>
-        <p className='font-medium text-slate-900'>{hasErrors ? 'Hay observaciones del backend en esta ejecucion.' : 'Siguiente foco de trabajo'}</p>
+      <div className={`${hasErrors ? 'content-block-danger' : 'content-block-subtle'} px-5 py-4 text-sm`}>
+        <p className='font-medium text-foreground'>{hasErrors ? 'Hay observaciones del backend en esta ejecucion.' : 'Siguiente foco de trabajo'}</p>
         <p className='mt-1 leading-6'>{getStatusGuidance(status, errorMessage)}</p>
       </div>
     </div>
