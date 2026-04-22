@@ -14,22 +14,6 @@ export function SidebarBody({
 
   return (
     <>
-      <div className='px-4 pt-4'>
-        {!collapsed ? (
-          <div className='rounded-[24px] border border-accent/15 bg-[linear-gradient(135deg,rgba(240,253,250,1),rgba(255,255,255,0.96))] p-4'>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-accent'>
-              Espacio de trabajo
-            </p>
-            <p className='mt-2 text-sm font-medium text-foreground'>
-              Supervisa la carga, la revision y la exportacion desde un solo lugar.
-            </p>
-            <p className='mt-1 text-xs leading-5 text-muted-foreground'>
-              Cada vista mantiene el foco operativo y evita saltos innecesarios entre tareas.
-            </p>
-          </div>
-        ) : null}
-      </div>
-
       <nav className='flex-1 space-y-2 p-3 pt-5'>
         {appNavigation.map((item) => {
           const Icon = item.icon;

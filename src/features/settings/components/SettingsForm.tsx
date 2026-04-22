@@ -17,7 +17,7 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions }: SettingsFormProps) {
   return (
-    <Card className='max-w-5xl p-6'>
+    <Card className='max-w p-6'>
       <div className='space-y-6'>
         <div className='flex flex-col gap-3 border-b border-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between'>
           <div>
