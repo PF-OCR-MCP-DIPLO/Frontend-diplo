@@ -3,30 +3,24 @@ type AppLogoProps = {
 };
 
 export function AppLogo({ collapsed = false }: AppLogoProps) {
-  if (collapsed) {
-    return (
-      <div className='flex items-center justify-center'>
-        <div className='brand-mark'>
-          PC
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className='flex items-center gap-3'>
-      <div className='brand-mark shrink-0'>
+    <div
+      className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}
+    >
+      <div className='flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f766e,#14b8a6)] text-sm font-semibold text-white shadow-lg shadow-teal-900/15'>
         PC
       </div>
 
-      <div className='min-w-0'>
-        <p className='truncate text-sm font-semibold text-foreground'>
-          Procesador de Consignaciones
-        </p>
-        <p className='text-xs text-muted-foreground'>
-          Centro operativo documental
-        </p>
-      </div>
+      {!collapsed ? (
+        <div className='min-w-0'>
+          <p className='truncate text-sm font-semibold text-foreground'>
+            Procesador de Consignaciones
+          </p>
+          <p className='text-xs text-muted-foreground'>
+            Operacion documental guiada
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Sidebar } from '@/components/shared/Sidebar';
+import { SidebarDesktop } from '@/components/shared/SidebarDesktop';
+import { SidebarMobile } from '@/components/shared/SidebarMobile';
 import { Button } from '@/components/ui/button';
 import { appNavigation } from '@/lib/constants/navigation';
 
@@ -22,30 +23,15 @@ export function AppShell() {
         Saltar al contenido principal
       </a>
 
-      <Sidebar
+      <SidebarDesktop
         collapsed={collapsed}
         onToggle={() => setCollapsed((value) => !value)}
       />
 
-      {mobileOpen ? (
-        <div
-          className='fixed inset-0 z-40 bg-slate-950/48 backdrop-blur-sm lg:hidden'
-          onClick={() => setMobileOpen(false)}
-        >
-          <div className='h-full w-80 bg-card shadow-[var(--shadow-floating)]' onClick={(event) => event.stopPropagation()}>
-            <div className='flex h-full flex-col'>
-              <div className='border-b border-border/70 px-4 py-5'>
-                <p className='text-sm font-semibold text-foreground'>Menu</p>
-              </div>
-              <Sidebar
-                collapsed={false}
-                onToggle={() => {}}
-                onNavigate={() => setMobileOpen(false)}
-              />
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <SidebarMobile
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
 
       <div className='flex min-h-screen min-w-0 flex-1 flex-col'>
         <header className='sticky top-0 z-30 border-b border-border/70 bg-card/82 backdrop-blur-xl'>
@@ -63,7 +49,12 @@ export function AppShell() {
 
               <div className='space-y-1'>
                 <p className='section-kicker'>Plataforma</p>
-                <p className='text-sm font-semibold text-foreground sm:text-base'>{currentNavigationItem.label}</p>
+                <p className='text-sm font-semibold text-foreground sm:text-base'>
+                  {currentNavigationItem.label}
+                </p>
+                <p className='text-xs text-muted-foreground sm:text-sm'>
+                  {currentNavigationItem.description}
+                </p>
               </div>
             </div>
 
