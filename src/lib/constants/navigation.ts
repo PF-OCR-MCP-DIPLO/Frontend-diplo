@@ -1,4 +1,4 @@
-import { BarChart3, FileUp, History, LayoutDashboard, Settings } from 'lucide-react';
+import { BarChart3, FileUp, History, LayoutDashboard } from 'lucide-react';
 import type { NavigationItem } from '@/types/navigation';
 
 export const appNavigation: NavigationItem[] = [
