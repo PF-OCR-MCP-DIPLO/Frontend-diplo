@@ -16,6 +16,22 @@ export interface ConsignmentRow {
   errors: string[];
 }
 
+export type ResultRowId = ConsignmentRow['id'];
+export type ResultFieldKey = keyof Pick<ConsignmentRow, 'fecha' | 'hora' | 'monto' | 'referencia' | 'sourceName' | 'estado'>;
+export type ValidationSeverity = 'info' | 'warning' | 'error';
+
+export interface ValidationIssue {
+  id: string;
+  message: string;
+  severity: ValidationSeverity;
+  source: 'backend' | 'frontend' | 'assistant';
+}
+
+export interface FieldValidationIssue extends ValidationIssue {
+  rowId: ResultRowId;
+  field: ResultFieldKey;
+}
+
 export interface PreviewImage {
   id: number;
   url: string;

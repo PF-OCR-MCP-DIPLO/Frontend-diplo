@@ -1,17 +1,15 @@
-import { MessageSquare, ScrollText, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { DocumentPreview } from '@/features/processing/components/document-preview/DocumentPreview';
-import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import { ResultsActions } from '@/features/processing/components/results/ResultsActions';
-import { ResultsChatPanel } from '@/features/processing/components/results/ResultsChatPanel';
+import { ResultsCorrectionsPanel } from '@/features/processing/components/results/ResultsCorrectionsPanel';
 import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
-import { ResultsErrorPanel } from '@/features/processing/components/results/ResultsErrorPanel';
 import { ResultsHeader } from '@/features/processing/components/results/ResultsHeader';
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
+import { ResultsIssuesPanel } from '@/features/processing/components/results/ResultsIssuesPanel';
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsSummary } from '@/features/processing/components/results/ResultsSummary';
+import { ResultsToolsPanel } from '@/features/processing/components/results/ResultsToolsPanel';
+import { ResultsWorkspace, type ResultsPrimaryView } from '@/features/processing/components/results/ResultsWorkspace';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
 
@@ -38,7 +36,7 @@ interface ResultsViewProps {
 
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
-  const [primaryView, setPrimaryView] = useState<'table' | 'preview'>('table');
+  const [primaryView, setPrimaryView] = useState<ResultsPrimaryView>('table');
   const [showIssues, setShowIssues] = useState(props.errorMessage.length > 0 || props.initialData.some((row) => row.estado === 'error'));
   const [showTools, setShowTools] = useState(false);
   const canExport = (props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl)) && !viewState.hasUnsavedChanges;
@@ -58,6 +56,13 @@ export function ResultsView(props: ResultsViewProps) {
     window.setTimeout(() => {
       viewState.handleErrorClick(rowId);
     }, 0);
+  }
+
+  function handleSaveCorrections() {
+    void props
+      .onSaveCorrections(viewState.data)
+      .then(() => viewState.markSaved())
+      .catch(() => undefined);
   }
 
   return (
@@ -87,125 +92,46 @@ export function ResultsView(props: ResultsViewProps) {
 
       <ResultsSummary errorCount={viewState.errorCount} totalImages={props.totalImages} totalRecords={props.totalRecords} />
 
-      <section className='surface-card p-4 md:p-5'>
-        <div className='flex flex-col gap-4 border-b border-border/70 pb-4 md:flex-row md:items-center md:justify-between'>
-          <div>
-            <p className='section-kicker'>Revision principal</p>
-            <h3 className='mt-1 text-lg font-semibold tracking-tight text-foreground'>Trabaja sobre una vista a la vez.</h3>
-          </div>
-          <div className='flex flex-wrap items-center gap-2'>
-            <Button
-              type='button'
-              variant={primaryView === 'table' ? 'default' : 'outline'}
-              onClick={() => setPrimaryView('table')}
-              aria-pressed={primaryView === 'table'}
-            >
-              Tabla
-            </Button>
-            <Button
-              type='button'
-              variant={primaryView === 'preview' ? 'default' : 'outline'}
-              onClick={() => setPrimaryView('preview')}
-              aria-pressed={primaryView === 'preview'}
-            >
-              Vista previa
-            </Button>
-          </div>
-        </div>
-        <div className='pt-4'>
-          {primaryView === 'table' ? (
-            <EditableTable data={viewState.data} onDataChange={viewState.setData} onRowClick={(row) => handleFocusRow(row.id)} />
-          ) : (
-            <DocumentPreview
-              fileName={props.fileName}
-              sourceDocxUrl={props.sourceDocxUrl}
-              images={props.sourceImages}
-              onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
-            />
-          )}
-        </div>
-      </section>
+      <ResultsWorkspace
+        primaryView={primaryView}
+        onPrimaryViewChange={setPrimaryView}
+        data={viewState.data}
+        fileName={props.fileName}
+        sourceDocxUrl={props.sourceDocxUrl}
+        sourceImages={props.sourceImages}
+        onDataChange={viewState.setData}
+        onRowFocus={handleFocusRow}
+        onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
+      />
 
-      <section className='content-block p-4'>
-        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <h4 className='font-semibold text-foreground'>Guardar cambios</h4>
-            <p className='text-sm text-muted-foreground'>
-              {viewState.hasUnsavedChanges
-                ? 'Tienes cambios pendientes. Guardalos antes de exportar.'
-                : 'La tabla esta sincronizada con el backend.'}
-            </p>
-          </div>
-          <Button
-            type='button'
-            disabled={!canSaveCorrections}
-            onClick={() =>
-              void props
-                .onSaveCorrections(viewState.data)
-                .then(() => viewState.markSaved())
-                .catch(() => undefined)
-            }
-          >
-            {props.isSavingCorrections ? 'Guardando...' : 'Guardar correcciones'}
-          </Button>
-        </div>
-      </section>
+      <ResultsCorrectionsPanel
+        hasUnsavedChanges={viewState.hasUnsavedChanges}
+        canSaveCorrections={canSaveCorrections}
+        isSavingCorrections={props.isSavingCorrections}
+        onSaveCorrections={handleSaveCorrections}
+      />
 
       <div className='grid gap-4 xl:grid-cols-2'>
-        <section className='surface-card p-5'>
-          <div className='flex items-start justify-between gap-3'>
-            <div>
-              <p className='section-kicker'>Secundario</p>
-              <h3 className='mt-1 text-lg font-semibold tracking-tight text-foreground'>Hallazgos</h3>
-            </div>
-            <Button variant='ghost' size='sm' onClick={() => setShowIssues((value) => !value)}>
-              {showIssues ? 'Ocultar' : 'Mostrar'}
-            </Button>
-          </div>
-          {showIssues ? (
-            <div className='mt-4 space-y-4'>
-              {props.errorMessage ? <div className='notice-warning'>{props.errorMessage}</div> : null}
-              {viewState.errorCount > 0 ? (
-                <>
-                  <ResultsErrorPanel data={viewState.data} onErrorClick={handleFocusRow} />
-                  <Button variant='outline' className='gap-2' onClick={() => viewState.setShowErrorDialog(true)}>
-                    <XCircle className='size-4' />
-                    Ver detalle completo
-                  </Button>
-                </>
-              ) : (
-                <div className='notice-success'>No hay hallazgos pendientes.</div>
-              )}
-            </div>
-          ) : null}
-        </section>
+        <ResultsIssuesPanel
+          data={viewState.data}
+          errorMessage={props.errorMessage}
+          errorCount={viewState.errorCount}
+          showIssues={showIssues}
+          onToggleIssues={() => setShowIssues((value) => !value)}
+          onErrorClick={handleFocusRow}
+          onOpenDetails={() => viewState.setShowErrorDialog(true)}
+        />
 
-        <section className='surface-card p-5'>
-          <div className='flex items-start justify-between gap-3'>
-            <div>
-              <p className='section-kicker'>Secundario</p>
-              <h3 className='mt-1 text-lg font-semibold tracking-tight text-foreground'>Herramientas</h3>
-            </div>
-            <Button variant='ghost' size='sm' onClick={() => setShowTools((value) => !value)}>
-              {showTools ? 'Ocultar' : 'Mostrar'}
-            </Button>
-          </div>
-          {showTools ? (
-            <div className='mt-4 space-y-3'>
-              <div className='flex flex-wrap gap-2'>
-                <Button variant='outline' className='gap-2' onClick={() => void handleOpenLogs()} disabled={viewState.isLoadingLogs}>
-                  <ScrollText className='size-4' />
-                  {viewState.isLoadingLogs ? 'Cargando logs...' : 'Ver logs'}
-                </Button>
-                <Button variant='outline' className='gap-2' onClick={() => viewState.setShowChat((value) => !value)}>
-                  <MessageSquare className='size-4' />
-                  {viewState.showChat ? 'Ocultar asistente' : 'Mostrar asistente'}
-                </Button>
-              </div>
-              {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} jobId={props.jobId} /> : null}
-            </div>
-          ) : null}
-        </section>
+        <ResultsToolsPanel
+          errorCount={viewState.errorCount}
+          jobId={props.jobId}
+          showTools={showTools}
+          showChat={viewState.showChat}
+          isLoadingLogs={viewState.isLoadingLogs}
+          onToggleTools={() => setShowTools((value) => !value)}
+          onToggleChat={() => viewState.setShowChat((value) => !value)}
+          onOpenLogs={() => void handleOpenLogs()}
+        />
       </div>
 
       <ResultsErrorDialog
