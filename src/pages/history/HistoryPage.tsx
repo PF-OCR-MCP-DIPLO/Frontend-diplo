@@ -80,7 +80,7 @@ export function HistoryPage() {
   return (
     <div className='page-stack'>
       <PageHeader
-        eyebrow='Historial'
+        eyebrow='Ejecuciones Previas'
         title='Historial'
         description='Abre una ejecucion anterior y continua la revision.'
         actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar</Button>}

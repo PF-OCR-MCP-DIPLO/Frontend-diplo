@@ -33,8 +33,7 @@ export function AppLogo({ collapsed = false }: AppLogoProps) {
 
       {!collapsed ? (
         <div className="app-logo-copy">
-          <p className="app-logo-title">PC Engine</p>
-          <p className="app-logo-subtitle">Procesador de Consignaciones</p>
+          <p className="app-logo-title">CONDI</p>
         </div>
       ) : null}
     </div>

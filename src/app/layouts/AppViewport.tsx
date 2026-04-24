@@ -1,6 +1,7 @@
 import { AppHeader } from '@/app/layouts/AppHeader';
 import { AppMain } from '@/app/layouts/AppMain';
 import { NavigationItem } from '@/types/navigation';
+import { AppFooter } from './AppFooter';
 
 type AppViewportProps = {
   currentNavigationItem: NavigationItem;
