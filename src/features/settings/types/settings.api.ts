@@ -2,7 +2,7 @@ export interface ApiProcessingSettings {
   ocr_mode: 'tesseract' | 'vision' | 'auto';
   ocr_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek';
   ocr_model: string;
-  llm_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek';
+  llm_provider: 'ollama' | 'anthropic' | 'openai' | 'gemini' | 'deepseek';
   llm_model: string;
   has_ocr_api_key: boolean;
   has_llm_api_key: boolean;

@@ -202,7 +202,7 @@ export function ResultsView(props: ResultsViewProps) {
                   {viewState.showChat ? 'Ocultar asistente' : 'Mostrar asistente'}
                 </Button>
               </div>
-              {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} /> : null}
+              {viewState.showChat ? <ResultsChatPanel errors={viewState.errorCount} jobId={props.jobId} /> : null}
             </div>
           ) : null}
         </section>

@@ -1,4 +1,4 @@
-import { Menu, Settings } from "lucide-react";
+import { Menu, MessageSquare, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavigationItem } from "@/types/navigation";
 import { Link, useLocation } from "react-router-dom";
@@ -6,11 +6,15 @@ import { Link, useLocation } from "react-router-dom";
 type AppHeaderProps = {
   currentNavigationItem: NavigationItem;
   onOpenMobileSidebar: () => void;
+  showAssistant: boolean;
+  onToggleAssistant: () => void;
 };
 
 export function AppHeader({
   currentNavigationItem,
   onOpenMobileSidebar,
+  showAssistant,
+  onToggleAssistant,
 }: AppHeaderProps) {
   const location = useLocation();
   const isSettings = location.pathname === "/settings";
@@ -40,7 +44,21 @@ export function AppHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <Link to="/settings" aria-label="Ir a configuracion" title="Configuracion">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={showAssistant ? "Ocultar asistente" : "Mostrar asistente"}
+            title={showAssistant ? "Ocultar asistente" : "Mostrar asistente"}
+            className={
+              showAssistant
+                ? "rounded-full border-primary/20 bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                : "rounded-full"
+            }
+            onClick={onToggleAssistant}
+          >
+            <MessageSquare className="size-4" />
+          </Button>
+          <Link to="/settings" aria-label="Configuracion" title="Configuracion">
             <Button
               variant="outline"
               size="icon"
