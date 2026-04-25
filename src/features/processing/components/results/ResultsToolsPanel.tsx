@@ -1,5 +1,6 @@
 import { MessageSquare, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
 import { ResultsChatPanel } from '@/features/processing/components/results/ResultsChatPanel';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
@@ -12,7 +13,7 @@ interface ResultsToolsPanelProps {
   isLoadingLogs: boolean;
   onToggleTools: () => void;
   onToggleChat: () => void;
-  onOpenAssistant: () => void;
+  onOpenAssistant: (launch: AssistantLaunchContext) => void;
   onOpenLogs: () => void;
 }
 
@@ -42,7 +43,7 @@ export function ResultsToolsPanel({
       {showTools ? (
         <div className='mt-4 space-y-3'>
           <div className='flex flex-wrap gap-2'>
-            <Button variant='outline' className='gap-2' onClick={onOpenAssistant}>
+            <Button variant='outline' className='gap-2' onClick={() => onOpenAssistant({ context: assistantQueryContext })}>
               <MessageSquare className='size-4' />
               Abrir Assistant
             </Button>

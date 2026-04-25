@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { StatePanel } from '@/components/shared/StatePanel';
 import { Button } from '@/components/ui/button';
+import { useOpenAssistantWithContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
-import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import {
   useProcessingActionsContext,
   useProcessingCurrentResultContext,
@@ -16,6 +16,7 @@ import type { ConsignmentRow } from '@/features/processing/types/processing.type
 
 export function ResultsPage() {
   const navigate = useNavigate();
+  const openAssistantWithContext = useOpenAssistantWithContext();
   const { runProcessing, refreshJob, exportCurrentJob, saveCurrentCorrections } = useProcessingActionsContext();
   const { currentResults } = useProcessingCurrentResultContext();
   const { isProcessing, isRefreshing, isExporting, isSavingCorrections } = useProcessingFlagsContext();
@@ -63,9 +64,7 @@ export function ResultsPage() {
     }
   }, [saveCurrentCorrections]);
 
-  const handleOpenAssistant = useCallback((assistantQueryContext: AssistantQueryContext) => {
-    navigate('/assistant', { state: { assistantQueryContext } });
-  }, [navigate]);
+  const handleOpenAssistant = openAssistantWithContext;
 
   if (!currentResults) {
     return (

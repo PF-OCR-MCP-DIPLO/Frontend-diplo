@@ -8,6 +8,7 @@ import { ResultsImagePreviewDialog } from '@/features/processing/components/resu
 import { ResultsIssuesPanel } from '@/features/processing/components/results/ResultsIssuesPanel';
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsSummary } from '@/features/processing/components/results/ResultsSummary';
+import { ResultsAssistantQuickActions } from '@/features/processing/components/results/ResultsAssistantQuickActions';
 import { ResultsToolsPanel } from '@/features/processing/components/results/ResultsToolsPanel';
 import { buildResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import { ResultsWorkspace, type ResultsPrimaryView } from '@/features/processing/components/results/ResultsWorkspace';
@@ -15,6 +16,7 @@ import { useResultsAutosave } from '@/features/processing/components/results/hoo
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
+import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
 
 interface ResultsViewProps {
   jobId: number;
@@ -35,7 +37,7 @@ interface ResultsViewProps {
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: (rows: ConsignmentRow[]) => Promise<void>;
-  onOpenAssistant: (queryContext: AssistantQueryContext) => void;
+  onOpenAssistant: (launch: AssistantLaunchContext) => void;
 }
 
 export function ResultsView(props: ResultsViewProps) {
@@ -129,6 +131,18 @@ export function ResultsView(props: ResultsViewProps) {
 
       <ResultsSummary errorCount={viewState.errorCount} totalImages={props.totalImages} totalRecords={props.totalRecords} />
 
+      <ResultsAssistantQuickActions
+        jobId={props.jobId}
+        jobStatus={props.status}
+        data={viewState.data}
+        sourceImages={props.sourceImages}
+        selectedRowId={viewState.selectedRowId}
+        currentImage={viewState.currentImage}
+        errorCount={viewState.errorCount}
+        autosaveStatus={autosave.autosave.status}
+        onOpenAssistant={props.onOpenAssistant}
+      />
+
       <ResultsWorkspace
         primaryView={primaryView}
         onPrimaryViewChange={setPrimaryView}
@@ -171,7 +185,7 @@ export function ResultsView(props: ResultsViewProps) {
           isLoadingLogs={viewState.isLoadingLogs}
           onToggleTools={() => setShowTools((value) => !value)}
           onToggleChat={() => viewState.setShowChat((value) => !value)}
-          onOpenAssistant={() => props.onOpenAssistant(assistantQueryContext)}
+          onOpenAssistant={() => props.onOpenAssistant({ context: assistantQueryContext })}
           onOpenLogs={() => void handleOpenLogs()}
         />
       </div>

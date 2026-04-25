@@ -6,6 +6,7 @@ import type { AssistantQueryContext } from '@/features/assistant/types/assistant
 
 type AssistantLocationState = {
   assistantQueryContext?: AssistantQueryContext;
+  assistantPrompt?: string;
 };
 
 export function AssistantPage() {
@@ -15,6 +16,7 @@ export function AssistantPage() {
     () => state?.assistantQueryContext ?? ({ page: 'assistant' } as AssistantQueryContext),
     [state?.assistantQueryContext],
   );
+  const initialPrompt = state?.assistantPrompt ?? '';
 
   return (
     <div className='flex h-[calc(100vh-8rem)] min-h-[640px] flex-col'>
@@ -46,7 +48,13 @@ export function AssistantPage() {
       ) : null}
 
       <div className='min-h-0 flex-1'>
-        <AIChat errors={0} jobId={queryContext.jobId ?? null} variant='fullscreen' queryContext={queryContext} />
+        <AIChat
+          errors={0}
+          jobId={queryContext.jobId ?? null}
+          variant='fullscreen'
+          queryContext={queryContext}
+          initialPrompt={initialPrompt}
+        />
       </div>
     </div>
   );

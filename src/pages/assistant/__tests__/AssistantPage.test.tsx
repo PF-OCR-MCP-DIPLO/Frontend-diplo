@@ -4,8 +4,11 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AssistantPage } from '@/pages/assistant/AssistantPage';
 
 vi.mock('@/components/AIChat', () => ({
-  AIChat: ({ queryContext }: { queryContext?: Record<string, unknown> }) => (
-    <div data-testid='assistant-chat'>{JSON.stringify(queryContext ?? {})}</div>
+  AIChat: ({ queryContext, initialPrompt }: { queryContext?: Record<string, unknown>; initialPrompt?: string }) => (
+    <div data-testid='assistant-chat'>
+      {JSON.stringify(queryContext ?? {})}
+      {initialPrompt ? `|${initialPrompt}` : ''}
+    </div>
   ),
 }));
 
@@ -16,7 +19,10 @@ describe('AssistantPage', () => {
         initialEntries={[
           {
             pathname: '/assistant',
-            state: { assistantQueryContext: { page: 'results', jobId: 12, jobName: 'archivo.docx' } },
+            state: {
+              assistantQueryContext: { page: 'results', jobId: 12, jobName: 'archivo.docx' },
+              assistantPrompt: 'Explícame esta fila.',
+            },
           },
         ]}
       >
@@ -29,5 +35,6 @@ describe('AssistantPage', () => {
     expect(screen.getByText(/Contexto activo/i)).toBeInTheDocument();
     expect(screen.getByTestId('assistant-chat')).toHaveTextContent('"jobId":12');
     expect(screen.getByTestId('assistant-chat')).toHaveTextContent('"page":"results"');
+    expect(screen.getByTestId('assistant-chat')).toHaveTextContent('Explícame esta fila.');
   });
 });

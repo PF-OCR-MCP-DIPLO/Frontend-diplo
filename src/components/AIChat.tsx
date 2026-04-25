@@ -14,6 +14,7 @@ interface AIChatProps {
   jobId?: number | null;
   variant?: 'panel' | 'fullscreen';
   queryContext?: AssistantQueryContext;
+  initialPrompt?: string;
 }
 
 type ChatSuggestion = {
@@ -306,7 +307,7 @@ function ThinkingBubble() {
   );
 }
 
-export function AIChat({ errors, jobId = null, variant = 'panel', queryContext }: AIChatProps) {
+export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, initialPrompt }: AIChatProps) {
   const { messages, setMessages, clearChat, input, setInput, isSending, setIsSending, queryContext: assistantQueryContext, setQueryContext } = useAssistantChatContext();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -327,6 +328,12 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext }
       setQueryContext(queryContext);
     }
   }, [queryContext, setQueryContext]);
+
+  useEffect(() => {
+    if (initialPrompt && !input) {
+      setInput(initialPrompt);
+    }
+  }, [initialPrompt, input, setInput]);
 
   const sendMessage = async (rawText?: string) => {
     const text = (rawText ?? input).trim();
