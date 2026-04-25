@@ -3,6 +3,7 @@ import { StatePanel } from "@/components/shared/StatePanel";
 import { Button } from "@/components/ui/button";
 import { SettingsForm } from "@/features/settings/components/SettingsForm";
 import { useSettingsForm } from "@/features/settings/hooks/useSettingsForm";
+import { openSettingsAssistant } from "@/features/settings/hooks/openSettingsAssistant";
 
 export function SettingsPage() {
   const settingsForm = useSettingsForm();
@@ -61,6 +62,7 @@ export function SettingsPage() {
         onSave={() => void settingsForm.save()}
         isSaving={settingsForm.isSaving}
         modelOptions={settingsForm.modelOptions}
+        onOpenAssistant={(context, prompt) => openSettingsAssistant(context, prompt)}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { AssistantSettingsSection } from '@/features/settings/components/section
 import { ExtractionCriteriaSection } from '@/features/settings/components/sections/ExtractionCriteriaSection';
 import { LlmSettingsSection } from '@/features/settings/components/sections/LlmSettingsSection';
 import { OcrSettingsSection } from '@/features/settings/components/sections/OcrSettingsSection';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
 
@@ -15,9 +16,10 @@ interface SettingsFormProps {
   onSave: () => void;
   isSaving: boolean;
   modelOptions: { ocr: string[]; llm: string[]; assistant: string[] };
+  onOpenAssistant: (context: AssistantQueryContext, prompt: string) => void;
 }
 
-export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions }: SettingsFormProps) {
+export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions, onOpenAssistant }: SettingsFormProps) {
   return (
     <Card className='max-w p-6'>
       <div className='space-y-6'>
@@ -29,6 +31,20 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           <div className='flex flex-wrap items-center gap-3'>
             <span className='meta-pill'>Actualizado {new Date(settings.updated_at).toLocaleString('es-CO')}</span>
             <Button onClick={onSave} disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar'}</Button>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => onOpenAssistant(
+                {
+                  page: 'settings',
+                  jobId: undefined,
+                  intentHint: 'explain_settings',
+                },
+                'Ayúdame a revisar y simplificar esta configuración.',
+              )}
+            >
+              Ayúdame con Assistant
+            </Button>
           </div>
         </div>
 

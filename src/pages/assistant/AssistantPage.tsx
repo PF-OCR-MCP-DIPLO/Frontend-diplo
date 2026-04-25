@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AIChat } from '@/components/AIChat';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
+import { readSettingsAssistantContext } from '@/features/settings/hooks/openSettingsAssistant';
 
 type AssistantLocationState = {
   assistantQueryContext?: AssistantQueryContext;
@@ -12,11 +13,12 @@ type AssistantLocationState = {
 export function AssistantPage() {
   const location = useLocation();
   const state = location.state as AssistantLocationState | null;
+  const storedSettingsContext = readSettingsAssistantContext();
   const queryContext = useMemo(
-    () => state?.assistantQueryContext ?? ({ page: 'assistant' } as AssistantQueryContext),
-    [state?.assistantQueryContext],
+    () => state?.assistantQueryContext ?? storedSettingsContext?.assistantQueryContext ?? ({ page: 'assistant' } as AssistantQueryContext),
+    [state?.assistantQueryContext, storedSettingsContext?.assistantQueryContext],
   );
-  const initialPrompt = state?.assistantPrompt ?? '';
+  const initialPrompt = state?.assistantPrompt ?? storedSettingsContext?.assistantPrompt ?? '';
 
   return (
     <div className='flex h-[calc(100vh-8rem)] min-h-[640px] flex-col'>
