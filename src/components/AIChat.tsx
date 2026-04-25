@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, ChevronDown, ChevronUp, Database, Loader2, Send, Sparkles, Trash2, Wrench, BotMessageSquare, User } from 'lucide-react';
+import { Bot, CheckCircle2, ChevronDown, ChevronUp, Database, Loader2, Send, Sparkles, Trash2, Wrench, BotMessageSquare, User, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -225,6 +225,46 @@ function AssistantMessageDetails({ toolData }: { toolData: unknown }) {
   );
 }
 
+function PendingActionCard({
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  message: AssistantChatMessage;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!isRecord(message.toolData) || !message.toolData.requires_confirmation) {
+    return null;
+  }
+
+  const detail = typeof message.toolData.detail === 'string' ? message.toolData.detail : 'La accion solicitada requiere confirmacion.';
+
+  return (
+    <div className='mt-3 rounded-2xl border border-warning/25 bg-warning/10 p-4 text-sm text-foreground shadow-[var(--shadow-soft)]'>
+      <div className='flex items-start gap-3'>
+        <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning'>
+          <Wrench className='size-5' />
+        </div>
+        <div className='min-w-0 flex-1'>
+          <p className='font-semibold text-warning'>Accion pendiente de confirmacion</p>
+          <p className='mt-1 text-muted-foreground'>{detail}</p>
+          <div className='mt-3 flex flex-wrap gap-2'>
+            <Button type='button' size='sm' className='gap-2' onClick={onConfirm}>
+              <CheckCircle2 className='size-4' />
+              Confirmar y ejecutar
+            </Button>
+            <Button type='button' size='sm' variant='outline' className='gap-2' onClick={onCancel}>
+              <XCircle className='size-4' />
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChatBubble({ message }: { message: AssistantChatMessage }) {
   const isUser = message.role === 'user';
   return (
@@ -307,7 +347,7 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext }
     try {
       const response = await sendAssistantChat(
         nextMessages.map((message) => ({ role: message.role, content: message.content })),
-        { jobId, errors, queryContext: queryContext ?? assistantQueryContext },
+        { jobId, errors, queryContext: assistantQueryContext },
       );
 
       setQueryContext(response.query_context ?? {});
@@ -374,8 +414,19 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext }
       </div>
 
       <ScrollArea className='min-h-0 flex-1 overflow-hidden px-4 py-4' viewportRef={viewportRef}>
-        <div className='space-y-4 pr-2'>
-          {messages.map((message) => <ChatBubble key={message.id} message={message} />)}
+      <div className='space-y-4 pr-2'>
+          {messages.map((message) => (
+            <div key={message.id}>
+              <ChatBubble message={message} />
+              {message.role === 'assistant' ? (
+                <PendingActionCard
+                  message={message}
+                  onConfirm={() => void sendMessage('confirmar')}
+                  onCancel={() => void sendMessage('cancelar')}
+                />
+              ) : null}
+            </div>
+          ))}
           {isSending ? <ThinkingBubble /> : null}
         </div>
       </ScrollArea>

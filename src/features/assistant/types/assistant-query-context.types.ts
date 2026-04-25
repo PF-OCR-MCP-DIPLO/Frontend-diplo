@@ -22,4 +22,11 @@ export interface AssistantQueryContext {
   errorCount?: number;
   autosaveStatus?: AssistantAutosaveStatus;
   intentHint?: string;
+  pendingAction?: {
+    tool: string;
+    arguments?: Record<string, unknown>;
+    intentName?: string;
+    intentSummary?: string;
+    jobId?: number;
+  };
 }

@@ -20,7 +20,12 @@ describe('AIChat', () => {
   function renderChat(props?: Partial<ComponentProps<typeof AIChat>>) {
     return render(
       <AssistantChatProvider>
-        <AIChat errors={props?.errors ?? 0} jobId={props?.jobId ?? null} variant={props?.variant ?? 'panel'} />
+        <AIChat
+          errors={props?.errors ?? 0}
+          jobId={props?.jobId ?? null}
+          variant={props?.variant ?? 'panel'}
+          queryContext={props?.queryContext}
+        />
       </AssistantChatProvider>,
     );
   }
@@ -44,7 +49,7 @@ describe('AIChat', () => {
 
     renderChat();
 
-    const input = screen.getByPlaceholderText('Escribe tu pregunta...');
+    const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'hola' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
@@ -124,6 +129,59 @@ describe('AIChat', () => {
     await waitFor(() => expect(screen.getByText('Configuración lista.')).toBeInTheDocument());
     expect(screen.getByText('Chatbot')).toBeInTheDocument();
     expect(screen.getAllByText(/gemma4:e2b/).length).toBeGreaterThan(0);
+  });
+
+  it('renders a confirmation card for sensitive actions and reuses assistant context on confirm', async () => {
+    sendAssistantChatMock
+      .mockResolvedValueOnce({
+        reply: 'Necesito tu confirmacion para procesar.',
+        tool: 'process_job',
+        data: {
+          detail: 'Necesito tu confirmacion para iniciar el procesamiento de este job.',
+          requires_confirmation: true,
+          risk_level: 'requires_confirmation',
+          arguments: { job_id: 22 },
+        },
+        query_context: {
+          pendingAction: {
+            tool: 'process_job',
+            arguments: { job_id: 22 },
+            intentName: 'process_job',
+            intentSummary: 'procesar',
+            jobId: 22,
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        reply: 'Proceso iniciado.',
+        tool: 'process_job',
+        data: { status: 'queued' },
+        query_context: {},
+      });
+
+    renderChat({ jobId: 22, queryContext: { page: 'results', jobId: 22 } });
+
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'procesa el job' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => expect(screen.getByText(/Accion pendiente de confirmacion/i)).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /Confirmar y ejecutar/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar y ejecutar/i }));
+
+    await waitFor(() => expect(sendAssistantChatMock).toHaveBeenCalledTimes(2));
+    expect(sendAssistantChatMock).toHaveBeenNthCalledWith(
+      2,
+      expect.any(Array),
+      expect.objectContaining({
+        jobId: 22,
+        queryContext: expect.objectContaining({
+          pendingAction: expect.objectContaining({ tool: 'process_job', jobId: 22 }),
+        }),
+      }),
+    );
+    expect(screen.getByText('Proceso iniciado.')).toBeInTheDocument();
   });
 
   it('supports shift enter without sending', () => {

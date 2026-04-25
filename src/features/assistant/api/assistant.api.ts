@@ -11,7 +11,7 @@ export interface AssistantChatResponse {
   reply: string;
   tool: string;
   data: unknown;
-  query_context: Record<string, unknown>;
+  query_context: AssistantQueryContext;
   show_debug_details: boolean;
 }
 
