@@ -18,6 +18,10 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
   const ocrModes = options.ocr_modes ?? [];
   const ocrProviders = options.providers?.ocr ?? [];
   const ocrRequirements = options.provider_requirements?.[values.ocr_provider];
+  const formatProviderLabel = (provider: string) => {
+    const requirement = options.provider_requirements?.[provider];
+    return requirement && !requirement.operational ? `${provider} (MVP no operativo)` : provider;
+  };
 
   return (
     <SettingsSection title='OCR' description='Configura la lectura inicial del documento.'>
@@ -43,10 +47,11 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
               value={values.ocr_provider}
               onChange={(event) => onChange({ ...values, ocr_provider: event.target.value as SettingsFormValues['ocr_provider'] })}
             >
-              {ocrProviders.length > 0 ? ocrProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
-                <option value={values.ocr_provider}>{values.ocr_provider}</option>
+              {ocrProviders.length > 0 ? ocrProviders.map((provider) => <option key={provider} value={provider}>{formatProviderLabel(provider)}</option>) : (
+                <option value={values.ocr_provider}>{formatProviderLabel(values.ocr_provider)}</option>
               )}
             </Select>
+            <p className='field-help'>Para presentación, usa `tesseract` o `ollama`.</p>
           </div>
         ) : null}
       </div>
@@ -91,7 +96,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
       </div>
 
       {shouldShowOcrProvider && ocrRequirements && !ocrRequirements.operational ? (
-        <p className='notice-warning'>Este proveedor OCR aun no esta operativo.</p>
+        <p className='notice-warning'>Este proveedor OCR aparece como referencia, pero aun no esta operativo en este MVP.</p>
       ) : null}
     </SettingsSection>
   );

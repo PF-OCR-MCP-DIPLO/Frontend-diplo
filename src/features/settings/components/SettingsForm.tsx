@@ -52,6 +52,10 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           </div>
         </div>
 
+        <div className='notice-warning'>
+          Para una demo estable de este MVP, prioriza `tesseract` u `ollama`. Otros proveedores visibles se muestran como referencia de expansión, pero no están operativos de extremo a extremo.
+        </div>
+
         <OcrSettingsSection
           settings={settings}
           options={options}

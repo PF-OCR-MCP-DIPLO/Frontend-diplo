@@ -68,6 +68,9 @@ export function DashboardPage() {
               <p className='section-eyebrow'>Siguiente accion</p>
               <h2 className='section-title text-[clamp(1.7rem,1.5rem+0.5vw,2.2rem)]'>Empieza una nueva revision o vuelve a una ya creada.</h2>
               <p className='section-body max-w-2xl'>La ruta principal es simple: cargar, revisar, exportar.</p>
+              <p className='text-sm text-muted-foreground'>
+                Para una demo estable, prepara un `.docx` de prueba y conserva una ejecucion previa en historial como plan B.
+              </p>
             </div>
 
             <div className='flex flex-wrap gap-3'>
@@ -89,8 +92,9 @@ export function DashboardPage() {
                 <div className='min-w-0 flex-1'>
                   <p className='text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground'>Ultima ejecucion</p>
                   <p className='mt-1 truncate font-medium text-foreground'>{latestRun.name}</p>
-                  <p className='text-sm text-muted-foreground'>{latestRun.date.toLocaleDateString('es-ES')}</p>
-                </div>
+                <p className='text-sm text-muted-foreground'>{latestRun.date.toLocaleDateString('es-ES')}</p>
+                <p className='text-xs text-muted-foreground'>Ideal para retomar la demo sin repetir todo el procesamiento.</p>
+              </div>
                 <div className='flex items-center gap-2'>
                   <StatusBadge status={latestRun.status} />
                   <ArrowRight className='size-4 text-muted-foreground' />

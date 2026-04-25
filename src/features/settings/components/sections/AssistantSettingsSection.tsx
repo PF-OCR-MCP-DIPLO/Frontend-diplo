@@ -18,6 +18,10 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
   const assistantRequirements = options.provider_requirements?.[values.assistant_provider];
   const providerModels = modelOptions.length > 0 ? modelOptions : [];
   const needsApiKey = assistantRequirements?.requires_api_key ?? values.assistant_provider !== 'ollama';
+  const formatProviderLabel = (provider: string) => {
+    const requirement = options.provider_requirements?.[provider];
+    return requirement && !requirement.operational ? `${provider} (MVP no operativo)` : provider;
+  };
 
   return (
     <SettingsSection
@@ -32,10 +36,11 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
             value={values.assistant_provider}
             onChange={(event) => onChange({ ...values, assistant_provider: event.target.value as SettingsFormValues['assistant_provider'] })}
           >
-            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
-              <option value={values.assistant_provider}>{values.assistant_provider}</option>
+            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{formatProviderLabel(provider)}</option>) : (
+              <option value={values.assistant_provider}>{formatProviderLabel(values.assistant_provider)}</option>
             )}
           </Select>
+          <p className='field-help'>Para demo, mantén `ollama` como proveedor del asistente.</p>
         </div>
         <div className='field-stack'>
           <Label htmlFor='assistant-model'>Modelo</Label>
@@ -121,6 +126,10 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
           <p>El asistente puede usar Ollama local sin API key.</p>
         )}
       </div>
+
+      {assistantRequirements && !assistantRequirements.operational ? (
+        <p className='notice-warning'>Este proveedor del asistente aparece como referencia, pero aun no esta operativo en este MVP.</p>
+      ) : null}
     </SettingsSection>
   );
 }

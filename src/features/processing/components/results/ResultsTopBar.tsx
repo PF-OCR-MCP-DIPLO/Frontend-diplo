@@ -66,6 +66,9 @@ export function ResultsTopBar({
           </button>
         </div>
         <div className='mt-1 text-xs text-muted-foreground'>{autosaveLabel}</div>
+        <div className='mt-1 text-xs text-muted-foreground'>
+          Flujo recomendado: procesar, revisar hallazgos, guardar correcciones y luego exportar.
+        </div>
       </div>
 
       <div className='flex flex-wrap items-center gap-2'>

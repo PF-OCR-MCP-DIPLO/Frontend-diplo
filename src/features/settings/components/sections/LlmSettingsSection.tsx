@@ -16,6 +16,10 @@ interface LlmSettingsSectionProps {
 export function LlmSettingsSection({ settings, options, values, modelOptions, onChange }: LlmSettingsSectionProps) {
   const llmProviders = options.providers?.llm ?? [];
   const llmRequirements = options.provider_requirements?.[values.llm_provider];
+  const formatProviderLabel = (provider: string) => {
+    const requirement = options.provider_requirements?.[provider];
+    return requirement && !requirement.operational ? `${provider} (MVP no operativo)` : provider;
+  };
 
   return (
     <SettingsSection title='LLM' description='Configura la extraccion estructurada.'>
@@ -27,10 +31,11 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             value={values.llm_provider}
             onChange={(event) => onChange({ ...values, llm_provider: event.target.value as SettingsFormValues['llm_provider'] })}
           >
-            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
-              <option value={values.llm_provider}>{values.llm_provider}</option>
+            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{formatProviderLabel(provider)}</option>) : (
+              <option value={values.llm_provider}>{formatProviderLabel(values.llm_provider)}</option>
             )}
           </Select>
+          <p className='field-help'>Para este MVP, el flujo defendible usa `ollama`.</p>
         </div>
         <div className='field-stack'>
           <Label htmlFor='llm-model'>Modelo</Label>
@@ -81,7 +86,7 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
       </div>
 
       {llmRequirements && !llmRequirements.operational ? (
-        <p className='notice-warning'>Este proveedor LLM aun no esta operativo.</p>
+        <p className='notice-warning'>Este proveedor LLM aparece en configuración, pero aun no esta operativo en este MVP.</p>
       ) : null}
     </SettingsSection>
   );

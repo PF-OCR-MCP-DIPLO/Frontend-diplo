@@ -61,7 +61,7 @@ export function UploadPage() {
       <PageHeader
         eyebrow='Carga'
         title='Cargar archivo'
-        description='Sube un `.docx` para crear una nueva ejecucion.'
+        description='Sube un `.docx` para crear una nueva ejecucion. El flujo esperado es: cargar, procesar, revisar y exportar.'
       />
       <Card className='surface-card-hero p-6 sm:p-8'>
         <div className='space-y-4'>
@@ -115,14 +115,17 @@ export function UploadPage() {
             <div className='content-block-subtle p-4'>
               <p className='section-kicker'>Formato</p>
               <p className='mt-1 font-medium text-foreground'>`.docx`</p>
+              <p className='mt-1 text-sm text-muted-foreground'>Debe contener imágenes embebidas para el OCR visual.</p>
             </div>
             <div className='content-block-subtle p-4'>
               <p className='section-kicker'>Cantidad</p>
               <p className='mt-1 font-medium text-foreground'>1 archivo por carga</p>
+              <p className='mt-1 text-sm text-muted-foreground'>Ideal para una demo controlada y fácil de seguir.</p>
             </div>
             <div className='content-block-subtle p-4'>
               <p className='section-kicker'>Siguiente paso</p>
               <p className='mt-1 font-medium text-foreground'>Revisar resultados</p>
+              <p className='mt-1 text-sm text-muted-foreground'>Después podrás corregir, consultar logs y exportar a Excel.</p>
             </div>
           </div>
         </div>
