@@ -227,7 +227,6 @@ function ChatBubble({ message }: { message: AssistantChatMessage }) {
         <p className='whitespace-pre-wrap leading-relaxed'>{message.content}</p>
         {!isUser ? (
           <>
-            {message.tool && message.tool !== 'none' ? <Badge variant='outline' className='mt-3'>Herramienta: {message.tool}</Badge> : null}
             <AssistantToolSummary message={message} />
             {message.showDebugDetails ? <AssistantMessageDetails toolData={message.toolData} /> : null}
           </>
@@ -300,7 +299,7 @@ export function AIChat({ errors, jobId = null, variant = 'panel' }: AIChatProps)
           {
             id: (Date.now() + 1).toString(),
             role: 'assistant',
-            content: response.reply,
+            content: response.message || response.reply,
             tool: response.tool,
             toolData: response.data,
             showDebugDetails: response.show_debug_details,

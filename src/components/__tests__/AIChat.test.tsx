@@ -76,7 +76,7 @@ describe('AIChat', () => {
 
     await waitFor(() => expect(screen.getByText('Encontré jobs recientes.')).toBeInTheDocument());
     expect(screen.getByText('archivo.docx')).toBeInTheDocument();
-    expect(screen.getByText('Herramienta: list_jobs')).toBeInTheDocument();
+    expect(screen.queryByText('Herramienta: list_jobs')).not.toBeInTheDocument();
     expect(screen.queryByText(/"original_filename"/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Ver detalles técnicos/i }));

@@ -6,6 +6,7 @@ export interface AssistantChatMessage {
 }
 
 export interface AssistantChatResponse {
+  message: string;
   reply: string;
   tool: string;
   data: unknown;
