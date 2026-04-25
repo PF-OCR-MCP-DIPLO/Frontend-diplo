@@ -1,3 +1,5 @@
+import type { ExtractionCriteriaConfig } from '@/features/settings/types/extraction-criteria.types';
+
 export interface ApiProcessingSettings {
   ocr_mode: 'tesseract' | 'vision' | 'auto';
   ocr_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek';
@@ -12,6 +14,7 @@ export interface ApiProcessingSettings {
   assistant_temperature: number;
   assistant_num_predict: number;
   request_timeout_seconds: number;
+  extraction_criteria: ExtractionCriteriaConfig;
   updated_at: string;
 }
 
@@ -29,6 +32,7 @@ export interface ApiProcessingSettingsPatch {
   ocr_api_key?: string;
   llm_api_key?: string;
   request_timeout_seconds?: number;
+  extraction_criteria?: ExtractionCriteriaConfig;
 }
 
 export interface ApiProcessingSettingsOptions {

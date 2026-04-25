@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsForm } from '@/features/settings/hooks/useSettingsForm';
+import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extraction-criteria.types';
 
 const getProcessingSettingsMock = vi.fn();
 const getProcessingSettingsOptionsMock = vi.fn();
@@ -35,6 +36,7 @@ const settingsResponse = {
   assistant_temperature: 0.4,
   assistant_num_predict: 512,
   request_timeout_seconds: 30,
+  extraction_criteria: DEFAULT_EXTRACTION_CRITERIA,
   updated_at: '2025-01-01T00:00:00Z',
 } as const;
 
@@ -86,6 +88,7 @@ describe('useSettingsForm', () => {
     expect(result.current.settings?.ocr_model).toBe('spa');
     expect(result.current.options?.ocr_modes).toEqual(['tesseract', 'vision', 'auto']);
     expect(result.current.values?.assistant_model).toBe('gemma4:e2b');
+    expect(result.current.values?.extraction_criteria.fields[0].key).toBe('fecha_consignacion');
   });
 
   it('allows reload after an initial failure', async () => {
@@ -160,5 +163,6 @@ describe('useSettingsForm', () => {
     );
     const payload = updateProcessingSettingsMock.mock.calls[0][0] as Record<string, unknown>;
     expect(payload).not.toHaveProperty('assistant_api_key');
+    expect(payload).toHaveProperty('extraction_criteria');
   });
 });

@@ -1,4 +1,5 @@
 import type { ApiProcessingSettings } from '@/features/settings/types/settings.api';
+import type { ExtractionCriteriaConfig } from '@/features/settings/types/extraction-criteria.types';
 
 export type SettingsFormValues = {
   ocr_mode: ApiProcessingSettings['ocr_mode'];
@@ -14,4 +15,5 @@ export type SettingsFormValues = {
   ocr_api_key: string;
   llm_api_key: string;
   assistant_api_key: string;
+  extraction_criteria: ExtractionCriteriaConfig;
 };

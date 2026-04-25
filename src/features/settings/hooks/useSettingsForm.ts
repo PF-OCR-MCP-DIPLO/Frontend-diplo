@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
+import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extraction-criteria.types';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
 
@@ -19,6 +20,7 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     ocr_api_key: '',
     llm_api_key: '',
     assistant_api_key: '',
+    extraction_criteria: settings.extraction_criteria ?? DEFAULT_EXTRACTION_CRITERIA,
   };
 }
 
@@ -93,6 +95,7 @@ export function useSettingsForm() {
       if (ocr_api_key.trim()) payload.ocr_api_key = ocr_api_key;
       if (llm_api_key.trim()) payload.llm_api_key = llm_api_key;
       if (assistant_api_key.trim()) payload.assistant_api_key = assistant_api_key;
+      payload.extraction_criteria = values.extraction_criteria;
 
       const nextSettings = await updateProcessingSettings(payload);
       setSettings(nextSettings);

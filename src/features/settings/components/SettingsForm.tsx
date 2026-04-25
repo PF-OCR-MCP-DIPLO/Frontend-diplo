@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AssistantSettingsSection } from '@/features/settings/components/sections/AssistantSettingsSection';
+import { ExtractionCriteriaSection } from '@/features/settings/components/sections/ExtractionCriteriaSection';
 import { LlmSettingsSection } from '@/features/settings/components/sections/LlmSettingsSection';
 import { OcrSettingsSection } from '@/features/settings/components/sections/OcrSettingsSection';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
@@ -53,6 +54,11 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           values={values}
           modelOptions={modelOptions.assistant}
           onChange={onChange}
+        />
+
+        <ExtractionCriteriaSection
+          value={values.extraction_criteria}
+          onChange={(next) => onChange({ ...values, extraction_criteria: next })}
         />
       </div>
     </Card>
