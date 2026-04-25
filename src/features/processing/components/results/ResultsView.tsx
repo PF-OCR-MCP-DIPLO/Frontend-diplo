@@ -39,6 +39,13 @@ export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
   const validationMap = buildResultsValidationMap(viewState.data);
+  const selectedRow = useMemo(() => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null, [viewState.data, viewState.selectedRowId]);
+  const selectedIssues = useMemo(() => {
+    if (!selectedRow) return [];
+    return validationMap.fieldIssuesByRow[selectedRow.id]
+      ? Object.values(validationMap.fieldIssuesByRow[selectedRow.id] ?? {}).flat().map((issue) => issue.id)
+      : [];
+  }, [selectedRow, validationMap.fieldIssuesByRow]);
   const autosave = useResultsAutosave({
     jobId: props.jobId,
     enabled: !props.isProcessing && props.status !== 'processing',
@@ -53,20 +60,27 @@ export function ResultsView(props: ResultsViewProps) {
     jobStatus: props.status,
     jobName: props.fileName,
     selectedRowId: viewState.selectedRowId ?? undefined,
-    currentImageId: viewState.currentImage?.id,
-    visibleIssueIds: viewState.data.filter((row) => row.estado === 'error').map((row) => row.id),
+    selectedField: viewState.selectedField ?? undefined,
+    depositId: selectedRow?.depositId,
+    sourceImageId: selectedRow?.sourceImageId,
+    currentImageId: viewState.currentImage?.id ?? selectedRow?.sourceImageId,
+    visibleIssueIds: selectedIssues.length > 0 ? selectedIssues : viewState.data.filter((row) => row.estado === 'error').map((row) => row.id),
     errorCount: viewState.errorCount,
     autosaveStatus: autosave.autosave.status,
-    intentHint: props.errorMessage ? 'explain_results' : 'review_results',
+    intentHint: viewState.selectedField ? 'explain_cell_issue' : viewState.selectedRowId ? 'explain_row_issue' : props.errorMessage ? 'explain_results' : 'review_results',
+    pendingAction: undefined,
   }), [
     autosave.autosave.status,
     props.errorMessage,
     props.fileName,
     props.jobId,
     props.status,
-    viewState.data,
+    selectedIssues,
+    selectedRow,
     viewState.currentImage?.id,
+    viewState.data,
     viewState.errorCount,
+    viewState.selectedField,
     viewState.selectedRowId,
   ]);
 
@@ -85,6 +99,24 @@ export function ResultsView(props: ResultsViewProps) {
     window.setTimeout(() => {
       viewState.handleErrorClick(rowId);
     }, 0);
+  }
+
+  function handleFocusCell(rowId: string, field: keyof ConsignmentRow) {
+    viewState.focusCell(rowId, field);
+    setActivePanel('assistant');
+  }
+
+  function handleAskAssistant(rowId: string, field: keyof ConsignmentRow) {
+    viewState.focusCell(rowId, field);
+    props.onOpenAssistant({
+      prompt: `Explícame cómo corregir ${String(field)} en la fila ${rowId}.`,
+      context: {
+        ...assistantQueryContext,
+        selectedRowId: rowId,
+        selectedField: String(field),
+        intentHint: 'explain_cell_issue',
+      },
+    });
   }
 
   function handleDataChange(nextData: ConsignmentRow[]) {
@@ -146,10 +178,10 @@ export function ResultsView(props: ResultsViewProps) {
           validationMap={validationMap}
           onDataChange={handleDataChange}
           onRowFocus={handleFocusRow}
-          onOpenImage={(image) => {
-            viewState.focusImage(image);
-            setActivePanel('preview');
-          }}
+          selectedRowId={viewState.selectedRowId}
+          selectedField={viewState.selectedField}
+          onCellFocus={handleFocusCell}
+          onAskAssistant={handleAskAssistant}
         />
       </main>
 
@@ -171,15 +203,27 @@ export function ResultsView(props: ResultsViewProps) {
         isLoadingLogs={viewState.isLoadingLogs}
         sourceDocxUrl={props.sourceDocxUrl}
         sourceImages={props.sourceImages}
+        data={viewState.data}
+        validationMap={validationMap}
+        selectedRowId={viewState.selectedRowId}
+        selectedField={viewState.selectedField}
         onOpenImage={(image) => viewState.focusImage(image)}
+        onFocusRow={handleFocusRow}
+        onFocusCell={handleFocusCell}
+        onAskAssistant={handleAskAssistant}
       />
 
       <ResultsErrorDialog
         open={viewState.showErrorDialog}
         errorMessage={props.errorMessage}
         data={viewState.data}
+        validationMap={validationMap}
+        selectedRowId={viewState.selectedRowId}
+        selectedField={viewState.selectedField}
         onClose={() => viewState.setShowErrorDialog(false)}
         onErrorClick={handleFocusRow}
+        onFocusCell={handleFocusCell}
+        onAskAssistant={handleAskAssistant}
       />
       <ResultsImagePreviewDialog
         open={Boolean(viewState.expandedImage)}

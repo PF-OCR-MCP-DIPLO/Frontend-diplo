@@ -9,6 +9,7 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
   const [showChat, setShowChat] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
+  const [selectedField, setSelectedField] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<PreviewImage | null>(null);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
@@ -33,9 +34,17 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     setHasUnsavedChanges(false);
   }
 
-  function handleErrorClick(rowId: string) {
+  function handleErrorClick(rowId: string, field?: string) {
     setSelectedRowId(rowId);
+    setSelectedField(field ?? null);
     const element = document.getElementById(rowId);
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function focusCell(rowId: string, field: string) {
+    setSelectedRowId(rowId);
+    setSelectedField(field);
+    const element = document.querySelector<HTMLElement>(`[data-cell-id="${rowId}-${field}"]`);
     element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -83,6 +92,7 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     showErrorDialog,
     setShowErrorDialog,
     selectedRowId,
+    selectedField,
     currentImage,
     expandedImage,
     setExpandedImage,
@@ -93,6 +103,7 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     isLoadingLogs,
     logsError,
     handleErrorClick,
+    focusCell,
     openLogs,
   };
 }

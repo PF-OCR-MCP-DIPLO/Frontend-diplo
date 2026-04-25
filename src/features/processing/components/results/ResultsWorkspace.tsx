@@ -7,12 +7,25 @@ interface ResultsWorkspaceProps {
   validationMap: ResultsValidationMap;
   onDataChange: (data: ConsignmentRow[]) => void;
   onRowFocus: (rowId: string) => void;
+  selectedRowId?: string | null;
+  selectedField?: string | null;
+  onCellFocus?: (rowId: string, field: keyof ConsignmentRow) => void;
+  onAskAssistant?: (rowId: string, field: keyof ConsignmentRow) => void;
 }
 
-export function ResultsWorkspace({ data, validationMap, onDataChange, onRowFocus }: ResultsWorkspaceProps) {
+export function ResultsWorkspace({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsWorkspaceProps) {
   return (
     <section className='min-h-0'>
-      <ResultsDataPanel data={data} validationMap={validationMap} onDataChange={onDataChange} onRowFocus={onRowFocus} />
+      <ResultsDataPanel
+        data={data}
+        validationMap={validationMap}
+        onDataChange={onDataChange}
+        onRowFocus={onRowFocus}
+        selectedRowId={selectedRowId}
+        selectedField={selectedField}
+        onCellFocus={onCellFocus}
+        onAskAssistant={onAskAssistant}
+      />
     </section>
   );
 }

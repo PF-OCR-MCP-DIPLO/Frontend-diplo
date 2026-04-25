@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
-import type { PreviewImage } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
+import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
+import { ResultsErrorPanel } from '@/features/processing/components/results/ResultsErrorPanel';
+import { ResultsPreviewPanel } from '@/features/processing/components/results/ResultsPreviewPanel';
 
 export type ResultsPanel = 'assistant' | 'issues' | 'logs' | 'preview' | null;
 
@@ -20,7 +23,14 @@ interface ResultsSidePanelProps {
   isLoadingLogs: boolean;
   sourceDocxUrl: string;
   sourceImages: PreviewImage[];
+  data: ConsignmentRow[];
+  validationMap: ResultsValidationMap;
+  selectedRowId?: string | null;
+  selectedField?: string | null;
   onOpenImage: (image: PreviewImage) => void;
+  onFocusRow: (rowId: string) => void;
+  onFocusCell: (rowId: string, field: keyof ConsignmentRow) => void;
+  onAskAssistant: (rowId: string, field: keyof ConsignmentRow) => void;
 }
 
 export function ResultsSidePanel({
@@ -35,7 +45,14 @@ export function ResultsSidePanel({
   isLoadingLogs,
   sourceDocxUrl,
   sourceImages,
+  data,
+  validationMap,
+  selectedRowId,
+  selectedField,
   onOpenImage,
+  onFocusRow,
+  onFocusCell,
+  onAskAssistant,
 }: ResultsSidePanelProps) {
   if (!panel) return null;
 
@@ -56,9 +73,7 @@ export function ResultsSidePanel({
           <ScrollArea className='h-full p-4'>
             <div className='space-y-3 text-sm'>
               {errorMessage ? <p className='rounded-xl border border-border/60 bg-surface-subtle p-3 text-foreground'>{errorMessage}</p> : null}
-              <p className='text-muted-foreground'>
-                {errors > 0 ? `${errors} hallazgos detectados` : 'Sin hallazgos detectados'}
-              </p>
+              <ResultsErrorPanel data={data} validationMap={validationMap} selectedRowId={selectedRowId} selectedField={selectedField} onErrorClick={onFocusRow} onFocusCell={onFocusCell} onAskAssistant={onAskAssistant} />
             </div>
           </ScrollArea>
         ) : panel === 'logs' ? (
@@ -75,17 +90,14 @@ export function ResultsSidePanel({
           </ScrollArea>
         ) : (
           <ScrollArea className='h-full p-4'>
-            <div className='space-y-3 text-sm'>
-              <p className='text-muted-foreground'>{sourceDocxUrl ? 'Documento fuente disponible' : 'Sin documento fuente'}</p>
-              <div className='space-y-2'>
-                {sourceImages.map((image) => (
-                  <button key={image.id} type='button' className='block w-full rounded-xl border border-border/60 bg-surface-subtle p-3 text-left' onClick={() => onOpenImage(image)}>
-                    <div className='text-foreground'>{image.name}</div>
-                    <div className='text-xs text-muted-foreground'>{image.status}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <ResultsPreviewPanel
+              fileName={sourceDocxUrl ? sourceDocxUrl.split('/').pop() ?? 'Documento' : 'Documento fuente'}
+              sourceDocxUrl={sourceDocxUrl}
+              sourceImages={sourceImages}
+              validationMap={validationMap}
+              selectedRowId={selectedRowId}
+              onOpenImage={onOpenImage}
+            />
           </ScrollArea>
         )}
       </div>

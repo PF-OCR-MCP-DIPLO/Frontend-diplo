@@ -36,26 +36,51 @@ function hasRows(toolData: unknown): toolData is { rows: unknown[] } {
   return isRecord(toolData) && Array.isArray(toolData.rows);
 }
 
-function getSuggestions(jobId: number | null): ChatSuggestion[] {
-  const base = [
-    { label: '¿Qué puedes hacer?', message: '¿Qué puedes hacer?' },
-    { label: 'Listar jobs recientes', message: 'Listar jobs recientes' },
-    { label: 'Ver configuración', message: 'Ver configuración' },
-    { label: 'Consultar errores del job actual', message: 'Consultar errores del job actual' },
-    { label: 'Generar Excel', message: 'Generar Excel' },
-  ];
+function getSuggestions(jobId: number | null, queryContext?: AssistantQueryContext): ChatSuggestion[] {
+  const hasRow = Boolean(queryContext?.selectedRowId);
+  const hasField = Boolean(queryContext?.selectedField);
 
-  if (jobId == null) {
-    return base.filter((item) => !item.message.toLowerCase().includes('job actual') && !item.message.toLowerCase().includes('generar excel'));
+  if (!hasRow) {
+    return [
+      { label: 'Resume hallazgos', message: 'Resume los hallazgos' },
+      { label: 'Prioridad', message: '¿Qué debo revisar primero?' },
+      { label: 'Explicar resultado', message: 'Explícame este resultado' },
+    ];
+  }
+
+  if (hasField) {
+    return [
+      { label: 'Corregir campo', message: '¿Cómo corrijo este campo?' },
+      { label: 'Valor válido', message: 'Propón un valor válido' },
+      { label: 'Por qué falla', message: 'Explica por qué falla' },
+    ];
   }
 
   return [
-    { label: '¿Qué puedes hacer?', message: '¿Qué puedes hacer?' },
-    { label: 'Ver errores de este job', message: 'Qué errores tuvo este procesamiento' },
-    { label: 'Exportar este job', message: 'Genera el Excel' },
-    { label: 'Resume este procesamiento', message: 'Resume este archivo actual' },
-    { label: 'Listar jobs recientes', message: 'Listar jobs recientes' },
+    { label: 'Errores fila', message: 'Explica los errores de esta fila' },
+    { label: 'Corregir fila', message: '¿Cómo corrijo esta fila?' },
+    { label: 'Validar datos', message: 'Verifica si el monto y la fecha tienen sentido' },
   ];
+}
+
+function getCompactContextLabel(queryContext?: AssistantQueryContext, jobId: number | null = null, errors = 0) {
+  const parts = [`Contexto: Job #${queryContext?.jobId ?? jobId ?? '—'}`, queryContext?.page === 'results' ? 'Results' : queryContext?.page ?? '—', `${queryContext?.errorCount ?? errors} hallazgos`];
+  return parts.filter(Boolean).join(' · ');
+}
+
+function getContextDetails(queryContext?: AssistantQueryContext) {
+  if (!queryContext) return [];
+  return [
+    queryContext.jobName ? `Job: ${queryContext.jobName}` : null,
+    queryContext.jobStatus ? `Estado: ${queryContext.jobStatus}` : null,
+    queryContext.selectedRowId ? `Fila: ${queryContext.selectedRowId}` : 'Sin fila seleccionada',
+    queryContext.selectedField ? `Campo: ${queryContext.selectedField}` : null,
+    queryContext.sourceImageId ? `Imagen origen: ${queryContext.sourceImageId}` : null,
+    queryContext.currentImageId ? `Imagen actual: ${queryContext.currentImageId}` : null,
+    queryContext.visibleIssueIds?.length ? `Hallazgos visibles: ${queryContext.visibleIssueIds.length}` : null,
+    queryContext.intentHint ? `Intento: ${queryContext.intentHint}` : null,
+    queryContext.depositId ? `DepositId: ${queryContext.depositId}` : null,
+  ].filter(Boolean) as string[];
 }
 
 function summarizeSettings(toolData: unknown) {
@@ -310,7 +335,15 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
   const { messages, setMessages, clearChat, input, setInput, isSending, setIsSending, queryContext: assistantQueryContext, setQueryContext } = useAssistantChatContext();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const suggestions = useMemo(() => getSuggestions(jobId), [jobId]);
+  const suggestions = useMemo(() => getSuggestions(jobId, queryContext ?? assistantQueryContext), [assistantQueryContext, jobId, queryContext]);
+  const contextLabel = getCompactContextLabel(queryContext ?? assistantQueryContext, jobId, errors);
+  const contextDetails = getContextDetails(queryContext ?? assistantQueryContext);
+  const placeholder = (queryContext ?? assistantQueryContext)?.selectedField
+    ? 'Pregunta cómo corregir este campo…'
+    : (queryContext ?? assistantQueryContext)?.selectedRowId
+      ? 'Pregunta sobre la fila seleccionada…'
+      : 'Pregunta sobre este resultado…';
+  const showSuggestions = messages.length < 3;
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -414,7 +447,32 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
             </div>
           ) : null}
         </div>
-      ) : null}
+      ) : (
+        <div className='border-b border-border/70 px-4 py-3'>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='min-w-0'>
+              <p className='text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground'>{contextLabel}</p>
+              <p className='mt-1 truncate text-sm text-foreground'>
+                {(queryContext ?? assistantQueryContext)?.selectedRowId ? `Fila: ${(queryContext ?? assistantQueryContext)?.selectedRowId}` : `Job #${(queryContext ?? assistantQueryContext)?.jobId ?? jobId ?? '—'}`}
+                {(queryContext ?? assistantQueryContext)?.selectedField ? ` · Campo: ${(queryContext ?? assistantQueryContext)?.selectedField}` : ''}
+                {(queryContext ?? assistantQueryContext)?.sourceImageId ? ` · Imagen: ${(queryContext ?? assistantQueryContext)?.sourceImageId}` : ''}
+              </p>
+            </div>
+            <details className='shrink-0'>
+              <summary className='cursor-pointer list-none rounded-full border border-border/70 px-2.5 py-1 text-xs text-muted-foreground'>Ver contexto</summary>
+              <div className='mt-2 max-w-[280px] rounded-2xl border border-border/70 bg-background p-3 text-xs text-muted-foreground shadow-[var(--shadow-soft)]'>
+                {contextDetails.length > 0 ? (
+                  <ul className='space-y-1'>
+                    {contextDetails.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                ) : (
+                  <p>Sin contexto adicional.</p>
+                )}
+              </div>
+            </details>
+          </div>
+        </div>
+      )}
 
       <ScrollArea className='min-h-0 flex-1 overflow-hidden px-3 py-3' viewportRef={viewportRef}>
         <div className={`space-y-3 ${isCompact ? 'pr-1' : 'pr-2'}`}>
@@ -435,9 +493,9 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
       </ScrollArea>
 
       <div className='border-t border-border/70 bg-card/98 p-3'>
-        {!isCompact ? (
+        {showSuggestions ? (
           <div className='mb-2 flex flex-wrap gap-2'>
-            {suggestions.slice(0, variant === 'fullscreen' ? 5 : 3).map((suggestion) => (
+            {suggestions.slice(0, 3).map((suggestion) => (
               <Button key={suggestion.label} type='button' variant='ghost' size='sm' className='rounded-full px-3 text-xs text-muted-foreground' onClick={() => void sendMessage(suggestion.message)} disabled={isSending}>
                 {suggestion.label}
               </Button>
@@ -455,7 +513,7 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
                 void sendMessage();
               }
             }}
-            placeholder={variant === 'compact' ? 'Pregunta sobre este resultado…' : jobId != null ? 'Escribe sobre este job o pregunta por la configuración...' : 'Escribe tu pregunta...'}
+            placeholder={placeholder}
             className={`${isCompact ? 'min-h-20' : 'min-h-24'} w-full resize-none border-0 bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground`}
             disabled={isSending}
           />

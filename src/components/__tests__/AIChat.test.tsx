@@ -35,8 +35,9 @@ describe('AIChat', () => {
 
     expect(screen.getByLabelText('Asistente IA')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Limpiar/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /¿Qué puedes hacer\?/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Ver errores de este job/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Resume hallazgos/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Prioridad/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Explicar resultado/i })).toBeInTheDocument();
   });
 
   it('sends a message with Enter and shows the assistant reply', async () => {
@@ -77,7 +78,8 @@ describe('AIChat', () => {
 
     renderChat();
 
-    fireEvent.click(screen.getByRole('button', { name: /Listar jobs recientes/i }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'listar jobs recientes' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
 
     await waitFor(() => expect(screen.getByText('Encontré jobs recientes.')).toBeInTheDocument());
     expect(screen.getByText('archivo.docx')).toBeInTheDocument();
@@ -99,7 +101,8 @@ describe('AIChat', () => {
 
     renderChat();
 
-    fireEvent.click(screen.getByRole('button', { name: /Listar jobs recientes/i }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'listar jobs recientes' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
 
     await waitFor(() => expect(screen.getByText('Respuesta breve.')).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: /Ver detalles técnicos/i })).not.toBeInTheDocument();
@@ -124,7 +127,8 @@ describe('AIChat', () => {
 
     renderChat();
 
-    fireEvent.click(screen.getByRole('button', { name: /Ver configuración/i }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'ver configuración' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
 
     await waitFor(() => expect(screen.getByText('Configuración lista.')).toBeInTheDocument());
     expect(screen.getByText('Chatbot')).toBeInTheDocument();
@@ -186,7 +190,7 @@ describe('AIChat', () => {
 
   it('supports shift enter without sending', () => {
     renderChat();
-    const input = screen.getByPlaceholderText('Escribe tu pregunta...');
+    const input = screen.getByPlaceholderText('Pregunta sobre este resultado…');
     fireEvent.change(input, { target: { value: 'hola' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', shiftKey: true });
     expect(sendAssistantChatMock).not.toHaveBeenCalled();

@@ -24,6 +24,14 @@ export type ResultsValidationMap = {
   generalIssues: GeneralValidationIssue[];
 };
 
+const FIELD_LABELS: Record<Exclude<ResultFieldKey, 'estado'>, string> = {
+  fecha: 'Fecha',
+  hora: 'Hora',
+  monto: 'Monto',
+  referencia: 'Referencia',
+  sourceName: 'Archivo origen',
+};
+
 const FIELD_HINTS: Array<{ field: ResultFieldKey; patterns: RegExp[] }> = [
   { field: 'fecha', patterns: [/fecha/i, /date/i] },
   { field: 'hora', patterns: [/hora/i, /time/i] },
@@ -40,6 +48,47 @@ function inferFieldFromMessage(message: string): ResultFieldKey | undefined {
 
 function isGeneralIssueMessage(message: string) {
   return !inferFieldFromMessage(message);
+}
+
+export function getFieldLabel(field: ResultFieldKey | string) {
+  return (FIELD_LABELS as Record<string, string>)[field] ?? field;
+}
+
+export function getIssueCorrectionHint(issue: FieldValidationIssue | GeneralValidationIssue, field?: ResultFieldKey | string, currentValue?: string) {
+  const message = issue.message.toLowerCase();
+  if (/dd\/mm\/yyyy/i.test(message) || /fecha/i.test(message)) return 'Usa formato 01/01/2025.';
+  if (/hh:mm/i.test(message) || /hora/i.test(message)) return 'Usa formato 09:30.';
+  if (/num[eé]rico|n[úu]mero|amount|monto/i.test(message)) return 'Ingresa solo números, por ejemplo 125000.';
+  if (/3 caracteres|referencia/i.test(message)) return 'Usa una referencia más descriptiva, por ejemplo REF-001.';
+  if (/archivo origen|source/i.test(message)) return 'Verifica que el archivo origen esté presente.';
+  if (/mes actual/i.test(message)) return 'Revisa la fecha para que pertenezca al mes actual.';
+  if (/ocr/i.test(message) && field) return `Verifica el valor detectado en ${getFieldLabel(field)}${currentValue ? ` (${currentValue})` : ''}.`;
+  return 'Corrige el valor y vuelve a validar.';
+}
+
+export function getIssueSummary(issue: FieldValidationIssue | GeneralValidationIssue, field?: ResultFieldKey | string) {
+  return `${field ? `${getFieldLabel(field)} · ` : ''}${issue.message}`;
+}
+
+export function getCellIssueTooltipModel(row: ConsignmentRow, field: ResultFieldKey, issues: FieldValidationIssue[]) {
+  const currentValue = String(row[field] ?? '');
+  const firstIssue = issues[0];
+  return {
+    fieldLabel: getFieldLabel(field),
+    currentValue,
+    issues: issues.map((issue) => getIssueSummary(issue, field)),
+    correctionHint: firstIssue ? getIssueCorrectionHint(firstIssue, field, currentValue) : 'Corrige el valor y vuelve a validar.',
+  };
+}
+
+export function getCellIssueSummary(row: ConsignmentRow, field: ResultFieldKey, issues: FieldValidationIssue[]) {
+  const tooltip = getCellIssueTooltipModel(row, field, issues);
+  return {
+    title: `Campo: ${tooltip.fieldLabel}`,
+    currentValue: tooltip.currentValue || '—',
+    issues: tooltip.issues,
+    correctionHint: tooltip.correctionHint,
+  };
 }
 
 export function buildResultsValidationMap(rows: ConsignmentRow[]): ResultsValidationMap {
