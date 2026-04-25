@@ -74,6 +74,15 @@ function summarizeSettings(toolData: unknown) {
   return lines;
 }
 
+function formatToolItem(tool: unknown) {
+  if (isRecord(tool)) {
+    const name = typeof tool.tool === 'string' ? tool.tool : 'tool';
+    const riskLevel = typeof tool.risk_level === 'string' ? tool.risk_level : null;
+    return riskLevel ? `${name} (${riskLevel})` : name;
+  }
+  return formatValue(tool);
+}
+
 function AssistantToolSummary({ message }: { message: AssistantChatMessage }) {
   if (!message.tool || message.tool === 'none') return null;
 
@@ -98,7 +107,7 @@ function AssistantToolSummary({ message }: { message: AssistantChatMessage }) {
         ) : null}
         {tools.length > 0 ? (
           <div className='flex flex-wrap gap-2'>
-            {tools.map((tool) => <Badge key={String(tool)} variant='outline'>{String(tool)}</Badge>)}
+            {tools.map((tool) => <Badge key={formatToolItem(tool)} variant='outline'>{formatToolItem(tool)}</Badge>)}
           </div>
         ) : null}
       </div>
