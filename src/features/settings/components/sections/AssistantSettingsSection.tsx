@@ -14,7 +14,8 @@ interface AssistantSettingsSectionProps {
 }
 
 export function AssistantSettingsSection({ settings, options, values, modelOptions, onChange }: AssistantSettingsSectionProps) {
-  const assistantRequirements = options.provider_requirements[values.assistant_provider];
+  const llmProviders = options.providers?.llm ?? [];
+  const assistantRequirements = options.provider_requirements?.[values.assistant_provider];
   const providerModels = modelOptions.length > 0 ? modelOptions : [];
   const needsApiKey = assistantRequirements?.requires_api_key ?? values.assistant_provider !== 'ollama';
 
@@ -31,7 +32,9 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
             value={values.assistant_provider}
             onChange={(event) => onChange({ ...values, assistant_provider: event.target.value as SettingsFormValues['assistant_provider'] })}
           >
-            {options.providers.llm.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
+            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
+              <option value={values.assistant_provider}>{values.assistant_provider}</option>
+            )}
           </Select>
         </div>
         <div className='field-stack'>

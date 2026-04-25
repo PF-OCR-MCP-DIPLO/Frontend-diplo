@@ -1,7 +1,5 @@
-import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEditableTable } from '@/features/processing/hooks/useEditableTable';
-import { ConsignmentTableHeader } from '@/features/processing/components/editable-table/ConsignmentTableHeader';
 import { EditableCell } from '@/features/processing/components/editable-table/EditableCell';
 import { StatusCell } from '@/features/processing/components/editable-table/StatusCell';
 import { getRowFieldIssues } from '@/features/processing/components/results/results-validation';
@@ -27,23 +25,27 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick }:
   const table = useEditableTable(data, onDataChange);
 
   return (
-    <Card className='frame-card'>
-      <ConsignmentTableHeader errorCount={table.errorCount} />
-      <div className='flex-1 overflow-auto'>
+    <div className='overflow-hidden rounded-2xl border border-border/70 bg-card/95'>
+      <div className='flex items-center justify-between gap-3 border-b border-border/60 px-3 py-2 text-sm'>
+        <div className='text-muted-foreground'>
+          {data.length} registros · {table.errorCount} hallazgos
+        </div>
+      </div>
+      <div className='overflow-auto'>
         <Table>
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.key} className={column.className}>{column.label}</TableHead>
+                <TableHead key={column.key} className={`${column.className} text-[0.72rem] uppercase tracking-[0.14em]`}>{column.label}</TableHead>
               ))}
-              <TableHead className='w-[100px]'>Estado</TableHead>
+              <TableHead className='w-[88px] text-[0.72rem] uppercase tracking-[0.14em]'>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((row) => (
               <TableRow key={row.id} id={row.id} className='cursor-pointer' onClick={() => onRowClick?.(row)}>
                 {columns.map((column) => (
-                  <TableCell key={column.key}>
+                  <TableCell key={column.key} className='py-2'>
                     <EditableCell
                       row={row}
                       field={column.key}
@@ -57,7 +59,7 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick }:
                     />
                   </TableCell>
                 ))}
-                <TableCell>
+                <TableCell className='py-2'>
                   <StatusCell row={row} />
                 </TableCell>
               </TableRow>
@@ -65,6 +67,6 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick }:
           </TableBody>
         </Table>
       </div>
-    </Card>
+    </div>
   );
 }

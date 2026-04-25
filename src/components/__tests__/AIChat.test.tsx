@@ -34,7 +34,7 @@ describe('AIChat', () => {
     renderChat({ jobId: 8, errors: 2 });
 
     expect(screen.getByLabelText('Asistente IA')).toBeInTheDocument();
-    expect(screen.getByText('Contexto: Job #8')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Limpiar/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /¿Qué puedes hacer\?/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ver errores de este job/i })).toBeInTheDocument();
   });
@@ -190,5 +190,12 @@ describe('AIChat', () => {
     fireEvent.change(input, { target: { value: 'hola' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', shiftKey: true });
     expect(sendAssistantChatMock).not.toHaveBeenCalled();
+  });
+
+  it('uses the compact placeholder and hides persistent suggestions', () => {
+    renderChat({ variant: 'compact', jobId: 4 });
+
+    expect(screen.getByPlaceholderText('Pregunta sobre este resultado…')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /¿Qué puedes hacer\?/i })).not.toBeInTheDocument();
   });
 });

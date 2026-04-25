@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from '@/app/router/routes';
+import { appNavigation } from '@/lib/constants/navigation';
 
 // Mock pages to keep tests focused on routing contract.
 vi.mock('@/pages/dashboard/DashboardPage', () => ({ DashboardPage: () => <div>Dashboard</div> }));
@@ -19,6 +20,10 @@ describe('AppRoutes', () => {
       </MemoryRouter>
     );
     expect(screen.getByText('Settings')).toBeInTheDocument();
+  });
+
+  it('keeps settings route represented in navigation', () => {
+    expect(appNavigation.some((item) => item.to === '/settings' && item.label === 'Configuracion')).toBe(true);
   });
 
   it('redirects unknown routes to dashboard', () => {

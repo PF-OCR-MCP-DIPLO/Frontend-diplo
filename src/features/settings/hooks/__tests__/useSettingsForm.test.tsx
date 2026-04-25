@@ -145,6 +145,27 @@ describe('useSettingsForm', () => {
     expect(result.current.modelOptions.assistant).toContain('gemma4:e2b');
   });
 
+  it('normalizes partial settings options without crashing', async () => {
+    getProcessingSettingsMock.mockResolvedValue({ ocr_mode: 'vision' });
+    getProcessingSettingsOptionsMock.mockResolvedValue({
+      providers: {},
+      provider_models: undefined,
+      provider_requirements: undefined,
+    });
+    getOllamaModelsMock.mockResolvedValue({ ...ollamaModelsResponse, available: false, models: [] });
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.values?.ocr_provider).toBe('ollama');
+    expect(result.current.options?.providers.ocr).toEqual(['ollama', 'openai', 'gemini', 'deepseek']);
+    expect(result.current.options?.providers.llm).toEqual(['ollama', 'openai', 'gemini', 'deepseek', 'anthropic']);
+    expect(result.current.options?.provider_requirements.ollama).toMatchObject({
+      operational: true,
+      requires_api_key: false,
+    });
+  });
+
   it('sends assistant fields on save and omits empty api keys', async () => {
     getProcessingSettingsMock.mockResolvedValue(settingsResponse);
     getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);

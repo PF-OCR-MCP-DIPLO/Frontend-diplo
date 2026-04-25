@@ -29,7 +29,7 @@ export function EditableCell({ row, field, editable, issues, isEditing, onEdit, 
         onChange={(event) => onChange(row.id, field, event.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className={`h-9 ${hasError ? 'border-danger ring-danger/12' : ''}`}
+        className={`h-8 rounded-md px-2 text-sm ${hasError ? 'border-danger ring-danger/12' : ''}`}
       />
     );
   }
@@ -51,7 +51,7 @@ export function EditableCell({ row, field, editable, issues, isEditing, onEdit, 
       aria-label={label}
       title={tooltip || undefined}
       onClick={() => onEdit(row.id, field)}
-      className={`focus-ring flex w-full items-center justify-between rounded-lg px-2 py-1 text-left transition hover:bg-primary/6 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : ''}`}
+      className={`focus-ring flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm transition hover:bg-primary/6 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : ''}`}
     >
       <span>{value}</span>
       <span className='text-[11px] text-muted-foreground'>{issues.length > 0 ? `${issues.length} issue${issues.length === 1 ? '' : 's'}` : 'Editar'}</span>

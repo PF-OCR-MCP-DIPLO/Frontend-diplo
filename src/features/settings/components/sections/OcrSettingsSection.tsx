@@ -15,7 +15,9 @@ interface OcrSettingsSectionProps {
 
 export function OcrSettingsSection({ settings, options, values, modelOptions, onChange }: OcrSettingsSectionProps) {
   const shouldShowOcrProvider = values.ocr_mode !== 'tesseract';
-  const ocrRequirements = options.provider_requirements[values.ocr_provider];
+  const ocrModes = options.ocr_modes ?? [];
+  const ocrProviders = options.providers?.ocr ?? [];
+  const ocrRequirements = options.provider_requirements?.[values.ocr_provider];
 
   return (
     <SettingsSection title='OCR' description='Configura la lectura inicial del documento.'>
@@ -27,7 +29,9 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
             value={values.ocr_mode}
             onChange={(event) => onChange({ ...values, ocr_mode: event.target.value as SettingsFormValues['ocr_mode'] })}
           >
-            {options.ocr_modes.map((mode) => <option key={mode} value={mode}>{mode}</option>)}
+            {ocrModes.length > 0 ? ocrModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) : (
+              <option value={values.ocr_mode}>{values.ocr_mode}</option>
+            )}
           </Select>
           <p className='field-help'>`tesseract` es local. `vision` y `auto` usan proveedor remoto.</p>
         </div>
@@ -39,7 +43,9 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
               value={values.ocr_provider}
               onChange={(event) => onChange({ ...values, ocr_provider: event.target.value as SettingsFormValues['ocr_provider'] })}
             >
-              {options.providers.ocr.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
+              {ocrProviders.length > 0 ? ocrProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
+                <option value={values.ocr_provider}>{values.ocr_provider}</option>
+              )}
             </Select>
           </div>
         ) : null}

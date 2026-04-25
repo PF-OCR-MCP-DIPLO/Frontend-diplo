@@ -75,35 +75,32 @@ describe('ResultsView', () => {
     expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /Procesar de nuevo/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Actualizar/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Generar Excel/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Exportar/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Descargar/i })).toHaveAttribute('href', 'https://example.test/export.xlsx');
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
     expect(screen.getAllByText('REF-001').length).toBeGreaterThan(0);
-    expect(screen.getByText('Hay hallazgos por revisar')).toBeInTheDocument();
-    expect(screen.getAllByText(/1 hallazgo/i).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getAllByRole('button', { name: /Ver hallazgos/i })[0]);
-    fireEvent.click(screen.getByRole('button', { name: /REF-001 1 hallazgo/i }));
-    expect(screen.getAllByText(/La fecha no corresponde al mes actual/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /1 hallazgos/i })).toBeInTheDocument();
   });
 
-  it('shows the document preview when switching the main workspace view', () => {
+  it('opens the assistant panel from results', () => {
     renderResultsView();
 
-    fireEvent.click(screen.getByRole('button', { name: /Vista previa/i }));
-
-    expect(screen.getByText('Documento fuente')).toBeInTheDocument();
-    expect(screen.getByText('Estado OCR: processed')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'pagina-1.png' })).toHaveAttribute('src', 'https://example.test/pagina-1.png');
+    fireEvent.click(screen.getAllByRole('button', { name: /Asistente/i })[0]);
+    expect(screen.getByPlaceholderText('Pregunta sobre este resultado…')).toBeInTheDocument();
   });
 
-  it('keeps the dedicated assistant panel available from results tools', () => {
-    renderResultsView();
+  it('renders safely with empty results and no source images', () => {
+    renderResultsView({
+      sourceImages: [],
+      initialData: [],
+      totalImages: 0,
+      totalRecords: 0,
+      errorMessage: '',
+      excelUrl: null,
+      status: 'uploaded',
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: /Ver herramientas/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Chat contextual/i }));
-
-    expect(screen.getByText('Asistente de revision')).toBeInTheDocument();
-    expect(screen.getByText('Hola! ¿En que puedo ayudarte?')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Escribe sobre este job o pregunta por la configuración...')).toBeInTheDocument();
+    expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
+    expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
   });
 });

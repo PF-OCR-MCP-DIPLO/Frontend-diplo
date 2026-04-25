@@ -6,7 +6,9 @@ function resolveRowStatus(hasImageError: boolean, hasObservations: boolean): Row
 }
 
 export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
-  return job.source_images
+  const sourceImages = Array.isArray(job.source_images) ? job.source_images : [];
+
+  return sourceImages
     .flatMap((image) =>
       image.deposits.map((deposit): ConsignmentRow => ({
         id: `${image.id}-${deposit.id}`,
@@ -17,8 +19,8 @@ export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
         monto: String(deposit.valor),
         referencia: deposit.referencia,
         sourceName: image.source_name,
-        estado: resolveRowStatus(image.ocr_status === 'failed', deposit.observations.length > 0),
-        errors: [...deposit.observations, ...(image.error_message ? [image.error_message] : [])],
+        estado: resolveRowStatus(image.ocr_status === 'failed', (deposit.observations ?? []).length > 0),
+        errors: [...(deposit.observations ?? []), ...(image.error_message ? [image.error_message] : [])],
       }))
     )
     .sort((left, right) => left.id.localeCompare(right.id, undefined, { numeric: true }));
@@ -26,7 +28,8 @@ export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
 
 export function mapJobToProcessedFile(job: ApiJobDetail): ProcessedFile {
   const data = mapJobToConsignmentRows(job);
-  const imageErrors = job.source_images.filter((image) => image.ocr_status === 'failed').length;
+  const sourceImages = Array.isArray(job.source_images) ? job.source_images : [];
+  const imageErrors = sourceImages.filter((image) => image.ocr_status === 'failed').length;
   const rowErrors = data.filter((row) => row.estado === 'error').length;
 
   return {
@@ -41,7 +44,7 @@ export function mapJobToProcessedFile(job: ApiJobDetail): ProcessedFile {
     totalImages: job.total_images,
     totalRecords: job.total_records,
     errorMessage: job.error_message,
-    sourceImages: job.source_images,
+    sourceImages,
     data,
     errorCount: Math.max(rowErrors, imageErrors),
   };

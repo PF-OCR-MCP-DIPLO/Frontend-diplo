@@ -20,6 +20,10 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions, onOpenAssistant }: SettingsFormProps) {
+  const updatedLabel = settings.updated_at
+    ? new Date(settings.updated_at).toLocaleString('es-CO')
+    : 'sin registro';
+
   return (
     <Card className='max-w p-6'>
       <div className='space-y-6'>
@@ -29,7 +33,7 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
             <p className='text-sm text-muted-foreground'>Aplica solo los cambios que necesites.</p>
           </div>
           <div className='flex flex-wrap items-center gap-3'>
-            <span className='meta-pill'>Actualizado {new Date(settings.updated_at).toLocaleString('es-CO')}</span>
+            <span className='meta-pill'>Actualizado {updatedLabel}</span>
             <Button onClick={onSave} disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar'}</Button>
             <Button
               type='button'

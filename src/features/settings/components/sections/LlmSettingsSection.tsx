@@ -14,7 +14,8 @@ interface LlmSettingsSectionProps {
 }
 
 export function LlmSettingsSection({ settings, options, values, modelOptions, onChange }: LlmSettingsSectionProps) {
-  const llmRequirements = options.provider_requirements[values.llm_provider];
+  const llmProviders = options.providers?.llm ?? [];
+  const llmRequirements = options.provider_requirements?.[values.llm_provider];
 
   return (
     <SettingsSection title='LLM' description='Configura la extraccion estructurada.'>
@@ -26,7 +27,9 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
             value={values.llm_provider}
             onChange={(event) => onChange({ ...values, llm_provider: event.target.value as SettingsFormValues['llm_provider'] })}
           >
-            {options.providers.llm.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
+            {llmProviders.length > 0 ? llmProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>) : (
+              <option value={values.llm_provider}>{values.llm_provider}</option>
+            )}
           </Select>
         </div>
         <div className='field-stack'>

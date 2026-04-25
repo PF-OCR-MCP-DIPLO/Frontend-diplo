@@ -17,7 +17,7 @@ const apiKey = import.meta.env.VITE_API_KEY ?? '';
 const apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
 const backendBaseUrl = apiBaseUrl.replace(/\/api$/, '');
 
-export function resolveAssetUrl(path: string) {
+export function resolveAssetUrl(path?: string | null) {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
@@ -39,7 +39,7 @@ async function extractErrorMessage(response: Response) {
   let message = `Error ${response.status}`;
 
   try {
-    const payload = await response.json();
+    const payload = await response.clone().json();
     if (payload && typeof payload === 'object' && payload.error && typeof payload.error === 'object') {
       const apiError = payload.error as { message?: unknown; code?: unknown; details?: unknown };
       if (typeof apiError.message === 'string' && apiError.message.trim()) {
@@ -73,7 +73,7 @@ async function extractErrorMessage(response: Response) {
       }
     }
   } catch {
-    const text = await response.text();
+    const text = await response.clone().text();
     if (text) {
       message = text;
     }
@@ -115,7 +115,14 @@ export async function httpRequest<T>(path: string, init?: RequestInit): Promise<
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  try {
+    return await response.json() as T;
+  } catch (error) {
+    throw new HttpError(response.status, 'Respuesta invalida del servidor', {
+      code: 'invalid_json',
+      details: error instanceof Error ? error.message : undefined,
+    });
+  }
 }
 
 export function getBackendBaseUrl() {

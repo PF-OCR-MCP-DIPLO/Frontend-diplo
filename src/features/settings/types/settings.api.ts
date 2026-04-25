@@ -43,8 +43,18 @@ export interface ApiProcessingSettingsOptions {
     ocr: string[];
     llm: string[];
   };
-  provider_models: Record<string, { ocr: string[]; llm: string[] }>;
-  provider_requirements: Record<string, { operational: boolean; requires_api_key: boolean }>;
+  provider_models: Record<string, ProviderModels>;
+  provider_requirements: Record<string, ProviderRequirements>;
+}
+
+export interface ProviderModels {
+  ocr: string[];
+  llm: string[];
+}
+
+export interface ProviderRequirements {
+  operational: boolean;
+  requires_api_key: boolean;
 }
 
 export interface ApiOllamaModelInfo {

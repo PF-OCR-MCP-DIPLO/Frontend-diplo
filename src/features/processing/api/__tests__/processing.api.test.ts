@@ -62,6 +62,22 @@ describe('processing.api', () => {
     expect(job.source_images[0].image_file).toBe('RESOLVED:/media/image1.png');
   });
 
+  it('normalizes partial job detail with safe arrays and null export', async () => {
+    httpRequestMock.mockResolvedValueOnce({
+      id: 2,
+      original_filename: 'partial.docx',
+      source_images: undefined,
+      excel_file: null,
+    });
+
+    const job = await getJob(2);
+
+    expect(job.status).toBe('uploaded');
+    expect(job.source_images).toEqual([]);
+    expect(job.excel_file).toBeNull();
+    expect(job.provider_config_snapshot).toEqual({});
+  });
+
   it('sends bulk correction payload to the dedicated endpoint', async () => {
     httpRequestMock.mockResolvedValueOnce({
       id: 1,

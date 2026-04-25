@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, CheckCircle2, ChevronDown, ChevronUp, Database, Loader2, Send, Sparkles, Trash2, Wrench, BotMessageSquare, User, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,7 +11,7 @@ import type { AssistantQueryContext } from '@/features/assistant/types/assistant
 interface AIChatProps {
   errors: number;
   jobId?: number | null;
-  variant?: 'panel' | 'fullscreen';
+  variant?: 'panel' | 'fullscreen' | 'compact';
   queryContext?: AssistantQueryContext;
   initialPrompt?: string;
 }
@@ -175,7 +174,7 @@ function AssistantToolSummary({ message }: { message: AssistantChatMessage }) {
             <Database className='size-4' />
             <span className='font-semibold uppercase tracking-[0.14em]'>Jobs</span>
           </div>
-          <Badge variant='outline'>{data.length} jobs</Badge>
+          <span className='rounded-full border border-border/70 px-2 py-0.5 text-xs text-muted-foreground'>{data.length} jobs</span>
         </div>
         <Table>
           <TableHeader>
@@ -386,42 +385,39 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
     }
   };
 
+  const isCompact = variant === 'compact';
+  const isFullscreen = variant === 'fullscreen';
+
   return (
-    <Card className={variant === 'fullscreen' ? 'flex h-full min-h-0 flex-col overflow-hidden rounded-[32px] border border-border/72 bg-white/92 shadow-[var(--shadow-panel)]' : 'flex h-full min-h-0 flex-col overflow-hidden'}>
-      <div className='border-b border-border/72 bg-gradient-to-r from-surface-subtle via-white to-surface-subtle px-5 py-4'>
-        <div className='flex flex-wrap items-start justify-between gap-3'>
-          <div className='flex items-start gap-3'>
-            <div className='flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary'>
-              <Sparkles className='size-5' />
-            </div>
-            <div>
-              <h3 className='text-lg font-semibold text-foreground' aria-label='Asistente IA'>Asistente IA</h3>
-              <p className='mt-1 text-sm text-muted-foreground'>Consulta jobs, logs, configuraciones y correcciones en lenguaje natural.</p>
-              <div className='mt-2 flex flex-wrap items-center gap-2'>
-                <Badge variant='outline'>Chat conversacional</Badge>
-                {jobId != null ? <Badge variant='muted'>Contexto: Job #{jobId}</Badge> : <Badge variant='muted'>Sin job seleccionado</Badge>}
-                {errors > 0 ? <Badge variant='warning'>{errors} errores detectados</Badge> : <Badge variant='success'>Sin errores detectados</Badge>}
+    <Card className={`flex h-full min-h-0 flex-col overflow-hidden border border-border/70 bg-card/95 ${isFullscreen ? 'rounded-[28px] shadow-[var(--shadow-panel)]' : isCompact ? 'rounded-2xl shadow-none' : 'rounded-[24px] shadow-[var(--shadow-soft)]'}`}>
+      {!isCompact ? (
+        <div className={`border-b border-border/70 px-4 ${isFullscreen ? 'py-4' : 'py-3'}`}>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='flex min-w-0 items-start gap-3'>
+              <div className='flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
+                <Sparkles className='size-5' />
+              </div>
+              <div className='min-w-0'>
+                <h3 className={`${isFullscreen ? 'text-lg' : 'text-sm'} font-semibold text-foreground`} aria-label='Asistente IA'>Asistente IA</h3>
+                {isFullscreen ? <p className='mt-1 text-sm text-muted-foreground'>Pregunta con contexto, sin salirte del flujo conversacional.</p> : null}
               </div>
             </div>
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button type='button' variant='ghost' size='sm' className='gap-2' onClick={clearChat} disabled={isSending}>
+            <Button type='button' variant='ghost' size='sm' className='gap-2 text-muted-foreground' onClick={clearChat} disabled={isSending}>
               <Trash2 className='size-4' />
-              Limpiar conversación
+              Limpiar
             </Button>
           </div>
+          {isFullscreen ? (
+            <div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+              {jobId != null ? <span className='rounded-full border border-border/70 px-2.5 py-1'>Job #{jobId}</span> : null}
+              <span className='rounded-full border border-border/70 px-2.5 py-1'>{errors > 0 ? `${errors} errores` : 'Sin errores'}</span>
+            </div>
+          ) : null}
         </div>
-        <div className='mt-4 flex flex-wrap gap-2'>
-          {suggestions.map((suggestion) => (
-            <Button key={suggestion.label} type='button' variant='outline' size='sm' className='rounded-full' onClick={() => void sendMessage(suggestion.message)} disabled={isSending}>
-              {suggestion.label}
-            </Button>
-          ))}
-        </div>
-      </div>
+      ) : null}
 
-      <ScrollArea className='min-h-0 flex-1 overflow-hidden px-4 py-4' viewportRef={viewportRef}>
-      <div className='space-y-4 pr-2'>
+      <ScrollArea className='min-h-0 flex-1 overflow-hidden px-3 py-3' viewportRef={viewportRef}>
+        <div className={`space-y-3 ${isCompact ? 'pr-1' : 'pr-2'}`}>
           {messages.map((message) => (
             <div key={message.id}>
               <ChatBubble message={message} />
@@ -438,8 +434,17 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
         </div>
       </ScrollArea>
 
-      <div className='border-t border-border/72 bg-white/95 p-4'>
-        <div className='rounded-[24px] border border-border/72 bg-surface-subtle p-3 shadow-[var(--shadow-soft)]'>
+      <div className='border-t border-border/70 bg-card/98 p-3'>
+        {!isCompact ? (
+          <div className='mb-2 flex flex-wrap gap-2'>
+            {suggestions.slice(0, variant === 'fullscreen' ? 5 : 3).map((suggestion) => (
+              <Button key={suggestion.label} type='button' variant='ghost' size='sm' className='rounded-full px-3 text-xs text-muted-foreground' onClick={() => void sendMessage(suggestion.message)} disabled={isSending}>
+                {suggestion.label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
+        <div className='rounded-2xl border border-border/70 bg-surface-subtle p-2'>
           <textarea
             ref={textareaRef}
             value={input}
@@ -450,12 +455,12 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
                 void sendMessage();
               }
             }}
-            placeholder={jobId != null ? 'Escribe sobre este job o pregunta por la configuración...' : 'Escribe tu pregunta...'}
-            className='min-h-28 w-full resize-none border-0 bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground'
+            placeholder={variant === 'compact' ? 'Pregunta sobre este resultado…' : jobId != null ? 'Escribe sobre este job o pregunta por la configuración...' : 'Escribe tu pregunta...'}
+            className={`${isCompact ? 'min-h-20' : 'min-h-24'} w-full resize-none border-0 bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground`}
             disabled={isSending}
           />
-          <div className='mt-3 flex items-center justify-between gap-3'>
-            <p className='text-xs text-muted-foreground'>Enter envía, Shift+Enter agrega salto de línea.</p>
+          <div className='mt-2 flex items-center justify-between gap-3 px-1'>
+            <p className='text-xs text-muted-foreground'>{isCompact ? 'Enter envía' : 'Enter envía, Shift+Enter agrega salto de línea.'}</p>
             <Button onClick={() => void sendMessage()} size='sm' disabled={isSending || !input.trim()} className='gap-2'>
               {isSending ? <Loader2 className='size-4 animate-spin' /> : <Send className='size-4' />}
               Enviar

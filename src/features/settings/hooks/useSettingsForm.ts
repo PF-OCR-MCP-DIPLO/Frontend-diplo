@@ -4,6 +4,7 @@ import { getOllamaModels, getProcessingSettings, getProcessingSettingsOptions, u
 import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extraction-criteria.types';
 import type { ApiOllamaModelsResponse, ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
+import { normalizeSettings, normalizeSettingsOptions } from '@/features/settings/utils/settings-normalizers';
 
 function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
   return {
@@ -24,17 +25,7 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     extraction_criteria: settings.extraction_criteria ?? DEFAULT_EXTRACTION_CRITERIA,
   };
 }
-function normalizeOptions(options: ApiProcessingSettingsOptions): ApiProcessingSettingsOptions {
-  return {
-    ocr_modes: options.ocr_modes ?? ['tesseract', 'vision', 'auto'],
-    providers: {
-      ocr: options.providers?.ocr ?? ['ollama', 'openai', 'gemini', 'deepseek'],
-      llm: options.providers?.llm ?? ['ollama', 'openai', 'gemini', 'deepseek', 'anthropic'],
-    },
-    provider_models: options.provider_models ?? {},
-    provider_requirements: options.provider_requirements ?? {},
-  };
-}
+
 export function useSettingsForm() {
   const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
   const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
@@ -53,10 +44,12 @@ export function useSettingsForm() {
         getProcessingSettingsOptions(),
         getOllamaModels(),
       ]);
-      setSettings(loadedSettings);
-      setOptions(normalizeOptions(loadedOptions));
+      const safeSettings = normalizeSettings(loadedSettings);
+      const safeOptions = normalizeSettingsOptions(loadedOptions);
+      setSettings(safeSettings);
+      setOptions(safeOptions);
       setOllamaModels(loadedOllamaModels);
-      setValues(createFormValues(loadedSettings));
+      setValues(createFormValues(safeSettings));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo cargar la configuracion';
       setLoadError(message);
@@ -114,7 +107,7 @@ export function useSettingsForm() {
       if (assistant_api_key.trim()) payload.assistant_api_key = assistant_api_key;
       payload.extraction_criteria = values.extraction_criteria;
 
-      const nextSettings = await updateProcessingSettings(payload);
+      const nextSettings = normalizeSettings(await updateProcessingSettings(payload));
       setSettings(nextSettings);
       setValues(createFormValues(nextSettings));
       toast.success('Configuracion guardada correctamente');

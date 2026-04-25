@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ResultsChatPanel } from '@/features/processing/components/results/ResultsChatPanel';
 
@@ -18,7 +18,6 @@ describe('ResultsChatPanel', () => {
       />,
     );
 
-    expect(screen.getByText(/Asistente de revision/i)).toBeInTheDocument();
     expect(aiChatMock).toHaveBeenCalledWith(
       expect.objectContaining({ errors: 3, jobId: 42, queryContext: expect.objectContaining({ page: 'results', jobId: 42 }) }),
     );
