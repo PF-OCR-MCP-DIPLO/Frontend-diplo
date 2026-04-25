@@ -2,7 +2,6 @@ import { useId, useState } from 'react';
 import { AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';
 import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import { getFieldLabel, getRowFieldIssues, getRowGeneralIssues } from '@/features/processing/components/results/results-validation';
@@ -14,12 +13,9 @@ interface ResultsErrorPanelProps {
   selectedField?: string | null;
   onErrorClick: (rowId: string) => void;
   onFocusCell: (rowId: string, field: ResultFieldKey) => void;
-  onAskAssistant: (rowId: string, field: ResultFieldKey) => void;
-  onReprocessDeposit: (depositId: number, rowId: string) => void;
-  reprocessingDepositId?: number | null;
 }
 
-export function ResultsErrorPanel({ data, validationMap, selectedRowId, selectedField, onErrorClick, onFocusCell, onAskAssistant, onReprocessDeposit, reprocessingDepositId }: ResultsErrorPanelProps) {
+export function ResultsErrorPanel({ data, validationMap, selectedRowId, selectedField, onErrorClick, onFocusCell }: ResultsErrorPanelProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const panelIdPrefix = useId();
   const errorsData = data.filter((row) => row.estado === 'error');
@@ -63,16 +59,10 @@ export function ResultsErrorPanel({ data, validationMap, selectedRowId, selected
                       <div key={`${row.id}-${field}`} className={`rounded-xl border px-3 py-2 text-sm ${selectedRowId === row.id && selectedField === field ? 'border-primary/25 bg-primary/5' : 'border-border/60 bg-surface-subtle'}`}>
                         <p className='font-medium text-foreground'>{getFieldLabel(field)}</p>
                         {issues.map((issue) => <p key={issue.id} className='text-danger'>{issue.message}</p>)}
-                        <div className='mt-2 flex flex-wrap gap-2'>
-                          <Button type='button' variant='ghost' size='sm' className='h-7 px-2 text-[11px]' onClick={() => onFocusCell(row.id, field)}>
-                            Ir a celda
-                          </Button>
-                          <Button type='button' variant='ghost' size='sm' className='h-7 px-2 text-[11px]' onClick={() => onAskAssistant(row.id, field)}>
-                            Preguntar al asistente
-                          </Button>
-                          <Button type='button' variant='ghost' size='sm' className='h-7 px-2 text-[11px]' onClick={() => onReprocessDeposit(row.depositId, row.id)} disabled={reprocessingDepositId === row.depositId}>
-                            {reprocessingDepositId === row.depositId ? 'Reprocesando…' : 'Reprocesar esta consignación'}
-                          </Button>
+                        <div className='mt-2'>
+                          <button type='button' className='text-xs font-semibold text-primary hover:underline' onClick={() => onFocusCell(row.id, field)}>
+                            Ver detalle estable
+                          </button>
                         </div>
                       </div>
                     );

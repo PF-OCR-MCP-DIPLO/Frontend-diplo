@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { AssistantChatProvider } from '@/features/assistant/hooks/AssistantChatContext';
 import { AssistantPage } from '@/pages/assistant/AssistantPage';
 
 vi.mock('@/components/AIChat', () => ({
@@ -13,28 +14,30 @@ vi.mock('@/components/AIChat', () => ({
 }));
 
 describe('AssistantPage', () => {
-  it('hydrates assistant context from navigation state', () => {
+  it('hydrates assistant context from navigation state and exposes clear context', () => {
     render(
-      <MemoryRouter
-        initialEntries={[
-          {
-            pathname: '/assistant',
-            state: {
-              assistantQueryContext: { page: 'results', jobId: 12, jobName: 'archivo.docx' },
-              assistantPrompt: 'Explícame esta fila.',
+      <AssistantChatProvider>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/assistant',
+              state: {
+                assistantQueryContext: { page: 'results', jobId: 12, jobName: 'archivo.docx', selectedRowId: 'row-1' },
+                assistantPrompt: 'Explícame esta fila.',
+              },
             },
-          },
-        ]}
-      >
-        <Routes>
-          <Route path='/assistant' element={<AssistantPage />} />
-        </Routes>
-      </MemoryRouter>,
+          ]}
+        >
+          <Routes>
+            <Route path='/assistant' element={<AssistantPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AssistantChatProvider>,
     );
 
     expect(screen.getByText(/Contexto activo/i)).toBeInTheDocument();
     expect(screen.getByTestId('assistant-chat')).toHaveTextContent('"jobId":12');
-    expect(screen.getByTestId('assistant-chat')).toHaveTextContent('"page":"results"');
-    expect(screen.getByTestId('assistant-chat')).toHaveTextContent('Explícame esta fila.');
+    expect(screen.getByText(/Limpiar contexto/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Volver a resultados/i })).toBeInTheDocument();
   });
 });

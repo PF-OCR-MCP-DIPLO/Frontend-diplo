@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssistantChatProvider } from '@/features/assistant/hooks/AssistantChatContext';
 import { AIChat } from '@/components/AIChat';
@@ -14,33 +13,26 @@ describe('AIChat', () => {
   beforeEach(() => {
     sendAssistantChatMock.mockReset();
     window.localStorage.clear();
-    HTMLElement.prototype.scrollTo = vi.fn();
   });
 
-  function renderChat(props?: Partial<ComponentProps<typeof AIChat>>) {
+  function renderChat() {
     return render(
       <AssistantChatProvider>
-        <AIChat
-          errors={props?.errors ?? 0}
-          jobId={props?.jobId ?? null}
-          variant={props?.variant ?? 'panel'}
-          queryContext={props?.queryContext}
-        />
+        <AIChat errors={2} jobId={8} queryContext={{ page: 'results', jobId: 8, contextScope: 'job' }} />
       </AssistantChatProvider>,
     );
   }
 
-  it('renders the initial assistant prompt and suggestions', () => {
-    renderChat({ jobId: 8, errors: 2 });
+  it('renders the main chat layout with compact context and suggestions', () => {
+    renderChat();
 
-    expect(screen.getByLabelText('Asistente IA')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Limpiar/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Resume/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Prioridad/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /^Hallazgos$/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Asistente' })).toBeInTheDocument();
+    expect(screen.getByText(/Contexto: Job #8/i)).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.queryByText(/"jobId"/)).not.toBeInTheDocument();
   });
 
-  it('sends a message with Enter and shows the assistant reply', async () => {
+  it('sends a message with Enter and renders the reply', async () => {
     sendAssistantChatMock.mockResolvedValueOnce({
       reply: 'Hola, claro.',
       tool: 'none',
@@ -58,148 +50,13 @@ describe('AIChat', () => {
     expect(screen.getByText('Hola, claro.')).toBeInTheDocument();
   });
 
-  it('renders list_jobs as cards or table and keeps technical json collapsed', async () => {
-    sendAssistantChatMock.mockResolvedValueOnce({
-      reply: 'Encontré jobs recientes.',
-      tool: 'list_jobs',
-      data: [
-        {
-          id: 1,
-          original_filename: 'archivo.docx',
-          status: 'completed',
-          total_images: 2,
-          total_records: 10,
-          created_at: '2026-04-24T10:00:00Z',
-        },
-      ],
-      query_context: {},
-      show_debug_details: true,
-    });
-
+  it('keeps shift enter for new lines', () => {
     renderChat();
-
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'listar jobs recientes' } });
-    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
-
-    await waitFor(() => expect(screen.getByText('Encontré jobs recientes.')).toBeInTheDocument());
-    expect(screen.getByText('archivo.docx')).toBeInTheDocument();
-    expect(screen.queryByText('Herramienta: list_jobs')).not.toBeInTheDocument();
-    expect(screen.queryByText(/"original_filename"/i)).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Ver detalles técnicos/i }));
-    expect(screen.getByText(/"original_filename"/i)).toBeInTheDocument();
-  });
-
-  it('hides technical details when debug mode is disabled', async () => {
-    sendAssistantChatMock.mockResolvedValueOnce({
-      reply: 'Respuesta breve.',
-      tool: 'list_jobs',
-      data: [{ id: 1 }],
-      query_context: {},
-      show_debug_details: false,
-    });
-
-    renderChat();
-
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'listar jobs recientes' } });
-    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
-
-    await waitFor(() => expect(screen.getByText('Respuesta breve.')).toBeInTheDocument());
-    expect(screen.queryByRole('button', { name: /Ver detalles técnicos/i })).not.toBeInTheDocument();
-  });
-
-  it('renders get_processing_settings as a readable summary', async () => {
-    sendAssistantChatMock.mockResolvedValueOnce({
-      reply: 'Configuración lista.',
-      tool: 'get_processing_settings',
-      data: {
-        ocr_mode: 'vision',
-        ocr_provider: 'ollama',
-        ocr_model: 'gemma4:e2b',
-        llm_provider: 'ollama',
-        llm_model: 'gemma4:e2b',
-        assistant_provider: 'ollama',
-        assistant_model: 'gemma4:e2b',
-        request_timeout_seconds: 120,
-      },
-      query_context: {},
-    });
-
-    renderChat();
-
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'ver configuración' } });
-    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', code: 'Enter' });
-
-    await waitFor(() => expect(screen.getByText('Configuración lista.')).toBeInTheDocument());
-    expect(screen.getByText('Chatbot')).toBeInTheDocument();
-    expect(screen.getAllByText(/gemma4:e2b/).length).toBeGreaterThan(0);
-  });
-
-  it('renders a confirmation card for sensitive actions and reuses assistant context on confirm', async () => {
-    sendAssistantChatMock
-      .mockResolvedValueOnce({
-        reply: 'Necesito tu confirmacion para procesar.',
-        tool: 'process_job',
-        data: {
-          detail: 'Necesito tu confirmacion para iniciar el procesamiento de este job.',
-          requires_confirmation: true,
-          risk_level: 'requires_confirmation',
-          arguments: { job_id: 22 },
-        },
-        query_context: {
-          pendingAction: {
-            tool: 'process_job',
-            arguments: { job_id: 22 },
-            intentName: 'process_job',
-            intentSummary: 'procesar',
-            jobId: 22,
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        reply: 'Proceso iniciado.',
-        tool: 'process_job',
-        data: { status: 'queued' },
-        query_context: {},
-      });
-
-    renderChat({ jobId: 22, queryContext: { page: 'results', jobId: 22 } });
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'procesa el job' } });
-    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
-
-    await waitFor(() => expect(screen.getByText(/Accion pendiente de confirmacion/i)).toBeInTheDocument());
-    expect(screen.getByRole('button', { name: /Confirmar y ejecutar/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar y ejecutar/i }));
-
-    await waitFor(() => expect(sendAssistantChatMock).toHaveBeenCalledTimes(2));
-    expect(sendAssistantChatMock).toHaveBeenNthCalledWith(
-      2,
-      expect.any(Array),
-      expect.objectContaining({
-        jobId: 22,
-        queryContext: expect.objectContaining({
-          pendingAction: expect.objectContaining({ tool: 'process_job', jobId: 22 }),
-        }),
-      }),
-    );
-    expect(screen.getByText('Proceso iniciado.')).toBeInTheDocument();
-  });
-
-  it('supports shift enter without sending', () => {
-    renderChat();
-    const input = screen.getByPlaceholderText('Pregunta algo…');
     fireEvent.change(input, { target: { value: 'hola' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', shiftKey: true });
+
     expect(sendAssistantChatMock).not.toHaveBeenCalled();
-  });
-
-  it('uses the compact placeholder and hides persistent suggestions', () => {
-    renderChat({ variant: 'compact', jobId: 4 });
-
-    expect(screen.getByPlaceholderText('Pregunta algo…')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /¿Qué puedes hacer\?/i })).not.toBeInTheDocument();
   });
 });

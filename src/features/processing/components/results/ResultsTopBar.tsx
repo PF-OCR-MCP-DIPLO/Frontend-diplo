@@ -20,7 +20,8 @@ interface ResultsTopBarProps {
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: () => void;
-  onOpenPanel: (panel: 'assistant' | 'issues' | 'logs' | 'preview') => void;
+  onOpenPanel: (panel: 'issues' | 'logs' | 'preview') => void;
+  onOpenAssistant: () => void;
 }
 
 function getPrimaryLabel(status: ProcessingStatus) {
@@ -46,6 +47,7 @@ export function ResultsTopBar({
   onExport,
   onSaveCorrections,
   onOpenPanel,
+  onOpenAssistant,
 }: ResultsTopBarProps) {
   return (
     <div className='flex flex-col gap-3 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between'>
@@ -78,9 +80,12 @@ export function ResultsTopBar({
           <ScrollText className='size-4' />
           Logs
         </Button>
-        <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onOpenPanel.bind(null, 'assistant')}>
+        <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onOpenAssistant}>
           <MessageSquare className='size-4' />
-          Asistente
+          Abrir asistente
+        </Button>
+        <Button type='button' variant='outline' size='sm' className='gap-2' onClick={() => onOpenPanel('preview')}>
+          Previsualizar
         </Button>
         <Button type='button' size='sm' className='gap-2' onClick={onProcess} disabled={isProcessing || status === 'processing'}>
           {getPrimaryLabel(status)}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
+import { ResultsFieldDetailPanel } from '@/features/processing/components/results/ResultsFieldDetailPanel';
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsWorkspace } from '@/features/processing/components/results/ResultsWorkspace';
@@ -39,6 +40,7 @@ interface ResultsViewProps {
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
+  const [detailCell, setDetailCell] = useState<{ rowId: string; field: keyof ConsignmentRow } | null>(null);
   const [reprocessingDepositId, setReprocessingDepositId] = useState<number | null>(null);
   const validationMap = buildResultsValidationMap(viewState.data);
   const selectedRow = useMemo(() => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null, [viewState.data, viewState.selectedRowId]);
@@ -106,7 +108,7 @@ export function ResultsView(props: ResultsViewProps) {
 
   function handleFocusCell(rowId: string, field: keyof ConsignmentRow) {
     viewState.focusCell(rowId, field);
-    setActivePanel('assistant');
+    setDetailCell({ rowId, field });
   }
 
   function handleAskAssistant(rowId: string, field: keyof ConsignmentRow) {
@@ -176,13 +178,11 @@ export function ResultsView(props: ResultsViewProps) {
             .then(() => viewState.markSaved())
             .catch(() => undefined);
         }}
+        onOpenAssistant={() => props.onOpenAssistant({ context: assistantQueryContext })}
         onOpenPanel={(panel) => {
           if (panel === 'logs') {
             void handleOpenLogs();
             return;
-          }
-          if (panel === 'assistant') {
-            props.onOpenAssistant({ context: assistantQueryContext });
           }
           setActivePanel(panel);
         }}
@@ -201,18 +201,18 @@ export function ResultsView(props: ResultsViewProps) {
         />
       </main>
 
-      <div className='px-4 pb-4 text-xs text-muted-foreground'>
-        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => setActivePanel('assistant')}>
-          Preguntar al asistente
+      <div className='flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground'>
+        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => props.onOpenAssistant({ context: assistantQueryContext })}>
+          Abrir asistente
+        </button>
+        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => setActivePanel('preview')}>
+          Ver preview
         </button>
       </div>
 
       <ResultsSidePanel
         panel={activePanel}
         onClose={() => setActivePanel(null)}
-        jobId={props.jobId}
-        errors={viewState.errorCount}
-        queryContext={assistantQueryContext}
         errorMessage={props.errorMessage}
         logs={viewState.logs}
         logsError={viewState.logsError}
@@ -226,8 +226,23 @@ export function ResultsView(props: ResultsViewProps) {
         onOpenImage={(image) => viewState.focusImage(image)}
         onFocusRow={handleFocusRow}
         onFocusCell={handleFocusCell}
-        onAskAssistant={handleAskAssistant}
         reprocessingDepositId={reprocessingDepositId}
+      />
+
+      <ResultsFieldDetailPanel
+        open={Boolean(detailCell)}
+        jobId={props.jobId}
+        row={detailCell ? viewState.data.find((row) => row.id === detailCell.rowId) ?? null : null}
+        field={detailCell?.field ?? null}
+        validationMap={validationMap}
+        reprocessingDepositId={reprocessingDepositId}
+        onClose={() => setDetailCell(null)}
+        onEdit={(rowId, field) => {
+          viewState.focusCell(rowId, field);
+          setDetailCell(null);
+        }}
+        onAskAssistant={(launch) => props.onOpenAssistant(launch)}
+        onReprocessDeposit={(depositId) => void handleReprocessDeposit(depositId)}
       />
 
       <ResultsErrorDialog
@@ -240,9 +255,6 @@ export function ResultsView(props: ResultsViewProps) {
         onClose={() => viewState.setShowErrorDialog(false)}
         onErrorClick={handleFocusRow}
         onFocusCell={handleFocusCell}
-        onAskAssistant={handleAskAssistant}
-        onReprocessDeposit={handleReprocessDeposit}
-        reprocessingDepositId={reprocessingDepositId}
       />
       <ResultsImagePreviewDialog
         open={Boolean(viewState.expandedImage)}

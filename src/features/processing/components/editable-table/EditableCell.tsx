@@ -1,9 +1,8 @@
 import { Input } from '@/components/ui/input';
-import { ContextualPopover } from '@/components/shared/ContextualPopover';
+import { ContextualTooltip } from '@/components/shared/ContextualTooltip';
 import type { FieldValidationIssue, ResultsValidationMap } from '@/features/processing/components/results/results-validation';
-import { getCellIssueSummary, getFieldLabel, getCellStatus } from '@/features/processing/components/results/results-validation';
+import { getCellIssueSummary, getCellStatus, getFieldLabel } from '@/features/processing/components/results/results-validation';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
-import { Button } from '@/components/ui/button';
 
 interface EditableCellProps {
   row: ConsignmentRow;
@@ -21,38 +20,18 @@ interface EditableCellProps {
   validationMap: ResultsValidationMap;
 }
 
-export function EditableCell({ row, field, editable, issues, isEditing, isSelected, onFocusCell, onEdit, onChange, onBlur, onKeyDown, onAskAssistant, validationMap }: EditableCellProps) {
+export function EditableCell({ row, field, editable, issues, isEditing, isSelected, onFocusCell, onEdit, onChange, onBlur, onKeyDown, validationMap }: EditableCellProps) {
   const value = String(row[field]);
   const cellStatus = getCellStatus(row, field as never, validationMap);
   const hasError = cellStatus === 'error';
   const label = `Editar ${getFieldLabel(field)} de la fila ${row.referencia || row.id}`;
   const tooltipModel = getCellIssueSummary(row, field as never, issues);
-  const content = (
-    <div className='space-y-2'>
-      <div>
-        <p className='font-semibold text-foreground'>{tooltipModel.title}</p>
-        <p className='text-muted-foreground'>Valor actual: {tooltipModel.currentValue}</p>
-      </div>
-      <div className='space-y-1'>
-        {tooltipModel.issues.length > 0 ? tooltipModel.issues.map((issue) => <p key={issue} className='text-danger'>{issue}</p>) : <p className='text-muted-foreground'>Sin errores detectados.</p>}
-      </div>
-      <p className='text-muted-foreground'>Sugerencia: {tooltipModel.correctionHint}</p>
-      <div className='flex gap-2 pt-1'>
-        <Button type='button' size='sm' variant='outline' className='h-7 rounded-full px-2 text-[11px]' onClick={() => onAskAssistant?.(row.id, field)}>
-          Preguntar al asistente
-        </Button>
-        {editable ? (
-          <Button type='button' size='sm' className='h-7 rounded-full px-2 text-[11px]' onClick={() => onEdit(row.id, field)}>
-            Editar
-          </Button>
-        ) : null}
-      </div>
-    </div>
-  );
+
+  const pillClass = `block rounded-md px-2 py-1 text-sm transition ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : cellStatus === 'valid' ? 'bg-success/5 text-foreground ring-1 ring-success/20' : 'text-surface-foreground'} ${isSelected ? 'ring-1 ring-primary/25' : ''}`;
 
   if (isEditing) {
     return (
-        <Input
+      <Input
         autoFocus
         aria-label={label}
         value={value}
@@ -64,19 +43,25 @@ export function EditableCell({ row, field, editable, issues, isEditing, isSelect
     );
   }
 
+  const content = <span className={pillClass} tabIndex={0} onFocus={() => onFocusCell?.(row.id, field)}>{value}</span>;
+
   if (!editable) {
     return (
-      <ContextualPopover
-        interactive
-        trigger={<span className={`block rounded-md px-2 py-1 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : cellStatus === 'valid' ? 'bg-success/5 text-foreground ring-1 ring-success/20' : 'text-surface-foreground'} ${isSelected ? 'ring-1 ring-primary/25' : ''}`} tabIndex={0} onFocus={() => onFocusCell?.(row.id, field)}>{value}</span>}
-        content={content}
+      <ContextualTooltip
+        trigger={content}
+        content={
+          <div className='space-y-1'>
+            <p className='font-medium text-foreground'>{tooltipModel.title}</p>
+            <p className='text-muted-foreground'>Valor actual: {tooltipModel.currentValue}</p>
+            <p className='text-muted-foreground'>Sugerencia: {tooltipModel.correctionHint}</p>
+          </div>
+        }
       />
     );
   }
 
   return (
-    <ContextualPopover
-      interactive
+    <ContextualTooltip
       trigger={(
         <button
           type='button'
@@ -89,7 +74,13 @@ export function EditableCell({ row, field, editable, issues, isEditing, isSelect
           <span className='text-[11px] text-muted-foreground'>{issues.length > 0 ? `${issues.length} issue${issues.length === 1 ? '' : 's'}` : cellStatus === 'valid' ? 'OK' : 'Editar'}</span>
         </button>
       )}
-      content={content}
+      content={
+        <div className='space-y-1'>
+          <p className='font-medium text-foreground'>{tooltipModel.title}</p>
+          <p className='text-muted-foreground'>Valor actual: {tooltipModel.currentValue}</p>
+          <p className='text-muted-foreground'>Sugerencia: {tooltipModel.correctionHint}</p>
+        </div>
+      }
     />
   );
 }

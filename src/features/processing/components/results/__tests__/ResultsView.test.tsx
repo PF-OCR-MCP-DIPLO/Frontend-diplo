@@ -82,11 +82,15 @@ describe('ResultsView', () => {
     expect(screen.getByRole('button', { name: /1 hallazgos/i })).toBeInTheDocument();
   });
 
-  it('opens the assistant panel from results', () => {
-    renderResultsView();
+  it('opens the assistant from results', () => {
+    const { props } = renderResultsView();
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Asistente/i })[0]);
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: /Abrir asistente/i })[0]);
+    expect(props.onOpenAssistant).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({ page: 'results', jobId: 42 }),
+      }),
+    );
   });
 
   it('renders safely with empty results and no source images', () => {

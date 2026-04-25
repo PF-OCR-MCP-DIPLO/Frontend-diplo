@@ -13,14 +13,13 @@ interface ResultsErrorDialogProps {
   onClose: () => void;
   onErrorClick: (rowId: string) => void;
   onFocusCell: (rowId: string, field: keyof ConsignmentRow) => void;
-  onAskAssistant: (rowId: string, field: keyof ConsignmentRow) => void;
 }
 
-export function ResultsErrorDialog({ open, errorMessage, data, validationMap, selectedRowId, selectedField, onClose, onErrorClick, onFocusCell, onAskAssistant }: ResultsErrorDialogProps) {
+export function ResultsErrorDialog({ open, errorMessage, data, validationMap, selectedRowId, selectedField, onClose, onErrorClick, onFocusCell }: ResultsErrorDialogProps) {
   return (
     <Modal open={open} onClose={onClose} title='Hallazgos del procesamiento'>
       {errorMessage ? <p className='notice-danger mb-4'>{errorMessage}</p> : null}
-      <ResultsErrorPanel data={data} validationMap={validationMap} selectedRowId={selectedRowId} selectedField={selectedField} onErrorClick={onErrorClick} onFocusCell={onFocusCell} onAskAssistant={onAskAssistant} />
+      <ResultsErrorPanel data={data} validationMap={validationMap} selectedRowId={selectedRowId} selectedField={selectedField} onErrorClick={onErrorClick} onFocusCell={onFocusCell} />
     </Modal>
   );
 }
