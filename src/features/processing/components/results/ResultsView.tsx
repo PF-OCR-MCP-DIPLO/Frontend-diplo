@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
 import { ResultsFieldDetailPanel } from '@/features/processing/components/results/ResultsFieldDetailPanel';
@@ -99,6 +99,17 @@ export function ResultsView(props: ResultsViewProps) {
     }
   }
 
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setActivePanel(null);
+        setDetailCell(null);
+      }
+    }
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
+
   function handleFocusRow(rowId: string) {
     setActivePanel('issues');
     window.setTimeout(() => {
@@ -178,7 +189,11 @@ export function ResultsView(props: ResultsViewProps) {
             .then(() => viewState.markSaved())
             .catch(() => undefined);
         }}
-        onOpenAssistant={() => props.onOpenAssistant({ context: assistantQueryContext })}
+        onOpenAssistant={() => {
+          setActivePanel(null);
+          setDetailCell(null);
+          props.onOpenAssistant({ context: assistantQueryContext });
+        }}
         onOpenPanel={(panel) => {
           if (panel === 'logs') {
             void handleOpenLogs();
@@ -202,7 +217,15 @@ export function ResultsView(props: ResultsViewProps) {
       </main>
 
       <div className='flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground'>
-        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => props.onOpenAssistant({ context: assistantQueryContext })}>
+        <button
+          type='button'
+          className='text-left underline-offset-4 hover:underline'
+          onClick={() => {
+            setActivePanel(null);
+            setDetailCell(null);
+            props.onOpenAssistant({ context: assistantQueryContext });
+          }}
+        >
           Abrir asistente
         </button>
         <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => setActivePanel('preview')}>

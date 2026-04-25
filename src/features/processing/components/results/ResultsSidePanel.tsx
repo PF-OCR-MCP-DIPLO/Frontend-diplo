@@ -7,7 +7,7 @@ import type { ResultsValidationMap } from '@/features/processing/components/resu
 import { ResultsErrorPanel } from '@/features/processing/components/results/ResultsErrorPanel';
 import { ResultsPreviewPanel } from '@/features/processing/components/results/ResultsPreviewPanel';
 
-export type ResultsPanel = 'issues' | 'logs' | 'preview' | null;
+export type ResultsPanel = 'issues' | 'logs' | 'preview' | 'fieldDetail' | null;
 
 interface ResultsSidePanelProps {
   panel: ResultsPanel;
