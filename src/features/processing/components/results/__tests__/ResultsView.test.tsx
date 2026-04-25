@@ -49,6 +49,7 @@ function renderResultsView(overrides: Partial<ComponentProps<typeof ResultsView>
     onRefresh: vi.fn(),
     onExport: vi.fn(),
     onSaveCorrections: vi.fn().mockResolvedValue(undefined),
+    onOpenAssistant: vi.fn(),
     ...overrides,
   };
 

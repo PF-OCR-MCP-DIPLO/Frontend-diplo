@@ -1,4 +1,5 @@
 import { httpRequest } from '@/services/http/client';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
 export interface AssistantChatMessage {
   role: 'user' | 'assistant';
@@ -16,7 +17,7 @@ export interface AssistantChatResponse {
 
 export function sendAssistantChat(
   messages: AssistantChatMessage[],
-  options?: { jobId?: number | null; errors?: number; queryContext?: Record<string, unknown> },
+  options?: { jobId?: number | null; errors?: number; queryContext?: AssistantQueryContext },
 ) {
   return httpRequest<AssistantChatResponse>('assistant/chat/', {
     method: 'POST',

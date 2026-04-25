@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
 export interface AssistantChatMessage {
   id: string;
@@ -27,8 +28,8 @@ interface AssistantChatContextValue {
   setInput: Dispatch<SetStateAction<string>>;
   isSending: boolean;
   setIsSending: Dispatch<SetStateAction<boolean>>;
-  queryContext: Record<string, unknown>;
-  setQueryContext: Dispatch<SetStateAction<Record<string, unknown>>>;
+  queryContext: AssistantQueryContext;
+  setQueryContext: Dispatch<SetStateAction<AssistantQueryContext>>;
 }
 
 const STORAGE_KEY = 'assistant_chat_state_v1';
@@ -58,7 +59,7 @@ function loadStoredMessages() {
 
     const parsed = JSON.parse(rawValue) as {
       messages?: AssistantChatMessage[];
-      queryContext?: Record<string, unknown>;
+      queryContext?: AssistantQueryContext;
     };
 
     if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) {
@@ -75,7 +76,7 @@ export function AssistantChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<AssistantChatMessage[]>(loadStoredMessages);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [queryContext, setQueryContext] = useState<Record<string, unknown>>(() => {
+  const [queryContext, setQueryContext] = useState<AssistantQueryContext>(() => {
     if (typeof window === 'undefined') {
       return {};
     }
@@ -87,7 +88,7 @@ export function AssistantChatProvider({ children }: { children: ReactNode }) {
         return {};
       }
 
-      const parsed = JSON.parse(rawValue) as { queryContext?: Record<string, unknown> };
+      const parsed = JSON.parse(rawValue) as { queryContext?: AssistantQueryContext };
       return parsed.queryContext ?? {};
     } catch {
       return {};

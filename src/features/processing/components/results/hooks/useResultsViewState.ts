@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getJobLogs } from '@/features/processing/api/processing.api';
 import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
 
 export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]) {
   const [data, setData] = useState<ConsignmentRow[]>(initialData);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
+  const [currentImage, setCurrentImage] = useState<PreviewImage | null>(null);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
@@ -32,8 +34,14 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
   }
 
   function handleErrorClick(rowId: string) {
+    setSelectedRowId(rowId);
     const element = document.getElementById(rowId);
     element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function focusImage(image: PreviewImage | null) {
+    setCurrentImage(image);
+    setExpandedImage(image ? { url: image.url, name: image.name } : null);
   }
 
   async function openLogs() {
@@ -74,8 +82,11 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     setShowChat,
     showErrorDialog,
     setShowErrorDialog,
+    selectedRowId,
+    currentImage,
     expandedImage,
     setExpandedImage,
+    focusImage,
     logs,
     showLogsDialog,
     setShowLogsDialog,

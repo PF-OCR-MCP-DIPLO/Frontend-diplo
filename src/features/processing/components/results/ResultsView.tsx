@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ResultsActions } from '@/features/processing/components/results/ResultsActions';
 import { ResultsCorrectionsPanel } from '@/features/processing/components/results/ResultsCorrectionsPanel';
@@ -14,6 +14,7 @@ import { ResultsWorkspace, type ResultsPrimaryView } from '@/features/processing
 import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
 interface ResultsViewProps {
   jobId: number;
@@ -34,6 +35,7 @@ interface ResultsViewProps {
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: (rows: ConsignmentRow[]) => Promise<void>;
+  onOpenAssistant: (queryContext: AssistantQueryContext) => void;
 }
 
 export function ResultsView(props: ResultsViewProps) {
@@ -49,6 +51,28 @@ export function ResultsView(props: ResultsViewProps) {
   });
   const canExport = (props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl)) && !viewState.hasUnsavedChanges;
   const canSaveCorrections = !props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges;
+  const assistantQueryContext = useMemo<AssistantQueryContext>(() => ({
+    page: 'results',
+    jobId: props.jobId,
+    jobStatus: props.status,
+    jobName: props.fileName,
+    selectedRowId: viewState.selectedRowId ?? undefined,
+    currentImageId: viewState.currentImage?.id,
+    visibleIssueIds: viewState.data.filter((row) => row.estado === 'error').map((row) => row.id),
+    errorCount: viewState.errorCount,
+    autosaveStatus: autosave.autosave.status,
+    intentHint: props.errorMessage ? 'explain_results' : 'review_results',
+  }), [
+    autosave.autosave.status,
+    props.errorMessage,
+    props.fileName,
+    props.jobId,
+    props.status,
+    viewState.data,
+    viewState.currentImage?.id,
+    viewState.errorCount,
+    viewState.selectedRowId,
+  ]);
 
   async function handleOpenLogs() {
     try {
@@ -115,7 +139,7 @@ export function ResultsView(props: ResultsViewProps) {
         validationMap={validationMap}
         onDataChange={handleDataChange}
         onRowFocus={handleFocusRow}
-        onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
+        onOpenImage={(image) => viewState.focusImage(image)}
       />
 
         <ResultsCorrectionsPanel
@@ -141,11 +165,13 @@ export function ResultsView(props: ResultsViewProps) {
         <ResultsToolsPanel
           errorCount={viewState.errorCount}
           jobId={props.jobId}
+          assistantQueryContext={assistantQueryContext}
           showTools={showTools}
           showChat={viewState.showChat}
           isLoadingLogs={viewState.isLoadingLogs}
           onToggleTools={() => setShowTools((value) => !value)}
           onToggleChat={() => viewState.setShowChat((value) => !value)}
+          onOpenAssistant={() => props.onOpenAssistant(assistantQueryContext)}
           onOpenLogs={() => void handleOpenLogs()}
         />
       </div>

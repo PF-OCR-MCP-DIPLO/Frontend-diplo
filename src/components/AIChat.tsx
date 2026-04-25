@@ -7,11 +7,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { sendAssistantChat } from '@/features/assistant/api/assistant.api';
 import { useAssistantChatContext, type AssistantChatMessage } from '@/features/assistant/hooks/AssistantChatContext';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
 interface AIChatProps {
   errors: number;
   jobId?: number | null;
   variant?: 'panel' | 'fullscreen';
+  queryContext?: AssistantQueryContext;
 }
 
 type ChatSuggestion = {
@@ -264,8 +266,8 @@ function ThinkingBubble() {
   );
 }
 
-export function AIChat({ errors, jobId = null, variant = 'panel' }: AIChatProps) {
-  const { messages, setMessages, clearChat, input, setInput, isSending, setIsSending, queryContext, setQueryContext } = useAssistantChatContext();
+export function AIChat({ errors, jobId = null, variant = 'panel', queryContext }: AIChatProps) {
+  const { messages, setMessages, clearChat, input, setInput, isSending, setIsSending, queryContext: assistantQueryContext, setQueryContext } = useAssistantChatContext();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const suggestions = useMemo(() => getSuggestions(jobId), [jobId]);
@@ -279,6 +281,12 @@ export function AIChat({ errors, jobId = null, variant = 'panel' }: AIChatProps)
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (queryContext) {
+      setQueryContext(queryContext);
+    }
+  }, [queryContext, setQueryContext]);
 
   const sendMessage = async (rawText?: string) => {
     const text = (rawText ?? input).trim();
@@ -299,7 +307,7 @@ export function AIChat({ errors, jobId = null, variant = 'panel' }: AIChatProps)
     try {
       const response = await sendAssistantChat(
         nextMessages.map((message) => ({ role: message.role, content: message.content })),
-        { jobId, errors, queryContext },
+        { jobId, errors, queryContext: queryContext ?? assistantQueryContext },
       );
 
       setQueryContext(response.query_context ?? {});

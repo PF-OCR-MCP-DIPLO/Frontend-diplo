@@ -10,11 +10,17 @@ vi.mock('@/components/AIChat', () => ({
 
 describe('ResultsChatPanel', () => {
   it('passes the active job id to AIChat', () => {
-    render(<ResultsChatPanel errors={3} jobId={42} />);
+    render(
+      <ResultsChatPanel
+        errors={3}
+        jobId={42}
+        queryContext={{ page: 'results', jobId: 42, errorCount: 3 }}
+      />,
+    );
 
     expect(screen.getByText(/Asistente de revision/i)).toBeInTheDocument();
     expect(aiChatMock).toHaveBeenCalledWith(
-      expect.objectContaining({ errors: 3, jobId: 42 }),
+      expect.objectContaining({ errors: 3, jobId: 42, queryContext: expect.objectContaining({ page: 'results', jobId: 42 }) }),
     );
   });
 });

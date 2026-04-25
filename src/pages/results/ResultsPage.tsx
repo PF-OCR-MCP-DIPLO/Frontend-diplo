@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { StatePanel } from '@/components/shared/StatePanel';
 import { Button } from '@/components/ui/button';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
+import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import {
   useProcessingActionsContext,
   useProcessingCurrentResultContext,
@@ -62,6 +63,10 @@ export function ResultsPage() {
     }
   }, [saveCurrentCorrections]);
 
+  const handleOpenAssistant = useCallback((assistantQueryContext: AssistantQueryContext) => {
+    navigate('/assistant', { state: { assistantQueryContext } });
+  }, [navigate]);
+
   if (!currentResults) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -98,6 +103,7 @@ export function ResultsPage() {
       onRefresh={() => void handleRefresh()}
       onExport={() => void handleExport()}
       onSaveCorrections={handleSaveCorrections}
+      onOpenAssistant={handleOpenAssistant}
     />
   );
 }
