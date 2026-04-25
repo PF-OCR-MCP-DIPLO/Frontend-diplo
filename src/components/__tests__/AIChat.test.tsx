@@ -67,6 +67,7 @@ describe('AIChat', () => {
         },
       ],
       query_context: {},
+      show_debug_details: true,
     });
 
     renderChat();
@@ -80,6 +81,23 @@ describe('AIChat', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Ver detalles técnicos/i }));
     expect(screen.getByText(/"original_filename"/i)).toBeInTheDocument();
+  });
+
+  it('hides technical details when debug mode is disabled', async () => {
+    sendAssistantChatMock.mockResolvedValueOnce({
+      reply: 'Respuesta breve.',
+      tool: 'list_jobs',
+      data: [{ id: 1 }],
+      query_context: {},
+      show_debug_details: false,
+    });
+
+    renderChat();
+
+    fireEvent.click(screen.getByRole('button', { name: /Listar jobs recientes/i }));
+
+    await waitFor(() => expect(screen.getByText('Respuesta breve.')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /Ver detalles técnicos/i })).not.toBeInTheDocument();
   });
 
   it('renders get_processing_settings as a readable summary', async () => {

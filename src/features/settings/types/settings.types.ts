@@ -9,6 +9,7 @@ export type SettingsFormValues = {
   llm_model: string;
   assistant_provider: ApiProcessingSettings['assistant_provider'];
   assistant_model: string;
+  assistant_show_debug_details: boolean;
   assistant_temperature: number;
   assistant_num_predict: number;
   request_timeout_seconds: number;

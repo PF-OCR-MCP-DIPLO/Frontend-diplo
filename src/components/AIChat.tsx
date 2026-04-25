@@ -229,7 +229,7 @@ function ChatBubble({ message }: { message: AssistantChatMessage }) {
           <>
             {message.tool && message.tool !== 'none' ? <Badge variant='outline' className='mt-3'>Herramienta: {message.tool}</Badge> : null}
             <AssistantToolSummary message={message} />
-            <AssistantMessageDetails toolData={message.toolData} />
+            {message.showDebugDetails ? <AssistantMessageDetails toolData={message.toolData} /> : null}
           </>
         ) : null}
       </div>
@@ -297,14 +297,15 @@ export function AIChat({ errors, jobId = null, variant = 'panel' }: AIChatProps)
       setQueryContext(response.query_context ?? {});
       setMessages((currentMessages) => [
         ...currentMessages,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: response.reply,
-          tool: response.tool,
-          toolData: response.data,
-          timestamp: new Date().toISOString(),
-        },
+          {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: response.reply,
+            tool: response.tool,
+            toolData: response.data,
+            showDebugDetails: response.show_debug_details,
+            timestamp: new Date().toISOString(),
+          },
       ]);
     } catch (error) {
       setMessages((currentMessages) => [

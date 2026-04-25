@@ -5,6 +5,7 @@ import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extractio
 
 const getProcessingSettingsMock = vi.fn();
 const getProcessingSettingsOptionsMock = vi.fn();
+const getOllamaModelsMock = vi.fn();
 const updateProcessingSettingsMock = vi.fn();
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
@@ -12,6 +13,7 @@ const toastSuccessMock = vi.fn();
 vi.mock('@/features/settings/api/settings.api', () => ({
   getProcessingSettings: () => getProcessingSettingsMock(),
   getProcessingSettingsOptions: () => getProcessingSettingsOptionsMock(),
+  getOllamaModels: () => getOllamaModelsMock(),
   updateProcessingSettings: (payload: unknown) => updateProcessingSettingsMock(payload),
 }));
 
@@ -30,6 +32,7 @@ const settingsResponse = {
   llm_model: 'gpt-4o-mini',
   assistant_provider: 'ollama',
   assistant_model: 'gemma4:e2b',
+  assistant_show_debug_details: true,
   has_ocr_api_key: true,
   has_llm_api_key: true,
   has_assistant_api_key: false,
@@ -38,6 +41,13 @@ const settingsResponse = {
   request_timeout_seconds: 30,
   extraction_criteria: DEFAULT_EXTRACTION_CRITERIA,
   updated_at: '2025-01-01T00:00:00Z',
+} as const;
+
+const ollamaModelsResponse = {
+  provider: 'ollama',
+  available: true,
+  models: [{ name: 'llama3.2', label: 'llama3.2', size: 123, modifiedAt: '2026-04-24T00:00:00Z' }],
+  error: null,
 } as const;
 
 const optionsResponse = {
@@ -72,6 +82,7 @@ describe('useSettingsForm', () => {
   beforeEach(() => {
     getProcessingSettingsMock.mockReset();
     getProcessingSettingsOptionsMock.mockReset();
+    getOllamaModelsMock.mockReset();
     updateProcessingSettingsMock.mockReset();
     toastErrorMock.mockReset();
     toastSuccessMock.mockReset();
@@ -80,6 +91,7 @@ describe('useSettingsForm', () => {
   it('loads settings and options on mount', async () => {
     getProcessingSettingsMock.mockResolvedValue(settingsResponse);
     getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
 
     const { result } = renderHook(() => useSettingsForm());
 
@@ -88,7 +100,9 @@ describe('useSettingsForm', () => {
     expect(result.current.settings?.ocr_model).toBe('spa');
     expect(result.current.options?.ocr_modes).toEqual(['tesseract', 'vision', 'auto']);
     expect(result.current.values?.assistant_model).toBe('gemma4:e2b');
+    expect(result.current.values?.assistant_show_debug_details).toBe(true);
     expect(result.current.values?.extraction_criteria.fields[0].key).toBe('fecha_consignacion');
+    expect(result.current.modelOptions.assistant).toContain('llama3.2');
   });
 
   it('allows reload after an initial failure', async () => {
@@ -96,6 +110,7 @@ describe('useSettingsForm', () => {
       .mockRejectedValueOnce(new Error('Load failed'))
       .mockResolvedValue(settingsResponse);
     getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
 
     const { result } = renderHook(() => useSettingsForm());
 
@@ -122,6 +137,7 @@ describe('useSettingsForm', () => {
         },
       },
     });
+    getOllamaModelsMock.mockResolvedValue({ ...ollamaModelsResponse, models: [] });
 
     const { result } = renderHook(() => useSettingsForm());
 
@@ -132,6 +148,7 @@ describe('useSettingsForm', () => {
   it('sends assistant fields on save and omits empty api keys', async () => {
     getProcessingSettingsMock.mockResolvedValue(settingsResponse);
     getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
     updateProcessingSettingsMock.mockResolvedValue({
       ...settingsResponse,
       assistant_model: 'llama3.2:3b',
@@ -146,6 +163,7 @@ describe('useSettingsForm', () => {
         ...(result.current.values as NonNullable<typeof result.current.values>),
         assistant_model: 'llama3.2:3b',
         assistant_api_key: '',
+        assistant_show_debug_details: true,
       });
     });
 
@@ -159,6 +177,7 @@ describe('useSettingsForm', () => {
         assistant_provider: 'ollama',
         assistant_temperature: 0.4,
         assistant_num_predict: 512,
+        assistant_show_debug_details: true,
       }),
     );
     const payload = updateProcessingSettingsMock.mock.calls[0][0] as Record<string, unknown>;

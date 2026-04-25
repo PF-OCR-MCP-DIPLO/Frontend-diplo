@@ -10,6 +10,7 @@ export interface AssistantChatResponse {
   tool: string;
   data: unknown;
   query_context: Record<string, unknown>;
+  show_debug_details: boolean;
 }
 
 export function sendAssistantChat(

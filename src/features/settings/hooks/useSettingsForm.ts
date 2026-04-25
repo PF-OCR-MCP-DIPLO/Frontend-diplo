@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
+import { getOllamaModels, getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
 import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extraction-criteria.types';
-import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
+import type { ApiOllamaModelsResponse, ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
 
 function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
@@ -14,6 +14,7 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     llm_model: settings.llm_model,
     assistant_provider: settings.assistant_provider,
     assistant_model: settings.assistant_model,
+    assistant_show_debug_details: settings.assistant_show_debug_details,
     assistant_temperature: settings.assistant_temperature,
     assistant_num_predict: settings.assistant_num_predict,
     request_timeout_seconds: settings.request_timeout_seconds,
@@ -27,6 +28,7 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
 export function useSettingsForm() {
   const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
   const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
+  const [ollamaModels, setOllamaModels] = useState<ApiOllamaModelsResponse | null>(null);
   const [values, setValues] = useState<SettingsFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,12 +38,14 @@ export function useSettingsForm() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const [loadedSettings, loadedOptions] = await Promise.all([
+      const [loadedSettings, loadedOptions, loadedOllamaModels] = await Promise.all([
         getProcessingSettings(),
         getProcessingSettingsOptions(),
+        getOllamaModels(),
       ]);
       setSettings(loadedSettings);
       setOptions(loadedOptions);
+      setOllamaModels(loadedOllamaModels);
       setValues(createFormValues(loadedSettings));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo cargar la configuracion';
@@ -61,14 +65,17 @@ export function useSettingsForm() {
       return { ocr: [], llm: [], assistant: [] };
     }
 
+    const ollamaSuggestedModels = (ollamaModels?.available ? ollamaModels.models.map((model) => model.name) : []);
     const resolveModels = (provider: string, kind: 'ocr' | 'llm') => {
       const providerModels = options.provider_models[provider];
       const models = providerModels?.[kind] ?? [];
       if (models.length > 0) return models;
       if (provider === 'ollama') {
-        return kind === 'ocr'
-          ? ['gemma4:e2b', 'llava:7b', 'moondream']
-          : ['gemma4:e2b', 'llama3.2:3b', 'qwen2.5:3b'];
+        return ollamaSuggestedModels.length > 0
+          ? ollamaSuggestedModels
+          : kind === 'ocr'
+            ? ['gemma4:e2b', 'llava:7b', 'moondream']
+            : ['gemma4:e2b', 'llama3.2:3b', 'qwen2.5:3b'];
       }
       return models;
     };
@@ -78,7 +85,7 @@ export function useSettingsForm() {
       llm: resolveModels(values.llm_provider, 'llm'),
       assistant: resolveModels(values.assistant_provider, 'llm'),
     };
-  }, [options, values]);
+  }, [ollamaModels, options, values]);
 
   async function save() {
     if (!values) return;
@@ -114,6 +121,7 @@ export function useSettingsForm() {
     values,
     setValues,
     modelOptions,
+    ollamaModels,
     isLoading,
     isSaving,
     loadError,

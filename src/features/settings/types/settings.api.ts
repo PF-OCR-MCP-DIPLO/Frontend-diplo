@@ -8,6 +8,7 @@ export interface ApiProcessingSettings {
   llm_model: string;
   assistant_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek' | 'anthropic';
   assistant_model: string;
+  assistant_show_debug_details: boolean;
   has_ocr_api_key: boolean;
   has_llm_api_key: boolean;
   has_assistant_api_key: boolean;
@@ -26,6 +27,7 @@ export interface ApiProcessingSettingsPatch {
   llm_model?: string;
   assistant_provider?: ApiProcessingSettings['assistant_provider'];
   assistant_model?: string;
+  assistant_show_debug_details?: boolean;
   assistant_api_key?: string;
   assistant_temperature?: number;
   assistant_num_predict?: number;
@@ -43,4 +45,18 @@ export interface ApiProcessingSettingsOptions {
   };
   provider_models: Record<string, { ocr: string[]; llm: string[] }>;
   provider_requirements: Record<string, { operational: boolean; requires_api_key: boolean }>;
+}
+
+export interface ApiOllamaModelInfo {
+  name: string;
+  label: string;
+  size: number | null;
+  modifiedAt: string | null;
+}
+
+export interface ApiOllamaModelsResponse {
+  provider: 'ollama';
+  available: boolean;
+  models: ApiOllamaModelInfo[];
+  error: string | null;
 }

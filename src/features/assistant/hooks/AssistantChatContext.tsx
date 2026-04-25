@@ -16,6 +16,7 @@ export interface AssistantChatMessage {
   timestamp: string;
   tool?: string;
   toolData?: unknown;
+  showDebugDetails?: boolean;
 }
 
 interface AssistantChatContextValue {

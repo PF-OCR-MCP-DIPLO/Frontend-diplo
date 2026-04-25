@@ -31,12 +31,22 @@ export function LlmSettingsSection({ settings, options, values, modelOptions, on
         </div>
         <div className='field-stack'>
           <Label htmlFor='llm-model'>Modelo</Label>
-          <Input
-            id='llm-model'
-            value={values.llm_model}
-            onChange={(event) => onChange({ ...values, llm_model: event.target.value })}
-            placeholder={modelOptions[0] ?? 'model'}
-          />
+          {modelOptions.length > 0 ? (
+            <Select
+              id='llm-model'
+              value={values.llm_model}
+              onChange={(event) => onChange({ ...values, llm_model: event.target.value })}
+            >
+              {modelOptions.map((model) => <option key={model} value={model}>{model}</option>)}
+            </Select>
+          ) : (
+            <Input
+              id='llm-model'
+              value={values.llm_model}
+              onChange={(event) => onChange({ ...values, llm_model: event.target.value })}
+              placeholder='model'
+            />
+          )}
           {modelOptions.length > 0 ? <p className='field-help'>Sugeridos: {modelOptions.join(', ')}</p> : null}
         </div>
       </div>

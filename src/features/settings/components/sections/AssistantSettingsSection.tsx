@@ -37,18 +37,13 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
         <div className='field-stack'>
           <Label htmlFor='assistant-model'>Modelo</Label>
           {providerModels.length > 0 ? (
-            <>
-              <Input
-                id='assistant-model'
-                list='assistant-model-options'
-                value={values.assistant_model}
-                onChange={(event) => onChange({ ...values, assistant_model: event.target.value })}
-                placeholder={providerModels[0] ?? 'model'}
-              />
-              <datalist id='assistant-model-options'>
-                {providerModels.map((model) => <option key={model} value={model} />)}
-              </datalist>
-            </>
+            <Select
+              id='assistant-model'
+              value={values.assistant_model}
+              onChange={(event) => onChange({ ...values, assistant_model: event.target.value })}
+            >
+              {providerModels.map((model) => <option key={model} value={model}>{model}</option>)}
+            </Select>
           ) : (
             <Input
               id='assistant-model'
@@ -61,6 +56,21 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
             {providerModels.length > 0 ? `Sugeridos: ${providerModels.join(', ')}` : 'No hay modelos detectados; puedes escribir el nombre manualmente.'}
           </p>
         </div>
+      </div>
+
+      <div className='field-stack'>
+        <Label htmlFor='assistant-show-debug-details'>Detalles técnicos en chat</Label>
+        <Select
+          id='assistant-show-debug-details'
+          value={values.assistant_show_debug_details ? 'true' : 'false'}
+          onChange={(event) => onChange({ ...values, assistant_show_debug_details: event.target.value === 'true' })}
+        >
+          <option value='false'>Solo respuesta final</option>
+          <option value='true'>Mostrar detalles técnicos y debug MCP</option>
+        </Select>
+        <p className='field-help'>
+          Cuando está activo, el chat puede mostrar la salida técnica de herramientas y agentes.
+        </p>
       </div>
 
       <div className='grid gap-5 sm:grid-cols-3'>

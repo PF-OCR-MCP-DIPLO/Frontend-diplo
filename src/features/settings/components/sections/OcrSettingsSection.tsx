@@ -48,12 +48,22 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
       <div className='grid gap-5 sm:grid-cols-2'>
         <div className='field-stack'>
           <Label htmlFor='ocr-model'>Modelo OCR</Label>
-          <Input
-            id='ocr-model'
-            value={values.ocr_model}
-            onChange={(event) => onChange({ ...values, ocr_model: event.target.value })}
-            placeholder={values.ocr_mode === 'tesseract' ? 'spa' : modelOptions[0] ?? 'model'}
-          />
+          {values.ocr_mode !== 'tesseract' && modelOptions.length > 0 ? (
+            <Select
+              id='ocr-model'
+              value={values.ocr_model}
+              onChange={(event) => onChange({ ...values, ocr_model: event.target.value })}
+            >
+              {modelOptions.map((model) => <option key={model} value={model}>{model}</option>)}
+            </Select>
+          ) : (
+            <Input
+              id='ocr-model'
+              value={values.ocr_model}
+              onChange={(event) => onChange({ ...values, ocr_model: event.target.value })}
+              placeholder={values.ocr_mode === 'tesseract' ? 'spa' : modelOptions[0] ?? 'model'}
+            />
+          )}
           {values.ocr_mode === 'tesseract' ? (
             <p className='field-help'>Ejemplo: `spa`, `eng` o `spa+eng`.</p>
           ) : modelOptions.length > 0 ? (

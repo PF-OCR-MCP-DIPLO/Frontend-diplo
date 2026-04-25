@@ -6,7 +6,7 @@ vi.mock('@/services/http/client', () => ({
   httpRequest: (...args: unknown[]) => httpRequestMock(...args),
 }));
 
-import { getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
+import { getOllamaModels, getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
 
 describe('settings.api', () => {
   beforeEach(() => {
@@ -23,6 +23,12 @@ describe('settings.api', () => {
     httpRequestMock.mockResolvedValueOnce({ ocr_modes: ['vision'] });
     await getProcessingSettingsOptions();
     expect(httpRequestMock).toHaveBeenCalledWith('processing/settings/options/');
+  });
+
+  it('calls processing/ollama/models/', async () => {
+    httpRequestMock.mockResolvedValueOnce({ provider: 'ollama', available: true, models: [], error: null });
+    await getOllamaModels();
+    expect(httpRequestMock).toHaveBeenCalledWith('processing/ollama/models/');
   });
 
   it('PATCHes update payload as json', async () => {
