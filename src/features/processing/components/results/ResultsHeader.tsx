@@ -44,31 +44,29 @@ export function ResultsHeader({ fileName, status, totalImages, totalRecords, err
   const hasErrors = Boolean(errorMessage);
 
   return (
-    <div className='max-w-3xl space-y-4'>
+    <div className='max-w-3xl space-y-3'>
       <div className='space-y-2'>
         <div className='flex flex-wrap items-center gap-2'>
           <p className='section-eyebrow'>Resultados</p>
-          <span className='eyebrow-chip'>Paso 3 de 3</span>
         </div>
         <div className='space-y-1.5'>
-          <h2 className='section-title text-[clamp(1.8rem,1.7rem+0.4vw,2.2rem)]'>Revision de resultados</h2>
+          <h2 className='section-title text-[clamp(1.6rem,1.45rem+0.35vw,2rem)]'>Revision de resultados</h2>
           <p className='section-body max-w-2xl'>{getStatusGuidance(status, errorMessage)}</p>
         </div>
       </div>
 
-      <div className='flex flex-wrap items-start gap-3'>
-        <div className='content-block min-w-[240px] p-4'>
+      <div className='flex flex-wrap items-center gap-2 text-sm'>
+        <div className='content-block min-w-[220px] px-4 py-3'>
           <p className='section-kicker'>Archivo activo</p>
-          <p className='mt-2 truncate text-sm font-medium text-foreground'>{fileName}</p>
+          <p className='mt-1 truncate font-medium text-foreground'>{fileName}</p>
         </div>
         <StatusBadge status={status} prefix='Estado' />
-        <span className='meta-pill'>Imagenes {totalImages}</span>
+        <span className='meta-pill'>Imágenes {totalImages}</span>
         <span className='meta-pill'>Registros {totalRecords}</span>
       </div>
 
-      <div className={`${getStatusTone(status, errorMessage)} px-5 py-4 text-sm`}>
+      <div className={`${getStatusTone(status, errorMessage)} px-4 py-3 text-sm`}>
         <p className='font-medium text-foreground'>{hasErrors ? 'Hay observaciones en esta ejecucion.' : 'Revision en curso'}</p>
-        <p className='mt-1 leading-6'>{getStatusGuidance(status, errorMessage)}</p>
       </div>
     </div>
   );

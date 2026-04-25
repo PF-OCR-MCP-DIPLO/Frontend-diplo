@@ -44,22 +44,20 @@ function getPrimaryActionDescription(status: ProcessingStatus, canExport: boolea
 
 export function ResultsActions(props: ResultsActionsProps) {
   return (
-    <div className='w-full max-w-xl space-y-3 xl:sticky xl:top-24'>
-      <div className='content-block-accent p-4'>
-        <div className='flex flex-col gap-4'>
-          <div>
-            <p className='section-eyebrow text-accent'>Accion principal</p>
-            <p className='mt-2 text-lg font-semibold text-foreground'>{getPrimaryActionLabel(props.status)}</p>
-            <p className='mt-1 text-sm text-surface-accent-foreground/82'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
-          </div>
-          <Button onClick={props.onProcess} className='gap-2 self-start' disabled={props.isProcessing || props.status === 'processing'}>
-            <Play className='size-4' />
-            {props.isProcessing ? 'Procesando...' : getPrimaryActionLabel(props.status)}
-          </Button>
+    <div className='w-full max-w-xl space-y-2'>
+      <div className='content-block-accent flex flex-col gap-3 p-4'>
+        <div>
+          <p className='section-eyebrow text-accent'>Acción principal</p>
+          <p className='mt-1 text-base font-semibold text-foreground'>{getPrimaryActionLabel(props.status)}</p>
+          <p className='mt-1 text-sm text-surface-accent-foreground/82'>{getPrimaryActionDescription(props.status, props.canExport)}</p>
         </div>
+        <Button onClick={props.onProcess} className='gap-2 self-start' disabled={props.isProcessing || props.status === 'processing'}>
+          <Play className='size-4' />
+          {props.isProcessing ? 'Procesando...' : getPrimaryActionLabel(props.status)}
+        </Button>
       </div>
 
-      <div className='content-block-subtle flex flex-wrap items-center gap-2 p-4'>
+      <div className='content-block-subtle flex flex-wrap items-center gap-2 px-4 py-3'>
         <Button variant='outline' onClick={props.onRefresh} className='gap-2' disabled={props.isRefreshing}>
           <RefreshCw className={`size-4 ${props.isRefreshing ? 'animate-spin' : ''}`} />
           {props.isRefreshing ? 'Actualizando...' : 'Actualizar'}

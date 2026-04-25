@@ -20,6 +20,7 @@ describe('ResultsCorrectionsPanel', () => {
 
     expect(screen.getByText('Network down')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Reintentar/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Guardar/i })).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: /Reintentar/i }));
 

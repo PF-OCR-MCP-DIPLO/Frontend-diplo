@@ -79,7 +79,9 @@ describe('ResultsView', () => {
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
     expect(screen.getAllByText('REF-001').length).toBeGreaterThan(0);
     expect(screen.getByText('Hay hallazgos por revisar')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /1 hallazgo/i }));
+    expect(screen.getAllByText(/1 hallazgo/i).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver hallazgos/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /REF-001 1 hallazgo/i }));
     expect(screen.getAllByText(/La fecha no corresponde al mes actual/i).length).toBeGreaterThan(0);
   });
 
@@ -96,8 +98,8 @@ describe('ResultsView', () => {
   it('keeps the dedicated assistant panel available from results tools', () => {
     renderResultsView();
 
-    fireEvent.click(screen.getByRole('button', { name: /^Mostrar$/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Mostrar asistente/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Ver herramientas/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Chat contextual/i }));
 
     expect(screen.getByText('Asistente de revision')).toBeInTheDocument();
     expect(screen.getByText('Hola! ¿En que puedo ayudarte?')).toBeInTheDocument();

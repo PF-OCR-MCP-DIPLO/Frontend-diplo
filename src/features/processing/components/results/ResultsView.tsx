@@ -39,7 +39,7 @@ interface ResultsViewProps {
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [primaryView, setPrimaryView] = useState<ResultsPrimaryView>('table');
-  const [showIssues, setShowIssues] = useState(props.errorMessage.length > 0 || props.initialData.some((row) => row.estado === 'error'));
+  const [showIssues, setShowIssues] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const validationMap = buildResultsValidationMap(viewState.data);
   const autosave = useResultsAutosave({

@@ -27,11 +27,11 @@ export function ResultsToolsPanel({
     <section className='surface-card p-5'>
       <div className='flex items-start justify-between gap-3'>
         <div>
-          <p className='section-kicker'>Secundario</p>
+          <p className='section-kicker'>Detalles</p>
           <h3 className='mt-1 text-lg font-semibold tracking-tight text-foreground'>Herramientas</h3>
         </div>
         <Button variant='ghost' size='sm' onClick={onToggleTools}>
-          {showTools ? 'Ocultar' : 'Mostrar'}
+          {showTools ? 'Ocultar' : 'Ver herramientas'}
         </Button>
       </div>
       {showTools ? (
@@ -39,11 +39,11 @@ export function ResultsToolsPanel({
           <div className='flex flex-wrap gap-2'>
             <Button variant='outline' className='gap-2' onClick={onOpenLogs} disabled={isLoadingLogs}>
               <ScrollText className='size-4' />
-              {isLoadingLogs ? 'Cargando logs...' : 'Ver logs'}
+              {isLoadingLogs ? 'Cargando...' : 'Logs'}
             </Button>
             <Button variant='outline' className='gap-2' onClick={onToggleChat}>
               <MessageSquare className='size-4' />
-              {showChat ? 'Ocultar asistente' : 'Mostrar asistente'}
+              {showChat ? 'Ocultar chat' : 'Chat contextual'}
             </Button>
           </div>
           {showChat ? <ResultsChatPanel errors={errorCount} jobId={jobId} /> : null}

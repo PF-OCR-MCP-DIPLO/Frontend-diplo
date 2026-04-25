@@ -29,10 +29,10 @@ export function ResultsCorrectionsPanel({
           : 'text-muted-foreground';
 
   return (
-    <section className='content-block p-4'>
+    <section className='content-block px-4 py-3'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <div className='space-y-1'>
-          <h4 className='font-semibold text-foreground'>Guardar cambios</h4>
+          <h4 className='text-sm font-semibold text-foreground'>Autosave</h4>
           <p className='text-sm text-muted-foreground'>
             {hasUnsavedChanges
               ? 'Tienes cambios pendientes. Guardalos antes de exportar.'
@@ -53,7 +53,7 @@ export function ResultsCorrectionsPanel({
         <div className='flex flex-wrap items-center gap-2'>
           <Button
             type='button'
-            variant='outline'
+            variant='ghost'
             disabled={autosave.status !== 'error'}
             onClick={onRetryAutosave}
             className='gap-2'
@@ -61,8 +61,8 @@ export function ResultsCorrectionsPanel({
             <RotateCcw className='size-4' />
             Reintentar
           </Button>
-          <Button type='button' disabled={!canSaveCorrections} onClick={onSaveCorrections}>
-            {isSavingCorrections ? 'Guardando...' : 'Guardar correcciones'}
+          <Button type='button' size='sm' disabled={!canSaveCorrections} onClick={onSaveCorrections}>
+            {isSavingCorrections ? 'Guardando...' : 'Guardar'}
           </Button>
         </div>
       </div>
