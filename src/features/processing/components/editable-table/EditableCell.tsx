@@ -2,21 +2,21 @@ import { Input } from '@/components/ui/input';
 import { ContextualTooltip } from '@/components/shared/ContextualTooltip';
 import type { FieldValidationIssue, ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import { getCellIssueSummary, getCellStatus, getFieldLabel } from '@/features/processing/components/results/results-validation';
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';
 
 interface EditableCellProps {
   row: ConsignmentRow;
-  field: keyof ConsignmentRow;
+  field: ResultFieldKey;
   editable: boolean;
   issues: FieldValidationIssue[];
   isEditing: boolean;
   isSelected?: boolean;
-  onFocusCell?: (rowId: string, field: keyof ConsignmentRow) => void;
-  onEdit: (rowId: string, field: keyof ConsignmentRow) => void;
-  onChange: (rowId: string, field: keyof ConsignmentRow, value: string) => void;
+  onFocusCell?: (rowId: string, field: ResultFieldKey) => void;
+  onEdit: (rowId: string, field: ResultFieldKey) => void;
+  onChange: (rowId: string, field: ResultFieldKey, value: string) => void;
   onBlur: () => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-  onAskAssistant?: (rowId: string, field: keyof ConsignmentRow) => void;
+  onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
   validationMap: ResultsValidationMap;
 }
 

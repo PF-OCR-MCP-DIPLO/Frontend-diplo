@@ -63,6 +63,9 @@ export function AssistantSettingsSection({ settings, options, values, modelOptio
           <p className='field-help'>
             {providerModels.length > 0 ? `Sugeridos: ${providerModels.join(', ')}` : 'No hay modelos detectados; puedes escribir el nombre manualmente.'}
           </p>
+          <p className='field-help'>
+            Para equipos con ~5–6 GiB libres, usa qwen3:1.7b. Si tienes más memoria disponible, llama3.2:3b puede ser mejor para agente/tool use.
+          </p>
         </div>
       </div>
 

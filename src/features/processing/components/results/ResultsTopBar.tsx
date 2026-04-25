@@ -9,6 +9,7 @@ interface ResultsTopBarProps {
   totalRecords: number;
   errorCount: number;
   autosaveLabel: string;
+  autosaveStatus: 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
   isProcessing: boolean;
   isRefreshing: boolean;
   isExporting: boolean;
@@ -16,10 +17,12 @@ interface ResultsTopBarProps {
   excelUrl: string | null;
   canExport: boolean;
   canSaveCorrections: boolean;
+  canRetryAutosave: boolean;
   onProcess: () => void;
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: () => void;
+  onRetryAutosave: () => void;
   onOpenPanel: (panel: 'issues' | 'logs' | 'preview') => void;
   onOpenAssistant: () => void;
 }
@@ -35,6 +38,7 @@ export function ResultsTopBar({
   totalRecords,
   errorCount,
   autosaveLabel,
+  autosaveStatus,
   isProcessing,
   isRefreshing,
   isExporting,
@@ -42,10 +46,12 @@ export function ResultsTopBar({
   excelUrl,
   canExport,
   canSaveCorrections,
+  canRetryAutosave,
   onProcess,
   onRefresh,
   onExport,
   onSaveCorrections,
+  onRetryAutosave,
   onOpenPanel,
   onOpenAssistant,
 }: ResultsTopBarProps) {
@@ -79,6 +85,11 @@ export function ResultsTopBar({
         <Button type='button' variant='ghost' size='sm' className='gap-2 text-muted-foreground' onClick={onSaveCorrections} disabled={!canSaveCorrections || isSavingCorrections}>
           Guardar
         </Button>
+        {autosaveStatus === 'error' ? (
+          <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onRetryAutosave} disabled={!canRetryAutosave}>
+            Reintentar
+          </Button>
+        ) : null}
         <Button type='button' variant='ghost' size='sm' className='gap-2 text-muted-foreground' onClick={() => onOpenPanel('logs')}>
           <ScrollText className='size-4' />
           Logs

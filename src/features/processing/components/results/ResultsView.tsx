@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
-import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
-import { ResultsFieldDetailPanel } from '@/features/processing/components/results/ResultsFieldDetailPanel';
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
-import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsWorkspace } from '@/features/processing/components/results/ResultsWorkspace';
 import { ResultsTopBar } from '@/features/processing/components/results/ResultsTopBar';
 import { ResultsSidePanel, type ResultsPanel } from '@/features/processing/components/results/ResultsSidePanel';
@@ -15,7 +12,7 @@ import { useResultsViewState } from '@/features/processing/components/results/ho
 import { useRouteOverlayCleanup } from '@/app/hooks/useRouteOverlayCleanup';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
-import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, PreviewImage, ProcessingStatus, ResultFieldKey } from '@/features/processing/types/processing.types';
 
 interface ResultsViewProps {
   jobId: number;
@@ -42,8 +39,9 @@ interface ResultsViewProps {
 export function ResultsView(props: ResultsViewProps) {
   const location = useLocation();
   const viewState = useResultsViewState(props.jobId, props.initialData);
+  const { setExpandedImage } = viewState;
   const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
-  const [detailCell, setDetailCell] = useState<{ rowId: string; field: keyof ConsignmentRow } | null>(null);
+  const [detailCell, setDetailCell] = useState<{ rowId: string; field: ResultFieldKey } | null>(null);
   const [reprocessingDepositId, setReprocessingDepositId] = useState<number | null>(null);
   const validationMap = buildResultsValidationMap(viewState.data);
   const selectedRow = useMemo(() => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null, [viewState.data, viewState.selectedRowId]);
@@ -92,50 +90,62 @@ export function ResultsView(props: ResultsViewProps) {
     viewState.selectedRowId,
   ]);
 
+  const resetOverlays = useCallback(() => {
+    setActivePanel(null);
+    setDetailCell(null);
+    setExpandedImage(null);
+  }, [setExpandedImage]);
+
+  const openPanel = useCallback((panel: Exclude<ResultsPanel, null>) => {
+    if (panel !== 'fieldDetail') {
+      setDetailCell(null);
+    }
+    setExpandedImage(null);
+    setActivePanel(panel);
+  }, [setExpandedImage]);
+
   async function handleOpenLogs() {
     try {
       await viewState.openLogs();
-      setActivePanel('logs');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
-      setActivePanel('logs');
     }
+    setDetailCell(null);
+    setExpandedImage(null);
+    setActivePanel('logs');
   }
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setActivePanel(null);
-        setDetailCell(null);
+        resetOverlays();
       }
     }
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
+  }, [resetOverlays]);
 
   useEffect(() => {
-    setActivePanel(null);
-    setDetailCell(null);
-  }, [location.pathname]);
+    resetOverlays();
+  }, [location.pathname, resetOverlays]);
 
-  useRouteOverlayCleanup(() => {
-    setActivePanel(null);
-    setDetailCell(null);
-  });
+  useRouteOverlayCleanup(resetOverlays);
 
   function handleFocusRow(rowId: string) {
-    setActivePanel('issues');
+    openPanel('issues');
     window.setTimeout(() => {
       viewState.handleErrorClick(rowId);
     }, 0);
   }
 
-  function handleFocusCell(rowId: string, field: keyof ConsignmentRow) {
+  function handleFocusCell(rowId: string, field: ResultFieldKey) {
     viewState.focusCell(rowId, field);
     setDetailCell({ rowId, field });
+    setExpandedImage(null);
+    setActivePanel('fieldDetail');
   }
 
-  function handleAskAssistant(rowId: string, field: keyof ConsignmentRow) {
+  function handleAskAssistant(rowId: string, field: ResultFieldKey) {
     viewState.focusCell(rowId, field);
     props.onOpenAssistant({
       prompt: `Explícame cómo corregir ${String(field)} en la fila ${rowId}.`,
@@ -179,44 +189,48 @@ export function ResultsView(props: ResultsViewProps) {
 
   return (
     <div className='relative min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90'>
-      <ResultsTopBar
-        fileName={props.fileName}
-        status={props.status}
-        totalImages={props.totalImages}
-        totalRecords={props.totalRecords}
-        errorCount={viewState.errorCount}
-        autosaveLabel={autosaveLabel}
-        isProcessing={props.isProcessing}
-        isRefreshing={props.isRefreshing}
-        isExporting={props.isExporting}
-        isSavingCorrections={props.isSavingCorrections}
-        excelUrl={props.excelUrl}
-        canExport={canExport}
-        canSaveCorrections={!props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges}
-        onProcess={props.onProcess}
-        onRefresh={props.onRefresh}
-        onExport={props.onExport}
-        onSaveCorrections={() => {
-          void props
-            .onSaveCorrections(viewState.data)
-            .then(() => viewState.markSaved())
-            .catch(() => undefined);
-        }}
-        onOpenAssistant={() => {
-          setActivePanel(null);
-          setDetailCell(null);
-          props.onOpenAssistant({ context: assistantQueryContext });
-        }}
-        onOpenPanel={(panel) => {
-          if (panel === 'logs') {
-            void handleOpenLogs();
-            return;
-          }
-          setActivePanel(panel);
-        }}
-      />
+      <div className={activePanel ? 'lg:pr-[443px]' : ''}>
+        <ResultsTopBar
+          fileName={props.fileName}
+          status={props.status}
+          totalImages={props.totalImages}
+          totalRecords={props.totalRecords}
+          errorCount={viewState.errorCount}
+          autosaveLabel={autosaveLabel}
+          autosaveStatus={autosave.autosave.status}
+          isProcessing={props.isProcessing}
+          isRefreshing={props.isRefreshing}
+          isExporting={props.isExporting}
+          isSavingCorrections={props.isSavingCorrections}
+          excelUrl={props.excelUrl}
+          canExport={canExport}
+          canSaveCorrections={!props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges}
+          canRetryAutosave={autosave.autosave.status === 'error'}
+          onProcess={props.onProcess}
+          onRefresh={props.onRefresh}
+          onExport={props.onExport}
+          onSaveCorrections={() => {
+            void props
+              .onSaveCorrections(viewState.data)
+              .then(() => viewState.markSaved())
+              .catch(() => undefined);
+          }}
+          onRetryAutosave={() => autosave.retry()}
+          onOpenAssistant={() => {
+            resetOverlays();
+            props.onOpenAssistant({ context: assistantQueryContext });
+          }}
+          onOpenPanel={(panel) => {
+            if (panel === 'logs') {
+              void handleOpenLogs();
+              return;
+            }
+            openPanel(panel);
+          }}
+        />
+      </div>
 
-      <main className='min-h-0 p-3'>
+      <main className={`min-h-0 p-3 transition-[padding] lg:pr-3 ${activePanel ? 'lg:pr-[443px]' : ''}`}>
         <ResultsWorkspace
           data={viewState.data}
           validationMap={validationMap}
@@ -229,26 +243,26 @@ export function ResultsView(props: ResultsViewProps) {
         />
       </main>
 
-      <div className='flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground'>
+      <div className={`flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground ${activePanel ? 'lg:pr-[443px]' : ''}`}>
         <button
           type='button'
           className='text-left underline-offset-4 hover:underline'
           onClick={() => {
-            setActivePanel(null);
-            setDetailCell(null);
+            resetOverlays();
             props.onOpenAssistant({ context: assistantQueryContext });
           }}
         >
           Abrir asistente
         </button>
-        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => setActivePanel('preview')}>
+        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => openPanel('preview')}>
           Ver preview
         </button>
       </div>
 
       <ResultsSidePanel
         panel={activePanel}
-        onClose={() => setActivePanel(null)}
+        onClose={resetOverlays}
+        jobId={props.jobId}
         errorMessage={props.errorMessage}
         logs={viewState.logs}
         logsError={viewState.logsError}
@@ -259,49 +273,27 @@ export function ResultsView(props: ResultsViewProps) {
         validationMap={validationMap}
         selectedRowId={viewState.selectedRowId}
         selectedField={viewState.selectedField}
+        detailCell={detailCell}
+        reprocessingDepositId={reprocessingDepositId}
         onOpenImage={(image) => viewState.focusImage(image)}
         onFocusRow={handleFocusRow}
         onFocusCell={handleFocusCell}
-        reprocessingDepositId={reprocessingDepositId}
-      />
-
-      <ResultsFieldDetailPanel
-        open={Boolean(detailCell)}
-        jobId={props.jobId}
-        row={detailCell ? viewState.data.find((row) => row.id === detailCell.rowId) ?? null : null}
-        field={detailCell?.field ?? null}
-        validationMap={validationMap}
-        reprocessingDepositId={reprocessingDepositId}
-        onClose={() => setDetailCell(null)}
-        onEdit={(rowId, field) => {
+        onEditField={(rowId, field) => {
           viewState.focusCell(rowId, field);
           setDetailCell(null);
+          setActivePanel(null);
         }}
-        onAskAssistant={(launch) => props.onOpenAssistant(launch)}
+        onAskAssistant={(launch) => {
+          resetOverlays();
+          props.onOpenAssistant(launch);
+        }}
         onReprocessDeposit={(depositId) => void handleReprocessDeposit(depositId)}
       />
 
-      <ResultsErrorDialog
-        open={viewState.showErrorDialog}
-        errorMessage={props.errorMessage}
-        data={viewState.data}
-        validationMap={validationMap}
-        selectedRowId={viewState.selectedRowId}
-        selectedField={viewState.selectedField}
-        onClose={() => viewState.setShowErrorDialog(false)}
-        onErrorClick={handleFocusRow}
-        onFocusCell={handleFocusCell}
-      />
       <ResultsImagePreviewDialog
         open={Boolean(viewState.expandedImage)}
         image={viewState.expandedImage}
-        onClose={() => viewState.setExpandedImage(null)}
-      />
-      <ResultsLogsDialog
-        open={viewState.showLogsDialog}
-        logs={viewState.logs}
-        error={viewState.logsError}
-        onClose={() => viewState.setShowLogsDialog(false)}
+        onClose={() => setExpandedImage(null)}
       />
     </div>
   );

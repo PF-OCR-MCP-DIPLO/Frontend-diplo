@@ -1,10 +1,31 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { AssistantChatProvider } from '@/features/assistant/hooks/AssistantChatContext';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
+
+const getJobLogsMock = vi.fn();
+
+vi.mock('@/features/processing/api/processing.api', async () => {
+  const actual = await vi.importActual<typeof import('@/features/processing/api/processing.api')>('@/features/processing/api/processing.api');
+  return {
+    ...actual,
+    getJobLogs: (...args: Parameters<typeof actual.getJobLogs>) => getJobLogsMock(...args),
+  };
+});
+
+vi.mock('@/features/processing/components/results/ResultsPreviewPanel', () => ({
+  ResultsPreviewPanel: ({ onOpenImage }: { onOpenImage: (image: PreviewImage) => void }) => (
+    <div>
+      <p>Preview lateral</p>
+      <button type='button' onClick={() => onOpenImage({ id: 1, url: 'https://example.test/pagina-1.png', name: 'pagina-1.png', status: 'processed' })}>
+        Abrir imagen completa
+      </button>
+    </div>
+  ),
+}));
 
 const baseRows: ConsignmentRow[] = [
   {
@@ -70,6 +91,10 @@ describe('ResultsView', () => {
   beforeEach(() => {
     window.localStorage.clear();
     HTMLElement.prototype.scrollTo = vi.fn();
+    getJobLogsMock.mockReset();
+    getJobLogsMock.mockResolvedValue([
+      { id: 1, sequence_index: 1, stage: 'ocr', provider: 'ollama', model: 'qwen3:1.7b', ocr_mode: 'vision', notes: 'OCR completo', raw_payload: {}, raw_text: '', is_error: false, source_image_id: 1, created_at: '2026-04-25T00:00:00Z' },
+    ]);
   });
 
   it('renders the current result table, findings and primary actions', () => {
@@ -109,5 +134,61 @@ describe('ResultsView', () => {
 
     expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
+  });
+
+  it('keeps only one main panel active when switching from preview to logs', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'preview');
+    expect(await screen.findByText('Preview lateral')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
+
+    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'logs');
+    expect(screen.queryByText('Preview lateral')).not.toBeInTheDocument();
+    expect(screen.getByText('OCR completo')).toBeInTheDocument();
+  });
+
+  it('switches from issues to preview without rendering two overlay surfaces', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /1 hallazgos/i }));
+    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'issues');
+    expect(await screen.findByText('Hay hallazgos por revisar')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+
+    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'preview');
+    expect(screen.queryByText('Hay hallazgos por revisar')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('results-side-panel')).toHaveLength(1);
+  });
+
+  it('clears the active panel when the user closes it', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+    expect(await screen.findByTestId('results-side-panel')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Cerrar panel/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('results-side-panel')).not.toBeInTheDocument();
+    });
+  });
+
+  it('closes the fullscreen image preview when logs are opened', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Abrir imagen completa/i }));
+
+    expect(screen.getByRole('dialog', { name: /pagina-1\.png/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
+
+    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'logs');
+    expect(screen.queryByRole('dialog', { name: /pagina-1\.png/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: /Logs del procesamiento/i })).not.toBeInTheDocument();
   });
 });

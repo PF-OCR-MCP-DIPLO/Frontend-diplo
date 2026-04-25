@@ -1,6 +1,6 @@
 import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
+import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';
 
 interface ResultsDataPanelProps {
   data: ConsignmentRow[];
@@ -9,8 +9,8 @@ interface ResultsDataPanelProps {
   onRowFocus: (rowId: string) => void;
   selectedRowId?: string | null;
   selectedField?: string | null;
-  onCellFocus?: (rowId: string, field: keyof ConsignmentRow) => void;
-  onAskAssistant?: (rowId: string, field: keyof ConsignmentRow) => void;
+  onCellFocus?: (rowId: string, field: ResultFieldKey) => void;
+  onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
 }
 
 export function ResultsDataPanel({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsDataPanelProps) {

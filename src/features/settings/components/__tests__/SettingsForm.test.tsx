@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SettingsForm } from '@/features/settings/components/SettingsForm';
 import { DEFAULT_PROCESSING_SETTINGS, normalizeSettingsOptions } from '@/features/settings/utils/settings-normalizers';
@@ -23,14 +23,18 @@ const baseValues: SettingsFormValues = {
 };
 
 function renderForm(options = normalizeSettingsOptions(null), values = baseValues) {
+  const onSave = vi.fn();
+  const onDiscard = vi.fn();
   return render(
     <SettingsForm
       settings={DEFAULT_PROCESSING_SETTINGS}
       options={options}
       values={values}
       onChange={vi.fn()}
-      onSave={vi.fn()}
+      onSave={onSave}
+      onDiscard={onDiscard}
       isSaving={false}
+      hasUnsavedChanges={false}
       modelOptions={{ ocr: [], llm: [], assistant: [] }}
       onOpenAssistant={vi.fn()}
     />
@@ -57,5 +61,35 @@ describe('SettingsForm', () => {
     expect(screen.getByLabelText('Modelo OCR')).toBeInTheDocument();
     expect(screen.getAllByLabelText('Modelo')).toHaveLength(2);
     expect(screen.getByText(/No hay modelos detectados/i)).toBeInTheDocument();
+  });
+
+  it('shows unsaved changes warning and enables save/discard actions', () => {
+    const onSave = vi.fn();
+    const onDiscard = vi.fn();
+
+    render(
+      <SettingsForm
+        settings={DEFAULT_PROCESSING_SETTINGS}
+        options={normalizeSettingsOptions(null)}
+        values={baseValues}
+        onChange={vi.fn()}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        isSaving={false}
+        hasUnsavedChanges
+        modelOptions={{ ocr: [], llm: [], assistant: [] }}
+        onOpenAssistant={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent(/cambios sin guardar/i);
+    expect(screen.getByRole('button', { name: /^Guardar$/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Descartar cambios/i })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /^Guardar$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Descartar cambios/i }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onDiscard).toHaveBeenCalledTimes(1);
   });
 });

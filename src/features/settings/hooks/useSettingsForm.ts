@@ -26,11 +26,16 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
   };
 }
 
+function serializeValues(values: SettingsFormValues | null) {
+  return values ? JSON.stringify(values) : '';
+}
+
 export function useSettingsForm() {
   const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
   const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
   const [ollamaModels, setOllamaModels] = useState<ApiOllamaModelsResponse | null>(null);
   const [values, setValues] = useState<SettingsFormValues | null>(null);
+  const [baselineValues, setBaselineValues] = useState<SettingsFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -46,10 +51,12 @@ export function useSettingsForm() {
       ]);
       const safeSettings = normalizeSettings(loadedSettings);
       const safeOptions = normalizeSettingsOptions(loadedOptions);
+      const nextValues = createFormValues(safeSettings);
       setSettings(safeSettings);
       setOptions(safeOptions);
       setOllamaModels(loadedOllamaModels);
-      setValues(createFormValues(safeSettings));
+      setValues(nextValues);
+      setBaselineValues(nextValues);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo cargar la configuracion';
       setLoadError(message);
@@ -62,6 +69,25 @@ export function useSettingsForm() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const hasUnsavedChanges = useMemo(
+    () => serializeValues(values) !== serializeValues(baselineValues),
+    [baselineValues, values],
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const modelOptions = useMemo(() => {
     if (!options || !values) {
@@ -108,8 +134,10 @@ export function useSettingsForm() {
       payload.extraction_criteria = values.extraction_criteria;
 
       const nextSettings = normalizeSettings(await updateProcessingSettings(payload));
+      const nextValues = createFormValues(nextSettings);
       setSettings(nextSettings);
-      setValues(createFormValues(nextSettings));
+      setValues(nextValues);
+      setBaselineValues(nextValues);
       toast.success('Configuracion guardada correctamente');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo guardar la configuracion');
@@ -118,11 +146,17 @@ export function useSettingsForm() {
     }
   }
 
+  function discardChanges() {
+    if (!baselineValues) return;
+    setValues(baselineValues);
+  }
+
   return {
     settings,
     options,
     values,
     setValues,
+    hasUnsavedChanges,
     modelOptions,
     ollamaModels,
     isLoading,
@@ -130,5 +164,6 @@ export function useSettingsForm() {
     loadError,
     reload: load,
     save,
+    discardChanges,
   };
 }

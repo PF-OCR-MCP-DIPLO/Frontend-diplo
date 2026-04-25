@@ -205,4 +205,131 @@ describe('useSettingsForm', () => {
     expect(payload).not.toHaveProperty('assistant_api_key');
     expect(payload).toHaveProperty('extraction_criteria');
   });
+
+  it('tracks unsaved changes, clears them after save and updates the baseline', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+    updateProcessingSettingsMock.mockResolvedValue({
+      ...settingsResponse,
+      assistant_model: 'qwen3:1.7b',
+    });
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'qwen3:1.7b',
+      });
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(true);
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(false);
+    expect(result.current.values?.assistant_model).toBe('qwen3:1.7b');
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'llama3.2:3b',
+      });
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(true);
+  });
+
+  it('restores the last saved values when discarding changes', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'qwen3:1.7b',
+      });
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(true);
+
+    act(() => {
+      result.current.discardChanges();
+    });
+
+    expect(result.current.values?.assistant_model).toBe('gemma4:e2b');
+    expect(result.current.hasUnsavedChanges).toBe(false);
+  });
+
+  it('keeps the unsaved warning state after a save error', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+    updateProcessingSettingsMock.mockRejectedValue(new Error('Save failed'));
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'qwen3:1.7b',
+      });
+    });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(true);
+    expect(toastErrorMock).toHaveBeenCalledWith('Save failed');
+  });
+
+  it('registers beforeunload only while unsaved changes exist', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(addEventListenerSpy).not.toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'qwen3:1.7b',
+      });
+    });
+
+    await waitFor(() => {
+      expect(addEventListenerSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+    });
+
+    act(() => {
+      result.current.discardChanges();
+    });
+
+    await waitFor(() => {
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+    });
+
+    addEventListenerSpy.mockRestore();
+    removeEventListenerSpy.mockRestore();
+  });
 });

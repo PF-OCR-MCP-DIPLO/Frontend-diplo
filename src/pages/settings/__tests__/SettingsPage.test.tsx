@@ -5,12 +5,14 @@ import { SettingsPage } from '@/pages/settings/SettingsPage';
 type SettingsFormMock = {
   isLoading: boolean;
   isSaving: boolean;
+  hasUnsavedChanges: boolean;
   loadError: string | null;
   settings: unknown | null;
   options: unknown | null;
   values: unknown | null;
   modelOptions: { ocr: unknown[]; llm: unknown[]; assistant: unknown[] };
   setValues: (next: unknown) => void;
+  discardChanges: () => void;
   reload: () => void | Promise<void>;
   save: () => void | Promise<void>;
 };
@@ -30,12 +32,14 @@ describe('SettingsPage', () => {
     settingsFormMock = {
       isLoading: false,
       isSaving: false,
+      hasUnsavedChanges: false,
       loadError: null,
       settings: { ocr_mode: 'vision' },
       options: { ocr_modes: ['vision'] },
       values: { ocr_mode: 'vision' },
       modelOptions: { ocr: [], llm: [], assistant: [] },
       setValues: vi.fn(),
+      discardChanges: vi.fn(),
       reload: vi.fn(),
       save: vi.fn(),
     };

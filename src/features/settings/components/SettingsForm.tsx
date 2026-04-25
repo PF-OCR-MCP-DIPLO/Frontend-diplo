@@ -14,12 +14,14 @@ interface SettingsFormProps {
   values: SettingsFormValues;
   onChange: (values: SettingsFormValues) => void;
   onSave: () => void;
+  onDiscard: () => void;
   isSaving: boolean;
+  hasUnsavedChanges: boolean;
   modelOptions: { ocr: string[]; llm: string[]; assistant: string[] };
   onOpenAssistant: (context: AssistantQueryContext, prompt: string) => void;
 }
 
-export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions, onOpenAssistant }: SettingsFormProps) {
+export function SettingsForm({ settings, options, values, onChange, onSave, onDiscard, isSaving, hasUnsavedChanges, modelOptions, onOpenAssistant }: SettingsFormProps) {
   const updatedLabel = settings.updated_at
     ? new Date(settings.updated_at).toLocaleString('es-CO')
     : 'sin registro';
@@ -34,7 +36,10 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           </div>
           <div className='flex flex-wrap items-center gap-3'>
             <span className='meta-pill'>Actualizado {updatedLabel}</span>
-            <Button onClick={onSave} disabled={isSaving}>{isSaving ? 'Guardando...' : 'Guardar'}</Button>
+            <Button type='button' variant='outline' onClick={onDiscard} disabled={!hasUnsavedChanges || isSaving}>Descartar cambios</Button>
+            <Button onClick={onSave} disabled={isSaving || !hasUnsavedChanges} variant={hasUnsavedChanges ? 'default' : 'outline'}>
+              {isSaving ? 'Guardando...' : 'Guardar'}
+            </Button>
             <Button
               type='button'
               variant='outline'
@@ -51,6 +56,12 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
             </Button>
           </div>
         </div>
+
+        {hasUnsavedChanges ? (
+          <div className='notice-warning' role='status'>
+            Tienes cambios sin guardar. Guarda para actualizar la configuración activa o descártalos para volver al último estado guardado.
+          </div>
+        ) : null}
 
         <div className='notice-warning'>
           Para una demo estable de este MVP, prioriza `tesseract` u `ollama`. Otros proveedores visibles se muestran como referencia de expansión, pero no están operativos de extremo a extremo.

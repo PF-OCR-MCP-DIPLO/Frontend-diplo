@@ -20,5 +20,10 @@ export function runRouteOverlayCleanups() {
 }
 
 export function useRouteOverlayCleanup(handler: CleanupFn) {
-  useEffect(() => registerRouteOverlayCleanup(handler), [handler]);
+  useEffect(() => {
+    const unregister = registerRouteOverlayCleanup(handler);
+    return () => {
+      unregister();
+    };
+  }, [handler]);
 }

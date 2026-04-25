@@ -6,14 +6,11 @@ import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/p
 export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]) {
   const [data, setData] = useState<ConsignmentRow[]>(initialData);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<PreviewImage | null>(null);
   const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
-  const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
   const logsCacheRef = useRef(new Map<number, ApiExtractionLog[]>());
@@ -62,7 +59,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     if (cachedLogs) {
       setLogs(cachedLogs);
       setLogsError(null);
-      setShowLogsDialog(true);
       return;
     }
 
@@ -72,7 +68,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
       const payload = await getJobLogs(jobId);
       logsCacheRef.current.set(jobId, payload);
       setLogs(payload);
-      setShowLogsDialog(true);
     } catch (error) {
       setLogsError(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
       throw error;
@@ -87,10 +82,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     hasUnsavedChanges,
     markSaved,
     errorCount,
-    showChat,
-    setShowChat,
-    showErrorDialog,
-    setShowErrorDialog,
     selectedRowId,
     selectedField,
     currentImage,
@@ -98,8 +89,6 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     setExpandedImage,
     focusImage,
     logs,
-    showLogsDialog,
-    setShowLogsDialog,
     isLoadingLogs,
     logsError,
     handleErrorClick,
