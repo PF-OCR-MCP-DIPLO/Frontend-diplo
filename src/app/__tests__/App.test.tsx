@@ -28,5 +28,6 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByTestId('shell')).toBeInTheDocument();
     expect(screen.getByText('Routes')).toBeInTheDocument();
+    expect(screen.getByLabelText('Asistente IA')).toBeInTheDocument();
   });
 });

@@ -4,11 +4,13 @@ import { UploadPage } from '@/pages/upload/UploadPage';
 import { ResultsPage } from '@/pages/results/ResultsPage';
 import { HistoryPage } from '@/pages/history/HistoryPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
+import { AssistantPage } from '@/pages/assistant/AssistantPage';
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path='/' element={<DashboardPage />} />
+      <Route path='/assistant' element={<AssistantPage />} />
       <Route path='/upload' element={<UploadPage />} />
       <Route path='/results' element={<ResultsPage />} />
       <Route path='/history' element={<HistoryPage />} />

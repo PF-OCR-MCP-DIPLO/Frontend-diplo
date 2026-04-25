@@ -9,6 +9,7 @@ vi.mock('@/pages/upload/UploadPage', () => ({ UploadPage: () => <div>Upload</div
 vi.mock('@/pages/results/ResultsPage', () => ({ ResultsPage: () => <div>Results</div> }));
 vi.mock('@/pages/history/HistoryPage', () => ({ HistoryPage: () => <div>History</div> }));
 vi.mock('@/pages/settings/SettingsPage', () => ({ SettingsPage: () => <div>Settings</div> }));
+vi.mock('@/pages/assistant/AssistantPage', () => ({ AssistantPage: () => <div>Assistant</div> }));
 
 describe('AppRoutes', () => {
   it('renders expected route element', () => {
@@ -28,4 +29,14 @@ describe('AppRoutes', () => {
     );
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
+  
+  it('renders assistant route', () => {
+  render(
+    <MemoryRouter initialEntries={['/assistant']}>
+      <AppRoutes />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByText('Assistant')).toBeInTheDocument();
+});
 });
