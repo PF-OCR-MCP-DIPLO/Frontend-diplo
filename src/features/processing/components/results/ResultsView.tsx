@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useLocation } from 'react-router-dom';
 import { ResultsErrorDialog } from '@/features/processing/components/results/ResultsErrorDialog';
 import { ResultsFieldDetailPanel } from '@/features/processing/components/results/ResultsFieldDetailPanel';
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
@@ -11,6 +12,7 @@ import { buildResultsValidationMap } from '@/features/processing/components/resu
 import { reprocessDeposit } from '@/features/processing/api/processing.api';
 import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
+import { useRouteOverlayCleanup } from '@/app/hooks/useRouteOverlayCleanup';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
@@ -38,6 +40,7 @@ interface ResultsViewProps {
 }
 
 export function ResultsView(props: ResultsViewProps) {
+  const location = useLocation();
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
   const [detailCell, setDetailCell] = useState<{ rowId: string; field: keyof ConsignmentRow } | null>(null);
@@ -109,6 +112,16 @@ export function ResultsView(props: ResultsViewProps) {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, []);
+
+  useEffect(() => {
+    setActivePanel(null);
+    setDetailCell(null);
+  }, [location.pathname]);
+
+  useRouteOverlayCleanup(() => {
+    setActivePanel(null);
+    setDetailCell(null);
+  });
 
   function handleFocusRow(rowId: string) {
     setActivePanel('issues');

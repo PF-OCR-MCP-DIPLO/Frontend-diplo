@@ -13,7 +13,7 @@ export function SidebarDesktop({
 }: SidebarDesktopProps) {
   return (
     <aside
-      className={`sticky top-0 hidden border-r border-sidebar-border bg-sidebar/92 backdrop-blur-xl lg:flex lg:flex-col ${
+      className={`sticky top-0 z-30 hidden border-r border-sidebar-border bg-sidebar/92 backdrop-blur-xl lg:flex lg:flex-col ${
         collapsed ? 'lg:w-24' : 'lg:w-80'
       } h-screen overflow-y-auto`}
     >

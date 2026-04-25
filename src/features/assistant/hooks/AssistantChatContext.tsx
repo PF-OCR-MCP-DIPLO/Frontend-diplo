@@ -45,6 +45,26 @@ const initialMessages: AssistantChatMessage[] = [
 
 const AssistantChatContext = createContext<AssistantChatContextValue | null>(null);
 
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(',')}]`;
+  }
+  const entries = Object.entries(value as Record<string, unknown>)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`);
+  return `{${entries.join(',')}}`;
+}
+
+export function areAssistantContextsEqual(
+  left: AssistantQueryContext | undefined,
+  right: AssistantQueryContext | undefined,
+) {
+  return stableStringify(left ?? {}) === stableStringify(right ?? {});
+}
+
 function loadStoredMessages() {
   if (typeof window === 'undefined') {
     return initialMessages;
@@ -100,7 +120,12 @@ export function AssistantChatProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, queryContext }));
+    const nextValue = JSON.stringify({ messages, queryContext });
+    const currentValue = window.localStorage.getItem(STORAGE_KEY);
+    if (currentValue === nextValue) {
+      return;
+    }
+    window.localStorage.setItem(STORAGE_KEY, nextValue);
   }, [messages, queryContext]);
 
   const clearChat = () => {

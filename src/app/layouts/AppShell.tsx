@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { appNavigation } from '@/lib/constants/navigation';
 import { SidebarDesktop } from '@/components/shared/sidebar/SidebarDesktop';
 import { SidebarMobile } from '@/components/shared/sidebar/SidebarMobile';
 import { AppViewport } from './AppViewport';
+import { runRouteOverlayCleanups } from '@/app/hooks/useRouteOverlayCleanup';
 
 export function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
@@ -17,6 +18,11 @@ export function AppShell() {
       appNavigation.find((item) => item.to === location.pathname) ??
       appNavigation[0]
     );
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    runRouteOverlayCleanups();
   }, [location.pathname]);
 
   return (

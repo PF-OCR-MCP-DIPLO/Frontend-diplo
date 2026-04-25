@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AssistantChatProvider } from '@/features/assistant/hooks/AssistantChatContext';
 import { ResultsView } from '@/features/processing/components/results/ResultsView';
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
@@ -53,15 +54,17 @@ function renderResultsView(overrides: Partial<ComponentProps<typeof ResultsView>
     ...overrides,
   };
 
-  return {
-    props,
-    ...render(
-      <AssistantChatProvider>
-        <ResultsView {...props} />
-      </AssistantChatProvider>,
-    ),
-  };
-}
+    return {
+      props,
+      ...render(
+        <MemoryRouter initialEntries={['/results']}>
+          <AssistantChatProvider>
+            <ResultsView {...props} />
+          </AssistantChatProvider>
+        </MemoryRouter>,
+      ),
+    };
+  }
 
 describe('ResultsView', () => {
   beforeEach(() => {

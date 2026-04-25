@@ -28,7 +28,7 @@ export function ResultsFieldDetailPanel({ open, jobId, row, field, validationMap
   const cellSummary = getCellIssueSummary(row, field, issues);
 
   return (
-    <aside className='fixed inset-y-0 right-0 z-50 w-full max-w-[400px] border-l border-border/70 bg-background/96 shadow-[var(--shadow-floating)] backdrop-blur'>
+    <aside className='absolute inset-y-0 right-0 z-20 w-full max-w-[400px] border-l border-border/70 bg-background/96 shadow-[var(--shadow-floating)] backdrop-blur lg:absolute'>
       <div className='flex items-center justify-between border-b border-border/60 px-4 py-3'>
         <div>
           <p className='text-sm font-semibold text-foreground'>Detalle del campo</p>

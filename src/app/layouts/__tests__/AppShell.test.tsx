@@ -1,7 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/app/layouts/AppShell';
+vi.mock('@/components/AIChat', () => ({
+  AIChat: () => <div>Assistant content</div>,
+}));
 
 describe('AppShell', () => {
   it('renders skip link and navigation', () => {
@@ -40,5 +43,26 @@ describe('AppShell', () => {
 
     expect(screen.getByText('Settings page')).toBeInTheDocument();
     expect(screen.getAllByText('OCR y modelos').length).toBeGreaterThan(0);
+  });
+
+  it('closes mobile sidebar on route change and keeps navigation working after assistant', async () => {
+    render(
+      <MemoryRouter initialEntries={['/assistant']}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route path='/' element={<div>Resumen page</div>} />
+            <Route path='/assistant' element={<div>Assistant page</div>} />
+            <Route path='/results' element={<div>Resultados page</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Abrir menu de navegacion/i }));
+    fireEvent.click(screen.getAllByRole('link', { name: 'Resultados' })[0]);
+
+    await waitFor(() => expect(screen.getByText('Resultados page')).toBeInTheDocument());
+    expect(screen.queryByText('Assistant page')).not.toBeInTheDocument();
+    expect(screen.queryByText(/bg-slate-950\/48/i)).not.toBeInTheDocument();
   });
 });

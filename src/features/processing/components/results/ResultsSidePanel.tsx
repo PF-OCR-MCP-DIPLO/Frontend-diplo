@@ -47,7 +47,7 @@ export function ResultsSidePanel({
   if (!panel) return null;
 
   return (
-    <aside className='fixed inset-y-0 right-0 z-40 flex w-full max-w-[min(92vw,440px)] flex-col border-l border-border/70 bg-background/96 shadow-[var(--shadow-floating)] backdrop-blur md:absolute'>
+    <aside className='absolute inset-y-0 right-0 z-20 flex w-full max-w-[min(92vw,440px)] flex-col border-l border-border/70 bg-background/96 shadow-[var(--shadow-floating)] backdrop-blur lg:absolute'>
       <div className='flex items-center justify-between border-b border-border/60 px-4 py-3'>
         <p className='text-sm font-medium text-foreground'>
           {panel === 'issues' ? 'Hallazgos' : panel === 'logs' ? 'Logs' : 'Preview'}

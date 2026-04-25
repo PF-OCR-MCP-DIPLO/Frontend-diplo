@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AssistantContextSelector } from "@/features/assistant/components/AssistantContextSelector";
 import { sendAssistantChat } from "@/features/assistant/api/assistant.api";
 import {
+  areAssistantContextsEqual,
   useAssistantChatContext,
   type AssistantChatMessage,
 } from "@/features/assistant/hooks/AssistantChatContext";
@@ -252,8 +253,10 @@ export function AIChat({
   }, []);
 
   useEffect(() => {
-    if (queryContext) setQueryContext(queryContext);
-  }, [queryContext, setQueryContext]);
+    if (queryContext && !areAssistantContextsEqual(queryContext, storedContext)) {
+      setQueryContext(queryContext);
+    }
+  }, [queryContext, setQueryContext, storedContext]);
 
   useEffect(() => {
     if (initialPrompt && !input) setInput(initialPrompt);
@@ -280,7 +283,9 @@ export function AIChat({
         })),
         { jobId, errors, queryContext: activeContext },
       );
-      setQueryContext(response.query_context ?? {});
+      if (!areAssistantContextsEqual(response.query_context, storedContext)) {
+        setQueryContext(response.query_context ?? {});
+      }
       setMessages((current) => [
         ...current,
         {

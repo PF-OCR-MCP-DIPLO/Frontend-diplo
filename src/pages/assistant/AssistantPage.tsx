@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AIChat } from '@/components/AIChat';
 import { Button } from '@/components/ui/button';
-import { useAssistantChatContext } from '@/features/assistant/hooks/AssistantChatContext';
+import { areAssistantContextsEqual, useAssistantChatContext } from '@/features/assistant/hooks/AssistantChatContext';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import { readSettingsAssistantContext } from '@/features/settings/hooks/openSettingsAssistant';
 
@@ -32,7 +32,10 @@ export function AssistantPage() {
     [state?.assistantQueryContext, storedSettingsContext?.assistantQueryContext],
   );
   const initialPrompt = state?.assistantPrompt ?? storedSettingsContext?.assistantPrompt ?? '';
-  const activeContext = { ...queryContext, ...incomingContext };
+  const activeContext = useMemo(() => {
+    const merged = { ...queryContext, ...incomingContext };
+    return areAssistantContextsEqual(queryContext, merged) ? queryContext : merged;
+  }, [incomingContext, queryContext]);
 
   const handleClearContext = () => {
     setQueryContext({ page: 'assistant', contextScope: 'general' });
