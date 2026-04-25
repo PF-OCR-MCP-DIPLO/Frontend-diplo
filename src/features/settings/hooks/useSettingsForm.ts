@@ -24,7 +24,17 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     extraction_criteria: settings.extraction_criteria ?? DEFAULT_EXTRACTION_CRITERIA,
   };
 }
-
+function normalizeOptions(options: ApiProcessingSettingsOptions): ApiProcessingSettingsOptions {
+  return {
+    ocr_modes: options.ocr_modes ?? ['tesseract', 'vision', 'auto'],
+    providers: {
+      ocr: options.providers?.ocr ?? ['ollama', 'openai', 'gemini', 'deepseek'],
+      llm: options.providers?.llm ?? ['ollama', 'openai', 'gemini', 'deepseek', 'anthropic'],
+    },
+    provider_models: options.provider_models ?? {},
+    provider_requirements: options.provider_requirements ?? {},
+  };
+}
 export function useSettingsForm() {
   const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
   const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
@@ -44,7 +54,7 @@ export function useSettingsForm() {
         getOllamaModels(),
       ]);
       setSettings(loadedSettings);
-      setOptions(loadedOptions);
+      setOptions(normalizeOptions(loadedOptions));
       setOllamaModels(loadedOllamaModels);
       setValues(createFormValues(loadedSettings));
     } catch (error) {
