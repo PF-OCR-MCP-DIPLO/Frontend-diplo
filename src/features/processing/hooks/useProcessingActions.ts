@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { exportJob, getJob, listJobs, processJob, saveJobCorrections, uploadDocument } from '@/features/processing/api/processing.api';
+import { deleteJob, exportJob, getJob, listJobs, processJob, saveJobCorrections, uploadDocument } from '@/features/processing/api/processing.api';
 import type { ProcessingState } from '@/features/processing/hooks/useProcessingState';
 import { mapJobListItemToPlaceholder, mapJobToProcessedFile } from '@/features/processing/mappers/processing.mappers';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
@@ -59,6 +59,20 @@ export function useProcessingActions({
       setIsRefreshing(false);
     }
   }, [setIsRefreshing, upsertCurrentJob]);
+
+  const deleteJobResult = useCallback(async (jobId: number) => {
+    await deleteJob(jobId);
+    setProcessedFiles((previous) => previous.filter((item) => item.jobId !== jobId));
+    setCurrentResults((previous) => {
+      if (previous?.jobId === jobId) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY);
+        }
+        return null;
+      }
+      return previous;
+    });
+  }, [setCurrentResults, setProcessedFiles]);
 
   const pollJobUntilSettled = useCallback(async (jobId: number) => {
     const startedAt = Date.now();
@@ -166,11 +180,12 @@ export function useProcessingActions({
       selectResultByJobId,
       processFile,
       runProcessing,
+      deleteJobResult,
       saveCurrentCorrections,
       refreshJob,
       exportCurrentJob,
       selectResult,
     }),
-    [exportCurrentJob, processFile, refreshHistory, refreshJob, runProcessing, saveCurrentCorrections, selectResult, selectResultByJobId]
+    [deleteJobResult, exportCurrentJob, processFile, refreshHistory, refreshJob, runProcessing, saveCurrentCorrections, selectResult, selectResultByJobId]
   );
 }

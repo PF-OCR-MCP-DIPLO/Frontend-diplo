@@ -1,14 +1,27 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { HttpError } from '@/services/http/client';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const httpRequestMock = vi.fn();
 const resolveAssetUrlMock = vi.fn((path: string) => `RESOLVED:${path}`);
 
 vi.mock('@/services/http/client', () => ({
+  HttpError: class extends Error {
+    status: number;
+    code?: string;
+    details?: unknown;
+
+    constructor(status: number, message: string, extras?: { code?: string; details?: unknown }) {
+      super(message);
+      this.status = status;
+      this.code = extras?.code;
+      this.details = extras?.details;
+    }
+  },
   httpRequest: (...args: unknown[]) => httpRequestMock(...args),
   resolveAssetUrl: (path: string) => resolveAssetUrlMock(path),
 }));
 
-import { getJob, listJobs, saveJobCorrections } from '@/features/processing/api/processing.api';
+import { deleteJob, getJob, listJobs, processJob, saveJobCorrections } from '@/features/processing/api/processing.api';
 
 describe('processing.api', () => {
   beforeEach(() => {
@@ -78,6 +91,39 @@ describe('processing.api', () => {
     expect(job.provider_config_snapshot).toEqual({});
   });
 
+  it('sends process requests and accepts idempotent 200 responses', async () => {
+    httpRequestMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'done.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 3,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+
+    const job = await processJob(7);
+
+    expect(httpRequestMock).toHaveBeenCalledWith('jobs/7/process/', { method: 'POST' });
+    expect(job.status).toBe('completed');
+  });
+
+  it('propagates process conflicts from the backend', async () => {
+    httpRequestMock.mockRejectedValueOnce(new HttpError(409, 'Esta ejecución ya se encuentra en procesamiento.', { code: 'job_already_processing' }));
+
+    await expect(processJob(7)).rejects.toMatchObject({
+      status: 409,
+      code: 'job_already_processing',
+    });
+  });
+
   it('sends bulk correction payload to the dedicated endpoint', async () => {
     httpRequestMock.mockResolvedValueOnce({
       id: 1,
@@ -122,6 +168,22 @@ describe('processing.api', () => {
           },
         ],
       }),
+    });
+  });
+
+  it('deletes jobs with the dedicated endpoint and supports 204 responses', async () => {
+    httpRequestMock.mockResolvedValueOnce(undefined);
+
+    await expect(deleteJob(12)).resolves.toBeUndefined();
+    expect(httpRequestMock).toHaveBeenCalledWith('jobs/12/', { method: 'DELETE' });
+  });
+
+  it('propagates delete errors without removing the job client-side', async () => {
+    httpRequestMock.mockRejectedValueOnce(new HttpError(409, 'No puedes borrar una ejecución mientras sigue procesando.', { code: 'job_delete_conflict' }));
+
+    await expect(deleteJob(12)).rejects.toMatchObject({
+      status: 409,
+      code: 'job_delete_conflict',
     });
   });
 });

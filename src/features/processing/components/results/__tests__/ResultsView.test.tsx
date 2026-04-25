@@ -7,12 +7,14 @@ import { ResultsView } from '@/features/processing/components/results/ResultsVie
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
 
 const getJobLogsMock = vi.fn();
+const reprocessDepositMock = vi.fn();
 
 vi.mock('@/features/processing/api/processing.api', async () => {
   const actual = await vi.importActual<typeof import('@/features/processing/api/processing.api')>('@/features/processing/api/processing.api');
   return {
     ...actual,
     getJobLogs: (...args: Parameters<typeof actual.getJobLogs>) => getJobLogsMock(...args),
+    reprocessDeposit: (...args: Parameters<typeof actual.reprocessDeposit>) => reprocessDepositMock(...args),
   };
 });
 
@@ -75,29 +77,32 @@ function renderResultsView(overrides: Partial<ComponentProps<typeof ResultsView>
     ...overrides,
   };
 
-    return {
-      props,
-      ...render(
-        <MemoryRouter initialEntries={['/results']}>
-          <AssistantChatProvider>
-            <ResultsView {...props} />
-          </AssistantChatProvider>
-        </MemoryRouter>,
-      ),
-    };
-  }
+  return {
+    props,
+    ...render(
+      <MemoryRouter initialEntries={['/results']}>
+        <AssistantChatProvider>
+          <ResultsView {...props} />
+        </AssistantChatProvider>
+      </MemoryRouter>,
+    ),
+  };
+}
 
 describe('ResultsView', () => {
   beforeEach(() => {
     window.localStorage.clear();
     HTMLElement.prototype.scrollTo = vi.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
     getJobLogsMock.mockReset();
+    reprocessDepositMock.mockReset();
     getJobLogsMock.mockResolvedValue([
       { id: 1, sequence_index: 1, stage: 'ocr', provider: 'ollama', model: 'qwen3:1.7b', ocr_mode: 'vision', notes: 'OCR completo', raw_payload: {}, raw_text: '', is_error: false, source_image_id: 1, created_at: '2026-04-25T00:00:00Z' },
     ]);
+    reprocessDepositMock.mockResolvedValue(undefined);
   });
 
-  it('renders the current result table, findings and primary actions', () => {
+  it('renders the current result table, findings and primary actions with the dock closed by default', () => {
     renderResultsView();
 
     expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
@@ -108,6 +113,7 @@ describe('ResultsView', () => {
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
     expect(screen.getAllByText('REF-001').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /1 hallazgos/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('results-dock-panel')).not.toBeInTheDocument();
   });
 
   it('opens the assistant from results', () => {
@@ -136,48 +142,99 @@ describe('ResultsView', () => {
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
   });
 
-  it('keeps only one main panel active when switching from preview to logs', async () => {
+  it('opens preview in exactly one main dock panel', async () => {
     renderResultsView();
 
     fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
-    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'preview');
-    expect(await screen.findByText('Preview lateral')).toBeInTheDocument();
+
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
+    expect(screen.getByTestId('results-dock-panel')).toHaveAttribute('data-state', 'open');
+    expect(screen.getAllByTestId('results-dock-panel')).toHaveLength(1);
+    expect(screen.getByText('Preview lateral')).toBeInTheDocument();
+  });
+
+  it('keeps only one main dock panel active when switching from preview to logs', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
 
     fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
 
-    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'logs');
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'logs');
     expect(screen.queryByText('Preview lateral')).not.toBeInTheDocument();
     expect(screen.getByText('OCR completo')).toBeInTheDocument();
+    expect(screen.getAllByTestId('results-dock-panel')).toHaveLength(1);
   });
 
   it('switches from issues to preview without rendering two overlay surfaces', async () => {
     renderResultsView();
 
     fireEvent.click(screen.getByRole('button', { name: /1 hallazgos/i }));
-    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'issues');
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'issues');
     expect(await screen.findByText('Hay hallazgos por revisar')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
 
-    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'preview');
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
     expect(screen.queryByText('Hay hallazgos por revisar')).not.toBeInTheDocument();
-    expect(screen.getAllByTestId('results-side-panel')).toHaveLength(1);
+    expect(screen.getAllByTestId('results-dock-panel')).toHaveLength(1);
+  });
+
+  it('opens field detail in the dock without creating an absolute conflicting aside', async () => {
+    renderResultsView();
+
+    fireEvent.focus(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+
+    const dock = await screen.findByTestId('results-dock-panel');
+    expect(dock).toHaveAttribute('data-panel', 'field-detail');
+    expect(dock.className).not.toContain('absolute inset-y-0 right-0 z-20');
+    expect(screen.getAllByTestId('results-dock-panel')).toHaveLength(1);
+    expect(screen.getByText(/Detalle de Fecha/i)).toBeInTheDocument();
+  });
+
+  it('allows opening field detail after issues without leaving the previous content covering the dock', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /1 hallazgos/i }));
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'issues');
+
+    fireEvent.focus(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'field-detail');
+    expect(screen.queryByText('Hay hallazgos por revisar')).not.toBeInTheDocument();
+  });
+
+  it('minimizes and restores the dock while preserving the active mode', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
+
+    fireEvent.click(screen.getByRole('button', { name: /Minimizar panel Preview/i }));
+    expect(screen.getByTestId('results-dock-panel')).toHaveAttribute('data-state', 'minimized');
+    expect(screen.queryByText('Preview lateral')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Restaurar panel Preview/i }));
+    expect(screen.getByTestId('results-dock-panel')).toHaveAttribute('data-state', 'open');
+    expect(screen.getByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
+    expect(screen.getByText('Preview lateral')).toBeInTheDocument();
   });
 
   it('clears the active panel when the user closes it', async () => {
     renderResultsView();
 
     fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
-    expect(await screen.findByTestId('results-side-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('results-dock-panel')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Cerrar panel/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Cerrar panel Preview/i }));
 
     await waitFor(() => {
-      expect(screen.queryByTestId('results-side-panel')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('results-dock-panel')).not.toBeInTheDocument();
     });
   });
 
-  it('closes the fullscreen image preview when logs are opened', async () => {
+  it('opens the fullscreen image preview and closes it when logs are opened', async () => {
     renderResultsView();
 
     fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
@@ -187,8 +244,80 @@ describe('ResultsView', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
 
-    expect(await screen.findByTestId('results-side-panel')).toHaveAttribute('data-panel', 'logs');
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'logs');
     expect(screen.queryByRole('dialog', { name: /pagina-1\.png/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('dialog', { name: /Logs del procesamiento/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps assistant actions contextualized from field detail', async () => {
+    const { props } = renderResultsView();
+
+    fireEvent.focus(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'field-detail');
+
+    fireEvent.click(screen.getByRole('button', { name: /Preguntar al asistente/i }));
+
+    expect(props.onOpenAssistant).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          page: 'results',
+          jobId: 42,
+          selectedRowId: '1-10',
+          selectedField: 'fecha',
+        }),
+      }),
+    );
+  });
+
+  it('handles reprocessing loading and refresh after success without breaking the UI', async () => {
+    let resolveRequest: (() => void) | undefined;
+    reprocessDepositMock.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRequest = resolve;
+        }),
+    );
+
+    const { props } = renderResultsView();
+    fireEvent.focus(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+    expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'field-detail');
+
+    fireEvent.click(screen.getByRole('button', { name: /Reprocesar esta consignación/i }));
+    expect(screen.getByRole('button', { name: /Reprocesando…/i })).toBeDisabled();
+
+    resolveRequest?.();
+
+    await waitFor(() => {
+      expect(props.onRefresh).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByRole('button', { name: /Reprocesar esta consignación/i })).toBeEnabled();
+  });
+
+  it('keeps export blocked when there are unsaved changes', async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+    const input = screen.getByRole('textbox', { name: /Editar Fecha de la fila REF-001/i });
+    fireEvent.change(input, { target: { value: '2026-04-12' } });
+
+    expect(screen.getByRole('button', { name: /Exportar/i })).toBeDisabled();
+  });
+
+  it('saves corrections with the updated rows after the refactor', async () => {
+    const { props } = renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Editar Fecha de la fila REF-001/i }));
+    const input = screen.getByRole('textbox', { name: /Editar Fecha de la fila REF-001/i });
+    fireEvent.change(input, { target: { value: '2026-04-12' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /^Guardar$/i }));
+
+    await waitFor(() => {
+      expect(props.onSaveCorrections).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: '1-10',
+          fecha: '2026-04-12',
+        }),
+      ]);
+    });
   });
 });

@@ -4,10 +4,11 @@ import { useLocation } from 'react-router-dom';
 import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
 import { ResultsWorkspace } from '@/features/processing/components/results/ResultsWorkspace';
 import { ResultsTopBar } from '@/features/processing/components/results/ResultsTopBar';
-import { ResultsSidePanel, type ResultsPanel } from '@/features/processing/components/results/ResultsSidePanel';
+import { ResultsSidePanel } from '@/features/processing/components/results/ResultsSidePanel';
 import { buildResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import { reprocessDeposit } from '@/features/processing/api/processing.api';
 import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
+import { useResultsPanelState } from '@/features/processing/components/results/hooks/useResultsPanelState';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import { useRouteOverlayCleanup } from '@/app/hooks/useRouteOverlayCleanup';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
@@ -39,9 +40,15 @@ interface ResultsViewProps {
 export function ResultsView(props: ResultsViewProps) {
   const location = useLocation();
   const viewState = useResultsViewState(props.jobId, props.initialData);
+  const {
+    panelState,
+    openPanel: openResultsPanel,
+    closePanel,
+    minimizePanel,
+    restorePanel,
+    setFieldDetail,
+  } = useResultsPanelState(props.jobId);
   const { setExpandedImage } = viewState;
-  const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
-  const [detailCell, setDetailCell] = useState<{ rowId: string; field: ResultFieldKey } | null>(null);
   const [reprocessingDepositId, setReprocessingDepositId] = useState<number | null>(null);
   const validationMap = buildResultsValidationMap(viewState.data);
   const selectedRow = useMemo(() => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null, [viewState.data, viewState.selectedRowId]);
@@ -91,18 +98,14 @@ export function ResultsView(props: ResultsViewProps) {
   ]);
 
   const resetOverlays = useCallback(() => {
-    setActivePanel(null);
-    setDetailCell(null);
+    closePanel();
     setExpandedImage(null);
-  }, [setExpandedImage]);
+  }, [closePanel, setExpandedImage]);
 
-  const openPanel = useCallback((panel: Exclude<ResultsPanel, null>) => {
-    if (panel !== 'fieldDetail') {
-      setDetailCell(null);
-    }
+  const openPanel = useCallback((panel: 'issues' | 'logs' | 'preview') => {
     setExpandedImage(null);
-    setActivePanel(panel);
-  }, [setExpandedImage]);
+    openResultsPanel(panel);
+  }, [openResultsPanel, setExpandedImage]);
 
   async function handleOpenLogs() {
     try {
@@ -110,9 +113,8 @@ export function ResultsView(props: ResultsViewProps) {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
     }
-    setDetailCell(null);
     setExpandedImage(null);
-    setActivePanel('logs');
+    openResultsPanel('logs');
   }
 
   useEffect(() => {
@@ -140,9 +142,8 @@ export function ResultsView(props: ResultsViewProps) {
 
   function handleFocusCell(rowId: string, field: ResultFieldKey) {
     viewState.focusCell(rowId, field);
-    setDetailCell({ rowId, field });
     setExpandedImage(null);
-    setActivePanel('fieldDetail');
+    setFieldDetail(rowId, field);
   }
 
   function handleAskAssistant(rowId: string, field: ResultFieldKey) {
@@ -188,107 +189,111 @@ export function ResultsView(props: ResultsViewProps) {
             : 'Sin cambios pendientes';
 
   return (
-    <div className='relative min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90'>
-      <div className={activePanel ? 'lg:pr-[443px]' : ''}>
-        <ResultsTopBar
-          fileName={props.fileName}
-          status={props.status}
-          totalImages={props.totalImages}
-          totalRecords={props.totalRecords}
-          errorCount={viewState.errorCount}
-          autosaveLabel={autosaveLabel}
-          autosaveStatus={autosave.autosave.status}
-          isProcessing={props.isProcessing}
-          isRefreshing={props.isRefreshing}
-          isExporting={props.isExporting}
-          isSavingCorrections={props.isSavingCorrections}
-          excelUrl={props.excelUrl}
-          canExport={canExport}
-          canSaveCorrections={!props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges}
-          canRetryAutosave={autosave.autosave.status === 'error'}
-          onProcess={props.onProcess}
-          onRefresh={props.onRefresh}
-          onExport={props.onExport}
-          onSaveCorrections={() => {
-            void props
-              .onSaveCorrections(viewState.data)
-              .then(() => viewState.markSaved())
-              .catch(() => undefined);
-          }}
-          onRetryAutosave={() => autosave.retry()}
-          onOpenAssistant={() => {
-            resetOverlays();
-            props.onOpenAssistant({ context: assistantQueryContext });
-          }}
-          onOpenPanel={(panel) => {
-            if (panel === 'logs') {
-              void handleOpenLogs();
-              return;
-            }
-            openPanel(panel);
-          }}
-        />
+    <div className='min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90'>
+      <div className='lg:grid lg:grid-cols-[minmax(0,1fr)_auto]'>
+        <div className='min-w-0'>
+          <ResultsTopBar
+            fileName={props.fileName}
+            status={props.status}
+            totalImages={props.totalImages}
+            totalRecords={props.totalRecords}
+            errorCount={viewState.errorCount}
+            autosaveLabel={autosaveLabel}
+            autosaveStatus={autosave.autosave.status}
+            isProcessing={props.isProcessing}
+            isRefreshing={props.isRefreshing}
+            isExporting={props.isExporting}
+            isSavingCorrections={props.isSavingCorrections}
+            excelUrl={props.excelUrl}
+            canExport={canExport}
+            canSaveCorrections={!props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges}
+            canRetryAutosave={autosave.autosave.status === 'error'}
+            onProcess={props.onProcess}
+            onRefresh={props.onRefresh}
+            onExport={props.onExport}
+            onSaveCorrections={() => {
+              void props
+                .onSaveCorrections(viewState.data)
+                .then(() => viewState.markSaved())
+                .catch(() => undefined);
+            }}
+            onRetryAutosave={() => autosave.retry()}
+            onOpenAssistant={() => {
+              resetOverlays();
+              props.onOpenAssistant({ context: assistantQueryContext });
+            }}
+            onOpenPanel={(panel) => {
+              if (panel === 'logs') {
+                void handleOpenLogs();
+                return;
+              }
+              openPanel(panel);
+            }}
+          />
+        </div>
+
+        <div className='min-w-0 lg:row-span-3'>
+          <ResultsSidePanel
+            panelState={panelState}
+            onClose={resetOverlays}
+            onMinimize={minimizePanel}
+            onRestore={restorePanel}
+            jobId={props.jobId}
+            errorMessage={props.errorMessage}
+            logs={viewState.logs}
+            logsError={viewState.logsError}
+            isLoadingLogs={viewState.isLoadingLogs}
+            sourceDocxUrl={props.sourceDocxUrl}
+            sourceImages={props.sourceImages}
+            data={viewState.data}
+            validationMap={validationMap}
+            selectedRowId={viewState.selectedRowId}
+            selectedField={viewState.selectedField}
+            reprocessingDepositId={reprocessingDepositId}
+            onOpenImage={(image) => viewState.focusImage(image)}
+            onFocusRow={handleFocusRow}
+            onFocusCell={handleFocusCell}
+            onEditField={(rowId, field) => {
+              viewState.focusCell(rowId, field);
+              closePanel();
+            }}
+            onAskAssistant={(launch) => {
+              resetOverlays();
+              props.onOpenAssistant(launch);
+            }}
+            onReprocessDeposit={(depositId) => void handleReprocessDeposit(depositId)}
+          />
+        </div>
+
+        <main className='min-h-0 p-3 lg:pr-3'>
+          <ResultsWorkspace
+            data={viewState.data}
+            validationMap={validationMap}
+            onDataChange={handleDataChange}
+            onRowFocus={handleFocusRow}
+            selectedRowId={viewState.selectedRowId}
+            selectedField={viewState.selectedField}
+            onCellFocus={handleFocusCell}
+            onAskAssistant={handleAskAssistant}
+          />
+        </main>
+
+        <div className='flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground'>
+          <button
+            type='button'
+            className='text-left underline-offset-4 hover:underline'
+            onClick={() => {
+              resetOverlays();
+              props.onOpenAssistant({ context: assistantQueryContext });
+            }}
+          >
+            Abrir asistente
+          </button>
+          <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => openPanel('preview')}>
+            Ver preview
+          </button>
+        </div>
       </div>
-
-      <main className={`min-h-0 p-3 transition-[padding] lg:pr-3 ${activePanel ? 'lg:pr-[443px]' : ''}`}>
-        <ResultsWorkspace
-          data={viewState.data}
-          validationMap={validationMap}
-          onDataChange={handleDataChange}
-          onRowFocus={handleFocusRow}
-          selectedRowId={viewState.selectedRowId}
-          selectedField={viewState.selectedField}
-          onCellFocus={handleFocusCell}
-          onAskAssistant={handleAskAssistant}
-        />
-      </main>
-
-      <div className={`flex items-center justify-between px-4 pb-4 text-xs text-muted-foreground ${activePanel ? 'lg:pr-[443px]' : ''}`}>
-        <button
-          type='button'
-          className='text-left underline-offset-4 hover:underline'
-          onClick={() => {
-            resetOverlays();
-            props.onOpenAssistant({ context: assistantQueryContext });
-          }}
-        >
-          Abrir asistente
-        </button>
-        <button type='button' className='text-left underline-offset-4 hover:underline' onClick={() => openPanel('preview')}>
-          Ver preview
-        </button>
-      </div>
-
-      <ResultsSidePanel
-        panel={activePanel}
-        onClose={resetOverlays}
-        jobId={props.jobId}
-        errorMessage={props.errorMessage}
-        logs={viewState.logs}
-        logsError={viewState.logsError}
-        isLoadingLogs={viewState.isLoadingLogs}
-        sourceDocxUrl={props.sourceDocxUrl}
-        sourceImages={props.sourceImages}
-        data={viewState.data}
-        validationMap={validationMap}
-        selectedRowId={viewState.selectedRowId}
-        selectedField={viewState.selectedField}
-        detailCell={detailCell}
-        reprocessingDepositId={reprocessingDepositId}
-        onOpenImage={(image) => viewState.focusImage(image)}
-        onFocusRow={handleFocusRow}
-        onFocusCell={handleFocusCell}
-        onEditField={(rowId, field) => {
-          viewState.focusCell(rowId, field);
-          setDetailCell(null);
-          setActivePanel(null);
-        }}
-        onAskAssistant={(launch) => {
-          resetOverlays();
-          props.onOpenAssistant(launch);
-        }}
-        onReprocessDeposit={(depositId) => void handleReprocessDeposit(depositId)}
-      />
 
       <ResultsImagePreviewDialog
         open={Boolean(viewState.expandedImage)}

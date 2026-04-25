@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { useProcessingActions } from '@/features/processing/hooks/useProcessingActions';
 import type { ProcessingState } from '@/features/processing/hooks/useProcessingState';
@@ -6,10 +6,12 @@ import type { ProcessingState } from '@/features/processing/hooks/useProcessingS
 const uploadDocumentMock = vi.fn();
 const processJobMock = vi.fn();
 const saveJobCorrectionsMock = vi.fn();
+const deleteJobMock = vi.fn();
 
 vi.mock('@/features/processing/api/processing.api', () => ({
   uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
   processJob: (...args: unknown[]) => processJobMock(...args),
+  deleteJob: (...args: unknown[]) => deleteJobMock(...args),
   saveJobCorrections: (...args: unknown[]) => saveJobCorrectionsMock(...args),
   getJob: vi.fn(),
   listJobs: vi.fn(),
@@ -21,6 +23,7 @@ describe('useProcessingActions', () => {
   beforeEach(() => {
     uploadDocumentMock.mockReset();
     processJobMock.mockReset();
+    deleteJobMock.mockReset();
   });
 
   it('runProcessing returns null when there is no current job id', async () => {
@@ -97,5 +100,40 @@ describe('useProcessingActions', () => {
     expect(setIsProcessingMock.mock.calls[0][0]).toBe(true);
     expect(setIsProcessingMock.mock.calls.at(-1)?.[0]).toBe(false);
     expect(processed).toMatchObject({ jobId: 1 });
+  });
+
+  it('deleteJobResult removes the active job from state and localStorage', async () => {
+    deleteJobMock.mockResolvedValue(undefined);
+    window.localStorage.setItem('diplo.active-job-id', '7');
+    const setProcessedFiles = vi.fn();
+    const setCurrentResults = vi.fn();
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: { jobId: 7 } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: setCurrentResults as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: setProcessedFiles as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+
+    await act(async () => {
+      await result.current.deleteJobResult(7);
+    });
+
+    expect(deleteJobMock).toHaveBeenCalledWith(7);
+    expect(setProcessedFiles).toHaveBeenCalledTimes(1);
+    expect(setCurrentResults).toHaveBeenCalledTimes(1);
   });
 });

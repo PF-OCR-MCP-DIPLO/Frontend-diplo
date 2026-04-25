@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, Eye, FileText } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, FileDown, FileText, Play, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -8,10 +8,29 @@ import type { HistoryListItem } from '@/features/history/types/history.types';
 
 interface HistoryJobsTableProps {
   items: HistoryListItem[];
+  deletingJobId?: number | null;
+  processingJobId?: number | null;
+  exportingJobId?: number | null;
   onOpenResult: (id: string) => void;
+  onProcessJob: (jobId: number) => void;
+  onExportJob: (jobId: number) => void;
+  onDeleteJob: (jobId: number) => void;
 }
 
-export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps) {
+function canExport(status: HistoryListItem['status']) {
+  return status === 'completed' || status === 'completed_with_errors';
+}
+
+export function HistoryJobsTable({
+  items,
+  deletingJobId,
+  processingJobId,
+  exportingJobId,
+  onOpenResult,
+  onProcessJob,
+  onExportJob,
+  onDeleteJob,
+}: HistoryJobsTableProps) {
   return (
     <Card className='overflow-hidden'>
       <div className='border-b border-border/70 px-5 py-4'>
@@ -25,45 +44,98 @@ export function HistoryJobsTable({ items, onOpenResult }: HistoryJobsTableProps)
               <TableHead>Archivo</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className='text-right'>Abrir</TableHead>
+              <TableHead className='text-right'>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id} className='cursor-pointer' onClick={() => onOpenResult(item.id)}>
-                <TableCell>
-                  <div className='flex items-center gap-2'>
-                    <div className='icon-chip-primary size-9'>
-                      <FileText className='size-4' />
+            {items.map((item) => {
+              const isDeleting = deletingJobId === item.jobId;
+              const isProcessing = processingJobId === item.jobId;
+              const isExporting = exportingJobId === item.jobId;
+              const isBusy = isDeleting || isProcessing || isExporting;
+              const processingLabel = item.status === 'completed' || item.status === 'completed_with_errors' ? 'Reprocesar' : 'Procesar';
+
+              return (
+                <TableRow key={item.id} className='cursor-pointer' onClick={() => onOpenResult(item.id)}>
+                  <TableCell>
+                    <div className='flex items-center gap-2'>
+                      <div className='icon-chip-primary size-9'>
+                        <FileText className='size-4' />
+                      </div>
+                      <span className='font-medium text-foreground'>{item.name}</span>
                     </div>
-                    <span className='font-medium text-foreground'>{item.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className='text-muted-foreground'>{formatDateTime(item.date)}</span>
-                </TableCell>
-                <TableCell>
-                  <div className='flex items-center gap-2'>
-                    {item.displayStatus === 'success' ? <CheckCircle2 className='size-3' /> : <AlertCircle className='size-3' />}
-                    <StatusBadge status={item.status} />
-                  </div>
-                </TableCell>
-                <TableCell className='text-right'>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onOpenResult(item.id);
-                    }}
-                    className='gap-2'
-                  >
-                    <Eye className='size-4' />
-                    Abrir
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell>
+                    <span className='text-muted-foreground'>{formatDateTime(item.date)}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className='flex items-center gap-2'>
+                      {item.displayStatus === 'success' ? <CheckCircle2 className='size-3' /> : <AlertCircle className='size-3' />}
+                      <StatusBadge status={item.status} />
+                    </div>
+                  </TableCell>
+                  <TableCell className='text-right'>
+                    <div className='flex justify-end gap-2'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpenResult(item.id);
+                        }}
+                        className='gap-2'
+                        disabled={isBusy}
+                      >
+                        <Eye className='size-4' />
+                        Abrir
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onProcessJob(item.jobId);
+                        }}
+                        className='gap-2'
+                        disabled={isBusy || item.status === 'processing'}
+                        aria-label={`${processingLabel} job ${item.name || item.jobId}`}
+                      >
+                        <Play className='size-4' />
+                        {isProcessing ? 'Procesando…' : processingLabel}
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onExportJob(item.jobId);
+                        }}
+                        className='gap-2'
+                        disabled={isBusy || !canExport(item.status)}
+                        aria-label={`Exportar job ${item.name || item.jobId}`}
+                      >
+                        <FileDown className='size-4' />
+                        {isExporting ? 'Exportando…' : 'Exportar'}
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeleteJob(item.jobId);
+                        }}
+                        className='gap-2 text-danger hover:text-danger'
+                        disabled={isDeleting || item.status === 'processing'}
+                        aria-label={`Borrar job ${item.name || item.jobId}`}
+                      >
+                        <Trash2 className='size-4' />
+                        {isDeleting ? 'Borrando…' : 'Borrar'}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

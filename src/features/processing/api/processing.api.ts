@@ -69,6 +69,12 @@ export function processJob(jobId: number) {
   }).then(normalizeJobDetail);
 }
 
+export function deleteJob(jobId: number) {
+  return httpRequest<void>(`jobs/${jobId}/`, {
+    method: 'DELETE',
+  });
+}
+
 export function saveJobCorrections(jobId: number, payload: ApiBulkDepositCorrectionPayload) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/deposits/`, {
     method: 'PATCH',

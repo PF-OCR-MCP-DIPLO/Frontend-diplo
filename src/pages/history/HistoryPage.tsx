@@ -1,4 +1,5 @@
 import { AlertTriangle, FolderOpen, Loader2, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -11,8 +12,11 @@ import { useProcessingActionsContext, useProcessingHistoryContext } from '@/feat
 export function HistoryPage() {
   const navigate = useNavigate();
   const openResult = useOpenResult();
-  const { refreshHistory } = useProcessingActionsContext();
+  const { refreshHistory, runProcessing, exportCurrentJob, deleteJobResult } = useProcessingActionsContext();
   const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
+  const [deletingJobId, setDeletingJobId] = useState<number | null>(null);
+  const [processingJobId, setProcessingJobId] = useState<number | null>(null);
+  const [exportingJobId, setExportingJobId] = useState<number | null>(null);
 
   async function handleRefresh() {
     try {
@@ -20,6 +24,53 @@ export function HistoryPage() {
       toast.success('Historial actualizado');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo actualizar el historial');
+    }
+  }
+
+  async function handleDelete(jobId: number, label: string) {
+    const confirmed = window.confirm(`Vas a borrar la ejecución "${label}". Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
+
+    setDeletingJobId(jobId);
+    try {
+      await deleteJobResult(jobId);
+      toast.success('Ejecución borrada');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo borrar la ejecución');
+    } finally {
+      setDeletingJobId(null);
+    }
+  }
+
+  async function handleProcess(jobId: number) {
+    setProcessingJobId(jobId);
+    try {
+      const result = await runProcessing(jobId);
+      if (result) {
+        toast.success(result.status === 'processing' ? `Ejecución ${result.jobId} en procesamiento` : `Ejecución ${result.jobId} lista`);
+        await refreshHistory();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo procesar la ejecución');
+    } finally {
+      setProcessingJobId(null);
+    }
+  }
+
+  async function handleExport(jobId: number) {
+    setExportingJobId(jobId);
+    try {
+      const result = await exportCurrentJob(jobId);
+      if (result?.excelUrl) {
+        toast.success('Excel generado correctamente');
+        await refreshHistory();
+      } else {
+        toast.error('El backend no devolvió un archivo Excel');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo exportar la ejecución');
+    } finally {
+      setExportingJobId(null);
     }
   }
 
@@ -44,7 +95,7 @@ export function HistoryPage() {
         <PageHeader
           eyebrow='Historial'
           title='Historial'
-          description='Abre una ejecucion anterior y continua la revision.'
+          description='Abre una ejecución anterior y continúa la revisión.'
         />
         <StatePanel
           tone='warning'
@@ -69,8 +120,8 @@ export function HistoryPage() {
           centered
           tone='info'
           icon={FolderOpen}
-          title='Todavia no hay ejecuciones en el historial'
-          description='Cuando termines tu primer procesamiento, aparecera aqui para volver a abrirlo o compararlo.'
+          title='Todavía no hay ejecuciones en el historial'
+          description='Cuando termines tu primer procesamiento, aparecerá aquí para volver a abrirlo o compararlo.'
           actions={<Button onClick={() => navigate('/upload')}>Procesar un archivo</Button>}
         />
       </div>
@@ -82,10 +133,22 @@ export function HistoryPage() {
       <PageHeader
         eyebrow='Ejecuciones Previas'
         title='Historial'
-        description='Abre una ejecucion anterior y continua la revision.'
+        description='Abre una ejecución anterior, vuelve a procesarla o elimina la que ya no necesites.'
         actions={<Button variant='outline' onClick={() => void handleRefresh()}>Actualizar</Button>}
       />
-      <HistoryJobsTable items={processedFiles} onOpenResult={(id) => void openResult(id, 'No se pudo abrir la ejecucion')} />
+      <HistoryJobsTable
+        items={processedFiles}
+        deletingJobId={deletingJobId}
+        processingJobId={processingJobId}
+        exportingJobId={exportingJobId}
+        onOpenResult={(id) => void openResult(id, 'No se pudo abrir la ejecución')}
+        onProcessJob={(jobId) => void handleProcess(jobId)}
+        onExportJob={(jobId) => void handleExport(jobId)}
+        onDeleteJob={(jobId) => {
+          const job = processedFiles.find((item) => item.jobId === jobId);
+          void handleDelete(jobId, job?.name ?? String(jobId));
+        }}
+      />
     </div>
   );
 }
