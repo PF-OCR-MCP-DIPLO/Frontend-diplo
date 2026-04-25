@@ -86,7 +86,7 @@ describe('ResultsView', () => {
     renderResultsView();
 
     fireEvent.click(screen.getAllByRole('button', { name: /Asistente/i })[0]);
-    expect(screen.getByPlaceholderText('Pregunta sobre este resultado…')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('renders safely with empty results and no source images', () => {

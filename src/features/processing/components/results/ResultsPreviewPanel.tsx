@@ -13,7 +13,9 @@ interface ResultsPreviewPanelProps {
 }
 
 export function ResultsPreviewPanel({ fileName, sourceDocxUrl, sourceImages, validationMap, selectedRowId, onOpenImage }: ResultsPreviewPanelProps) {
-  const filteredImages = selectedRowId ? sourceImages.filter((image) => validationMap.imageIssuesById[image.id]?.some((issue) => issue.rowId === selectedRowId)) : sourceImages;
+  const filteredImages = selectedRowId
+    ? sourceImages.filter((image) => validationMap.imageIssuesById[image.id]?.some((issue) => issue.rowId === selectedRowId))
+    : sourceImages;
   return (
     <DocumentPreview
       fileName={fileName}
@@ -21,6 +23,7 @@ export function ResultsPreviewPanel({ fileName, sourceDocxUrl, sourceImages, val
       images={filteredImages.length > 0 ? filteredImages : sourceImages}
       validationMap={validationMap}
       onOpenImage={onOpenImage}
+      selectedRowId={selectedRowId}
     />
   );
 }

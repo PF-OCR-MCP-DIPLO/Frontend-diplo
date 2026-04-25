@@ -35,9 +35,9 @@ describe('AIChat', () => {
 
     expect(screen.getByLabelText('Asistente IA')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Limpiar/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Resume hallazgos/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Resume/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Prioridad/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Explicar resultado/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Hallazgos$/i }).length).toBeGreaterThan(0);
   });
 
   it('sends a message with Enter and shows the assistant reply', async () => {
@@ -190,7 +190,7 @@ describe('AIChat', () => {
 
   it('supports shift enter without sending', () => {
     renderChat();
-    const input = screen.getByPlaceholderText('Pregunta sobre este resultado…');
+    const input = screen.getByPlaceholderText('Pregunta algo…');
     fireEvent.change(input, { target: { value: 'hola' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', shiftKey: true });
     expect(sendAssistantChatMock).not.toHaveBeenCalled();
@@ -199,7 +199,7 @@ describe('AIChat', () => {
   it('uses the compact placeholder and hides persistent suggestions', () => {
     renderChat({ variant: 'compact', jobId: 4 });
 
-    expect(screen.getByPlaceholderText('Pregunta sobre este resultado…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Pregunta algo…')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /¿Qué puedes hacer\?/i })).not.toBeInTheDocument();
   });
 });

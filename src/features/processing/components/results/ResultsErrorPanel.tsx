@@ -15,9 +15,11 @@ interface ResultsErrorPanelProps {
   onErrorClick: (rowId: string) => void;
   onFocusCell: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant: (rowId: string, field: ResultFieldKey) => void;
+  onReprocessDeposit: (depositId: number, rowId: string) => void;
+  reprocessingDepositId?: number | null;
 }
 
-export function ResultsErrorPanel({ data, validationMap, selectedRowId, selectedField, onErrorClick, onFocusCell, onAskAssistant }: ResultsErrorPanelProps) {
+export function ResultsErrorPanel({ data, validationMap, selectedRowId, selectedField, onErrorClick, onFocusCell, onAskAssistant, onReprocessDeposit, reprocessingDepositId }: ResultsErrorPanelProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const panelIdPrefix = useId();
   const errorsData = data.filter((row) => row.estado === 'error');
@@ -67,6 +69,9 @@ export function ResultsErrorPanel({ data, validationMap, selectedRowId, selected
                           </Button>
                           <Button type='button' variant='ghost' size='sm' className='h-7 px-2 text-[11px]' onClick={() => onAskAssistant(row.id, field)}>
                             Preguntar al asistente
+                          </Button>
+                          <Button type='button' variant='ghost' size='sm' className='h-7 px-2 text-[11px]' onClick={() => onReprocessDeposit(row.depositId, row.id)} disabled={reprocessingDepositId === row.depositId}>
+                            {reprocessingDepositId === row.depositId ? 'Reprocesando…' : 'Reprocesar esta consignación'}
                           </Button>
                         </div>
                       </div>

@@ -79,6 +79,12 @@ export function saveJobCorrections(jobId: number, payload: ApiBulkDepositCorrect
   }).then(normalizeJobDetail);
 }
 
+export function reprocessDeposit(jobId: number, depositId: number) {
+  return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/deposits/${depositId}/reprocess/`, {
+    method: 'POST',
+  }).then(normalizeJobDetail);
+}
+
 export function getJob(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/`).then(normalizeJobDetail);
 }

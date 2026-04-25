@@ -15,6 +15,7 @@ interface EditableTableProps {
   selectedField?: string | null;
   onCellFocus?: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
+  reprocessingDepositId?: number | null;
 }
 
 const columns: Array<{ key: ResultFieldKey; label: string; className?: string; editable?: boolean }> = [
@@ -25,7 +26,7 @@ const columns: Array<{ key: ResultFieldKey; label: string; className?: string; e
   { key: 'sourceName', label: 'Archivo origen', className: 'w-[160px]', editable: false },
 ];
 
-export function EditableTable({ data, validationMap, onDataChange, onRowClick, selectedRowId, selectedField, onCellFocus, onAskAssistant }: EditableTableProps) {
+export function EditableTable({ data, validationMap, onDataChange, onRowClick, selectedRowId, selectedField, onCellFocus, onAskAssistant, reprocessingDepositId }: EditableTableProps) {
   const table = useEditableTable(data, onDataChange);
 
   return (
@@ -47,7 +48,7 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick, s
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-            <TableRow key={row.id} id={row.id} className='cursor-pointer' onClick={() => onRowClick?.(row)}>
+            <TableRow key={row.id} id={row.id} className={`cursor-pointer ${reprocessingDepositId === row.depositId ? 'opacity-70' : ''}`} onClick={() => onRowClick?.(row)}>
                 {columns.map((column) => (
                   <TableCell key={column.key} className='py-2'>
                     <EditableCell
@@ -63,6 +64,7 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick, s
                       onBlur={table.stopEditing}
                       onKeyDown={table.handleInputKeyDown}
                       onAskAssistant={onAskAssistant}
+                      validationMap={validationMap}
                     />
                   </TableCell>
                 ))}

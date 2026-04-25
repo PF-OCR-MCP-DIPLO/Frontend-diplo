@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
-import { ContextualTooltip } from '@/components/shared/ContextualTooltip';
-import type { FieldValidationIssue } from '@/features/processing/components/results/results-validation';
-import { getCellIssueSummary, getFieldLabel } from '@/features/processing/components/results/results-validation';
+import { ContextualPopover } from '@/components/shared/ContextualPopover';
+import type { FieldValidationIssue, ResultsValidationMap } from '@/features/processing/components/results/results-validation';
+import { getCellIssueSummary, getFieldLabel, getCellStatus } from '@/features/processing/components/results/results-validation';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
 import { Button } from '@/components/ui/button';
 
@@ -18,11 +18,13 @@ interface EditableCellProps {
   onBlur: () => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onAskAssistant?: (rowId: string, field: keyof ConsignmentRow) => void;
+  validationMap: ResultsValidationMap;
 }
 
-export function EditableCell({ row, field, editable, issues, isEditing, isSelected, onFocusCell, onEdit, onChange, onBlur, onKeyDown, onAskAssistant }: EditableCellProps) {
+export function EditableCell({ row, field, editable, issues, isEditing, isSelected, onFocusCell, onEdit, onChange, onBlur, onKeyDown, onAskAssistant, validationMap }: EditableCellProps) {
   const value = String(row[field]);
-  const hasError = row.estado === 'error' || issues.length > 0;
+  const cellStatus = getCellStatus(row, field as never, validationMap);
+  const hasError = cellStatus === 'error';
   const label = `Editar ${getFieldLabel(field)} de la fila ${row.referencia || row.id}`;
   const tooltipModel = getCellIssueSummary(row, field as never, issues);
   const content = (
@@ -50,39 +52,41 @@ export function EditableCell({ row, field, editable, issues, isEditing, isSelect
 
   if (isEditing) {
     return (
-      <Input
+        <Input
         autoFocus
         aria-label={label}
         value={value}
         onChange={(event) => onChange(row.id, field, event.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className={`h-8 rounded-md px-2 text-sm ${hasError ? 'border-danger ring-danger/12' : ''} ${isSelected ? 'ring-1 ring-primary/25' : ''}`}
+        className={`h-8 rounded-md px-2 text-sm ${hasError ? 'border-danger bg-danger/5 ring-danger/12' : cellStatus === 'valid' ? 'border-success/30 bg-success/5' : ''} ${isSelected ? 'ring-1 ring-primary/25' : ''}`}
       />
     );
   }
 
   if (!editable) {
     return (
-      <ContextualTooltip
-        trigger={<span className={`block rounded-md px-2 py-1 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : 'text-surface-foreground'} ${isSelected ? 'ring-1 ring-primary/25' : ''}`} tabIndex={0} onFocus={() => onFocusCell?.(row.id, field)}>{value}</span>}
+      <ContextualPopover
+        interactive
+        trigger={<span className={`block rounded-md px-2 py-1 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : cellStatus === 'valid' ? 'bg-success/5 text-foreground ring-1 ring-success/20' : 'text-surface-foreground'} ${isSelected ? 'ring-1 ring-primary/25' : ''}`} tabIndex={0} onFocus={() => onFocusCell?.(row.id, field)}>{value}</span>}
         content={content}
       />
     );
   }
 
   return (
-    <ContextualTooltip
+    <ContextualPopover
+      interactive
       trigger={(
         <button
           type='button'
           aria-label={label}
           onClick={() => onEdit(row.id, field)}
           onFocus={() => onFocusCell?.(row.id, field)}
-          className={`focus-ring flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm transition hover:bg-primary/6 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : ''} ${isSelected ? 'ring-1 ring-primary/25' : ''}`}
+          className={`focus-ring flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm transition hover:bg-primary/6 ${hasError ? 'bg-danger/8 text-danger ring-1 ring-danger/20' : cellStatus === 'valid' ? 'bg-success/5 text-foreground ring-1 ring-success/20' : ''} ${isSelected ? 'ring-1 ring-primary/25' : ''}`}
         >
           <span>{value}</span>
-          <span className='text-[11px] text-muted-foreground'>{issues.length > 0 ? `${issues.length} issue${issues.length === 1 ? '' : 's'}` : 'Editar'}</span>
+          <span className='text-[11px] text-muted-foreground'>{issues.length > 0 ? `${issues.length} issue${issues.length === 1 ? '' : 's'}` : cellStatus === 'valid' ? 'OK' : 'Editar'}</span>
         </button>
       )}
       content={content}

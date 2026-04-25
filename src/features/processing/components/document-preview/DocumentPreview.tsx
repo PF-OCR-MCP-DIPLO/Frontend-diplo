@@ -5,6 +5,7 @@ import { DocumentImageViewer } from '@/features/processing/components/document-p
 import { DocumentPreviewToolbar } from '@/features/processing/components/document-preview/DocumentPreviewToolbar';
 import { ImageNavigator } from '@/features/processing/components/document-preview/ImageNavigator';
 import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
+import { getImageStatus } from '@/features/processing/components/results/results-validation';
 import type { PreviewImage } from '@/features/processing/types/processing.types';
 
 interface DocumentPreviewProps {
@@ -13,9 +14,10 @@ interface DocumentPreviewProps {
   images: PreviewImage[];
   validationMap: ResultsValidationMap;
   onOpenImage: (image: PreviewImage) => void;
+  selectedRowId?: string | null;
 }
 
-export function DocumentPreview({ sourceDocxUrl, fileName, images, validationMap, onOpenImage }: DocumentPreviewProps) {
+export function DocumentPreview({ sourceDocxUrl, fileName, images, validationMap, onOpenImage, selectedRowId }: DocumentPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -26,6 +28,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, validationMap
 
   const currentImage = images[safeIndex];
   const currentImageIssues = currentImage ? validationMap.imageIssuesById[currentImage.id] ?? [] : [];
+  const currentImageStatus = currentImage ? getImageStatus(currentImage.id, validationMap) : 'neutral';
 
   return (
     <Card className='frame-card'>
@@ -60,7 +63,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, validationMap
               onNext={() => setCurrentIndex((index) => Math.min(images.length - 1, index + 1))}
             />
           </div>
-          <DocumentImageViewer image={currentImage} issues={currentImageIssues} fileName={fileName} onOpenImage={onOpenImage} />
+          <DocumentImageViewer image={currentImage} issues={currentImageIssues} fileName={fileName} onOpenImage={onOpenImage} status={currentImageStatus} selectedRowId={selectedRowId} />
         </div>
       ) : null}
     </Card>

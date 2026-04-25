@@ -7,6 +7,7 @@ import { ResultsWorkspace } from '@/features/processing/components/results/Resul
 import { ResultsTopBar } from '@/features/processing/components/results/ResultsTopBar';
 import { ResultsSidePanel, type ResultsPanel } from '@/features/processing/components/results/ResultsSidePanel';
 import { buildResultsValidationMap } from '@/features/processing/components/results/results-validation';
+import { reprocessDeposit } from '@/features/processing/api/processing.api';
 import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
@@ -38,6 +39,7 @@ interface ResultsViewProps {
 export function ResultsView(props: ResultsViewProps) {
   const viewState = useResultsViewState(props.jobId, props.initialData);
   const [activePanel, setActivePanel] = useState<ResultsPanel>(null);
+  const [reprocessingDepositId, setReprocessingDepositId] = useState<number | null>(null);
   const validationMap = buildResultsValidationMap(viewState.data);
   const selectedRow = useMemo(() => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null, [viewState.data, viewState.selectedRowId]);
   const selectedIssues = useMemo(() => {
@@ -68,6 +70,7 @@ export function ResultsView(props: ResultsViewProps) {
     errorCount: viewState.errorCount,
     autosaveStatus: autosave.autosave.status,
     intentHint: viewState.selectedField ? 'explain_cell_issue' : viewState.selectedRowId ? 'explain_row_issue' : props.errorMessage ? 'explain_results' : 'review_results',
+    contextScope: viewState.selectedField ? 'cell' : viewState.selectedRowId ? 'row' : viewState.currentImage ? 'image' : viewState.data.some((row) => row.estado === 'error') ? 'issues' : 'job',
     pendingAction: undefined,
   }), [
     autosave.autosave.status,
@@ -77,7 +80,7 @@ export function ResultsView(props: ResultsViewProps) {
     props.status,
     selectedIssues,
     selectedRow,
-    viewState.currentImage?.id,
+    viewState.currentImage,
     viewState.data,
     viewState.errorCount,
     viewState.selectedField,
@@ -117,6 +120,19 @@ export function ResultsView(props: ResultsViewProps) {
         intentHint: 'explain_cell_issue',
       },
     });
+  }
+
+  async function handleReprocessDeposit(depositId: number) {
+    setReprocessingDepositId(depositId);
+    try {
+      await reprocessDeposit(props.jobId, depositId);
+      props.onRefresh();
+      toast.success('Consignación reprocesada');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo reprocesar la consignación');
+    } finally {
+      setReprocessingDepositId(null);
+    }
   }
 
   function handleDataChange(nextData: ConsignmentRow[]) {
@@ -211,6 +227,7 @@ export function ResultsView(props: ResultsViewProps) {
         onFocusRow={handleFocusRow}
         onFocusCell={handleFocusCell}
         onAskAssistant={handleAskAssistant}
+        reprocessingDepositId={reprocessingDepositId}
       />
 
       <ResultsErrorDialog
@@ -224,6 +241,8 @@ export function ResultsView(props: ResultsViewProps) {
         onErrorClick={handleFocusRow}
         onFocusCell={handleFocusCell}
         onAskAssistant={handleAskAssistant}
+        onReprocessDeposit={handleReprocessDeposit}
+        reprocessingDepositId={reprocessingDepositId}
       />
       <ResultsImagePreviewDialog
         open={Boolean(viewState.expandedImage)}

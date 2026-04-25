@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AssistantContextSelector } from '@/features/assistant/components/AssistantContextSelector';
 import { sendAssistantChat } from '@/features/assistant/api/assistant.api';
 import { useAssistantChatContext, type AssistantChatMessage } from '@/features/assistant/hooks/AssistantChatContext';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
@@ -36,31 +37,13 @@ function hasRows(toolData: unknown): toolData is { rows: unknown[] } {
   return isRecord(toolData) && Array.isArray(toolData.rows);
 }
 
-function getSuggestions(jobId: number | null, queryContext?: AssistantQueryContext): ChatSuggestion[] {
-  const hasRow = Boolean(queryContext?.selectedRowId);
-  const hasField = Boolean(queryContext?.selectedField);
-
-  if (!hasRow) {
-    return [
-      { label: 'Resume hallazgos', message: 'Resume los hallazgos' },
-      { label: 'Prioridad', message: '¿Qué debo revisar primero?' },
-      { label: 'Explicar resultado', message: 'Explícame este resultado' },
-    ];
-  }
-
-  if (hasField) {
-    return [
-      { label: 'Corregir campo', message: '¿Cómo corrijo este campo?' },
-      { label: 'Valor válido', message: 'Propón un valor válido' },
-      { label: 'Por qué falla', message: 'Explica por qué falla' },
-    ];
-  }
-
-  return [
-    { label: 'Errores fila', message: 'Explica los errores de esta fila' },
-    { label: 'Corregir fila', message: '¿Cómo corrijo esta fila?' },
-    { label: 'Validar datos', message: 'Verifica si el monto y la fecha tienen sentido' },
-  ];
+function getSuggestions(_jobId: number | null, queryContext?: AssistantQueryContext): ChatSuggestion[] {
+  const scope = queryContext?.contextScope ?? (queryContext?.selectedField ? 'cell' : queryContext?.selectedRowId ? 'row' : queryContext?.currentImageId ? 'image' : queryContext?.visibleIssueIds?.length ? 'issues' : 'general');
+  if (scope === 'cell') return [{ label: 'Por qué falla', message: 'Por qué falla este campo' }, { label: 'Valor válido', message: 'Propón un valor válido' }, { label: 'Cómo corregir', message: 'Cómo corregirlo' }];
+  if (scope === 'row') return [{ label: 'Explicar fila', message: 'Explica esta fila' }, { label: 'Campos', message: 'Qué campos debo corregir' }, { label: 'Corregir', message: 'Propón correcciones' }];
+  if (scope === 'image') return [{ label: 'Ver imagen', message: 'Qué se ve en esta imagen' }, { label: 'Inconsistencias', message: 'Detecta inconsistencias' }, { label: 'Relacionar', message: 'Relaciona imagen con filas' }];
+  if (scope === 'issues') return [{ label: 'Priorizar', message: 'Prioriza errores' }, { label: 'Agrupar', message: 'Agrupa por causa' }, { label: 'Rápido', message: 'Qué puedo corregir rápido' }];
+  return [{ label: 'Resumen', message: 'Resume el resultado' }, { label: 'Prioridad', message: 'Qué debo revisar primero' }, { label: 'Hallazgos', message: 'Explica los hallazgos' }];
 }
 
 function getCompactContextLabel(queryContext?: AssistantQueryContext, jobId: number | null = null, errors = 0) {
@@ -338,11 +321,17 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
   const suggestions = useMemo(() => getSuggestions(jobId, queryContext ?? assistantQueryContext), [assistantQueryContext, jobId, queryContext]);
   const contextLabel = getCompactContextLabel(queryContext ?? assistantQueryContext, jobId, errors);
   const contextDetails = getContextDetails(queryContext ?? assistantQueryContext);
-  const placeholder = (queryContext ?? assistantQueryContext)?.selectedField
-    ? 'Pregunta cómo corregir este campo…'
-    : (queryContext ?? assistantQueryContext)?.selectedRowId
-      ? 'Pregunta sobre la fila seleccionada…'
-      : 'Pregunta sobre este resultado…';
+  const activeContext = queryContext ?? assistantQueryContext;
+  const scope = activeContext?.contextScope ?? (activeContext?.selectedField ? 'cell' : activeContext?.selectedRowId ? 'row' : activeContext?.currentImageId ? 'image' : activeContext?.visibleIssueIds?.length ? 'issues' : activeContext?.jobId ? 'job' : 'general');
+  const placeholderMap: Record<string, string> = {
+    general: 'Pregunta algo…',
+    job: 'Pregunta sobre este resultado…',
+    row: 'Pregunta sobre la fila seleccionada…',
+    cell: 'Pregunta cómo corregir este campo…',
+    image: 'Pregunta sobre la imagen actual…',
+    issues: 'Pregunta sobre los hallazgos visibles…',
+  };
+  const placeholder = placeholderMap[scope] ?? 'Pregunta algo…';
   const showSuggestions = messages.length < 3;
 
   useEffect(() => {
@@ -446,6 +435,13 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
               <span className='rounded-full border border-border/70 px-2.5 py-1'>{errors > 0 ? `${errors} errores` : 'Sin errores'}</span>
             </div>
           ) : null}
+          <div className='mt-3'>
+            <AssistantContextSelector
+              context={activeContext ?? {}}
+              onChange={setQueryContext}
+              visibleIssueIds={activeContext?.visibleIssueIds}
+            />
+          </div>
         </div>
       ) : (
         <div className='border-b border-border/70 px-4 py-3'>
@@ -470,6 +466,13 @@ export function AIChat({ errors, jobId = null, variant = 'panel', queryContext, 
                 )}
               </div>
             </details>
+          </div>
+          <div className='mt-3'>
+            <AssistantContextSelector
+              context={activeContext ?? {}}
+              onChange={setQueryContext}
+              visibleIssueIds={activeContext?.visibleIssueIds}
+            />
           </div>
         </div>
       )}

@@ -24,6 +24,8 @@ export type ResultsValidationMap = {
   generalIssues: GeneralValidationIssue[];
 };
 
+export type ResultVisualStatus = 'error' | 'valid' | 'neutral';
+
 const FIELD_LABELS: Record<Exclude<ResultFieldKey, 'estado'>, string> = {
   fecha: 'Fecha',
   hora: 'Hora',
@@ -89,6 +91,26 @@ export function getCellIssueSummary(row: ConsignmentRow, field: ResultFieldKey, 
     issues: tooltip.issues,
     correctionHint: tooltip.correctionHint,
   };
+}
+
+export function getCellStatus(row: ConsignmentRow, field: ResultFieldKey, validationMap: ResultsValidationMap): ResultVisualStatus {
+  const issues = getRowFieldIssues(validationMap, row.id, field, row);
+  if (issues.length > 0) return 'error';
+  if (row[field] != null && String(row[field]).trim() !== '') return 'valid';
+  return 'neutral';
+}
+
+export function getRowStatus(row: ConsignmentRow, validationMap: ResultsValidationMap): ResultVisualStatus {
+  const fieldIssues = Object.values(validationMap.fieldIssuesByRow[row.id] ?? {}).flat();
+  if (fieldIssues.length > 0 || row.estado === 'error') return 'error';
+  if (row.estado === 'valid') return 'valid';
+  return 'neutral';
+}
+
+export function getImageStatus(imageId: number, validationMap: ResultsValidationMap): ResultVisualStatus {
+  const issues = validationMap.imageIssuesById[imageId] ?? [];
+  if (issues.length > 0) return 'error';
+  return 'valid';
 }
 
 export function buildResultsValidationMap(rows: ConsignmentRow[]): ResultsValidationMap {
