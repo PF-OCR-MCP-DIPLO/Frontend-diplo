@@ -27,12 +27,12 @@ describe('settings.api', () => {
 
   it('PATCHes update payload as json', async () => {
     httpRequestMock.mockResolvedValueOnce({ ocr_mode: 'vision' });
-    const payload: Record<string, unknown> = { ocr_mode: 'auto' };
+    const payload: Record<string, unknown> = { ocr_mode: 'auto', assistant_model: 'gemma4:e2b' };
     await updateProcessingSettings(payload);
     const [, init] = httpRequestMock.mock.calls[0];
     expect(httpRequestMock.mock.calls[0][0]).toBe('processing/settings/');
     expect(init).toMatchObject({ method: 'PATCH' });
     expect(init.headers).toMatchObject({ 'Content-Type': 'application/json' });
-    expect(init.body).toBe(JSON.stringify({ ocr_mode: 'auto' }));
+    expect(init.body).toBe(JSON.stringify({ ocr_mode: 'auto', assistant_model: 'gemma4:e2b' }));
   });
 });

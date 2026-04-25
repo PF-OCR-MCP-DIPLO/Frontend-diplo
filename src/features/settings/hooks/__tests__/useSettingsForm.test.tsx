@@ -27,8 +27,13 @@ const settingsResponse = {
   ocr_model: 'spa',
   llm_provider: 'openai',
   llm_model: 'gpt-4o-mini',
+  assistant_provider: 'ollama',
+  assistant_model: 'gemma4:e2b',
   has_ocr_api_key: true,
   has_llm_api_key: true,
+  has_assistant_api_key: false,
+  assistant_temperature: 0.4,
+  assistant_num_predict: 512,
   request_timeout_seconds: 30,
   updated_at: '2025-01-01T00:00:00Z',
 } as const;
@@ -39,19 +44,27 @@ const optionsResponse = {
     ocr: ['openai'],
     llm: ['openai'],
   },
-  provider_models: {
-    openai: {
-      ocr: ['gpt-4.1-mini'],
-      llm: ['gpt-4o-mini'],
+    provider_models: {
+      openai: {
+        ocr: ['gpt-4.1-mini'],
+        llm: ['gpt-4o-mini'],
+      },
+      ollama: {
+        ocr: [],
+        llm: [],
+      },
     },
-  },
-  provider_requirements: {
-    openai: {
-      operational: true,
-      requires_api_key: true,
+    provider_requirements: {
+      openai: {
+        operational: true,
+        requires_api_key: true,
+      },
+      ollama: {
+        operational: true,
+        requires_api_key: false,
+      },
     },
-  },
-} as const;
+  } as const;
 
 describe('useSettingsForm', () => {
   beforeEach(() => {
@@ -72,6 +85,7 @@ describe('useSettingsForm', () => {
     expect(result.current.loadError).toBeNull();
     expect(result.current.settings?.ocr_model).toBe('spa');
     expect(result.current.options?.ocr_modes).toEqual(['tesseract', 'vision', 'auto']);
+    expect(result.current.values?.assistant_model).toBe('gemma4:e2b');
   });
 
   it('allows reload after an initial failure', async () => {
@@ -91,5 +105,60 @@ describe('useSettingsForm', () => {
 
     expect(result.current.loadError).toBeNull();
     expect(result.current.settings?.llm_model).toBe('gpt-4o-mini');
+  });
+
+  it('falls back to manual assistant model input when ollama models are absent', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue({
+      ...optionsResponse,
+      provider_models: {
+        ...optionsResponse.provider_models,
+        ollama: {
+          ocr: [],
+          llm: [],
+        },
+      },
+    });
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.modelOptions.assistant).toContain('gemma4:e2b');
+  });
+
+  it('sends assistant fields on save and omits empty api keys', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    updateProcessingSettingsMock.mockResolvedValue({
+      ...settingsResponse,
+      assistant_model: 'llama3.2:3b',
+    });
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        assistant_model: 'llama3.2:3b',
+        assistant_api_key: '',
+      });
+    });
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(updateProcessingSettingsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assistant_model: 'llama3.2:3b',
+        assistant_provider: 'ollama',
+        assistant_temperature: 0.4,
+        assistant_num_predict: 512,
+      }),
+    );
+    const payload = updateProcessingSettingsMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty('assistant_api_key');
   });
 });

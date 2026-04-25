@@ -101,6 +101,6 @@ describe('ResultsView', () => {
 
     expect(screen.getByText('Asistente de revision')).toBeInTheDocument();
     expect(screen.getByText('Hola! ¿En que puedo ayudarte?')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Pregunta por un hallazgo o job')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escribe sobre este job o pregunta por la configuración...')).toBeInTheDocument();
   });
 });

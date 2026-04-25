@@ -9,7 +9,7 @@ type SettingsFormMock = {
   settings: unknown | null;
   options: unknown | null;
   values: unknown | null;
-  modelOptions: { ocr: unknown[]; llm: unknown[] };
+  modelOptions: { ocr: unknown[]; llm: unknown[]; assistant: unknown[] };
   setValues: (next: unknown) => void;
   reload: () => void | Promise<void>;
   save: () => void | Promise<void>;
@@ -34,7 +34,7 @@ describe('SettingsPage', () => {
       settings: { ocr_mode: 'vision' },
       options: { ocr_modes: ['vision'] },
       values: { ocr_mode: 'vision' },
-      modelOptions: { ocr: [], llm: [] },
+      modelOptions: { ocr: [], llm: [], assistant: [] },
       setValues: vi.fn(),
       reload: vi.fn(),
       save: vi.fn(),

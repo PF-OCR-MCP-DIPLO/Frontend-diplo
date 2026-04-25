@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AssistantSettingsSection } from '@/features/settings/components/sections/AssistantSettingsSection';
 import { LlmSettingsSection } from '@/features/settings/components/sections/LlmSettingsSection';
 import { OcrSettingsSection } from '@/features/settings/components/sections/OcrSettingsSection';
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
@@ -12,7 +13,7 @@ interface SettingsFormProps {
   onChange: (values: SettingsFormValues) => void;
   onSave: () => void;
   isSaving: boolean;
-  modelOptions: { ocr: string[]; llm: string[] };
+  modelOptions: { ocr: string[]; llm: string[]; assistant: string[] };
 }
 
 export function SettingsForm({ settings, options, values, onChange, onSave, isSaving, modelOptions }: SettingsFormProps) {
@@ -43,6 +44,14 @@ export function SettingsForm({ settings, options, values, onChange, onSave, isSa
           options={options}
           values={values}
           modelOptions={modelOptions.llm}
+          onChange={onChange}
+        />
+
+        <AssistantSettingsSection
+          settings={settings}
+          options={options}
+          values={values}
+          modelOptions={modelOptions.assistant}
           onChange={onChange}
         />
       </div>
