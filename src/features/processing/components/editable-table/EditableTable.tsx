@@ -4,15 +4,18 @@ import { useEditableTable } from '@/features/processing/hooks/useEditableTable';
 import { ConsignmentTableHeader } from '@/features/processing/components/editable-table/ConsignmentTableHeader';
 import { EditableCell } from '@/features/processing/components/editable-table/EditableCell';
 import { StatusCell } from '@/features/processing/components/editable-table/StatusCell';
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
+import { getRowFieldIssues } from '@/features/processing/components/results/results-validation';
+import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';
+import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 
 interface EditableTableProps {
   data: ConsignmentRow[];
+  validationMap: ResultsValidationMap;
   onDataChange: (data: ConsignmentRow[]) => void;
   onRowClick?: (row: ConsignmentRow) => void;
 }
 
-const columns: Array<{ key: keyof ConsignmentRow; label: string; className?: string; editable?: boolean }> = [
+const columns: Array<{ key: ResultFieldKey; label: string; className?: string; editable?: boolean }> = [
   { key: 'fecha', label: 'Fecha', className: 'w-[120px]' },
   { key: 'hora', label: 'Hora', className: 'w-[100px]' },
   { key: 'monto', label: 'Monto', className: 'w-[140px]' },
@@ -20,7 +23,7 @@ const columns: Array<{ key: keyof ConsignmentRow; label: string; className?: str
   { key: 'sourceName', label: 'Archivo origen', className: 'w-[160px]', editable: false },
 ];
 
-export function EditableTable({ data, onDataChange, onRowClick }: EditableTableProps) {
+export function EditableTable({ data, validationMap, onDataChange, onRowClick }: EditableTableProps) {
   const table = useEditableTable(data, onDataChange);
 
   return (
@@ -45,6 +48,7 @@ export function EditableTable({ data, onDataChange, onRowClick }: EditableTableP
                       row={row}
                       field={column.key}
                       editable={column.editable !== false}
+                      issues={getRowFieldIssues(validationMap, row.id, column.key, row)}
                       isEditing={table.editingCell?.rowId === row.id && table.editingCell?.field === column.key}
                       onEdit={table.startEditing}
                       onChange={table.updateCell}

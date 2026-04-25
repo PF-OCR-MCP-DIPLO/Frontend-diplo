@@ -1,5 +1,4 @@
 import { SidebarBody } from "./SidebarBody";
-import { SidebarFooter } from "./SidebarFooter";
 import { SidebarHeader } from "./SidebarHeader";
 
 
@@ -16,7 +15,7 @@ export function SidebarDesktop({
     <aside
       className={`sticky top-0 hidden border-r border-sidebar-border bg-sidebar/92 backdrop-blur-xl lg:flex lg:flex-col ${
         collapsed ? 'lg:w-24' : 'lg:w-80'
-      } h-screen overflow-y-auto`} //
+      } h-screen overflow-y-auto`}
     >
       <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
 

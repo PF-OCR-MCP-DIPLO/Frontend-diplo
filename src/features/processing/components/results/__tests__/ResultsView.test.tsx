@@ -71,7 +71,7 @@ describe('ResultsView', () => {
   it('renders the current result table, findings and primary actions', () => {
     renderResultsView();
 
-    expect(screen.getByText('consignaciones.docx')).toBeInTheDocument();
+    expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /Procesar de nuevo/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Actualizar/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Generar Excel/i })).toBeInTheDocument();
@@ -80,7 +80,7 @@ describe('ResultsView', () => {
     expect(screen.getAllByText('REF-001').length).toBeGreaterThan(0);
     expect(screen.getByText('Hay hallazgos por revisar')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /1 hallazgo/i }));
-    expect(screen.getByText(/La fecha no corresponde al mes actual/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/La fecha no corresponde al mes actual/i).length).toBeGreaterThan(0);
   });
 
   it('shows the document preview when switching the main workspace view', () => {

@@ -9,7 +9,9 @@ import { ResultsIssuesPanel } from '@/features/processing/components/results/Res
 import { ResultsLogsDialog } from '@/features/processing/components/results/ResultsLogsDialog';
 import { ResultsSummary } from '@/features/processing/components/results/ResultsSummary';
 import { ResultsToolsPanel } from '@/features/processing/components/results/ResultsToolsPanel';
+import { buildResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import { ResultsWorkspace, type ResultsPrimaryView } from '@/features/processing/components/results/ResultsWorkspace';
+import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
 import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus } from '@/features/processing/types/processing.types';
 
@@ -39,6 +41,12 @@ export function ResultsView(props: ResultsViewProps) {
   const [primaryView, setPrimaryView] = useState<ResultsPrimaryView>('table');
   const [showIssues, setShowIssues] = useState(props.errorMessage.length > 0 || props.initialData.some((row) => row.estado === 'error'));
   const [showTools, setShowTools] = useState(false);
+  const validationMap = buildResultsValidationMap(viewState.data);
+  const autosave = useResultsAutosave({
+    jobId: props.jobId,
+    enabled: !props.isProcessing && props.status !== 'processing',
+    onSaved: () => viewState.markSaved(),
+  });
   const canExport = (props.status === 'completed' || props.status === 'completed_with_errors' || Boolean(props.excelUrl)) && !viewState.hasUnsavedChanges;
   const canSaveCorrections = !props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges;
 
@@ -63,6 +71,11 @@ export function ResultsView(props: ResultsViewProps) {
       .onSaveCorrections(viewState.data)
       .then(() => viewState.markSaved())
       .catch(() => undefined);
+  }
+
+  function handleDataChange(nextData: ConsignmentRow[]) {
+    viewState.setData(nextData);
+    autosave.scheduleSave(nextData);
   }
 
   return (
@@ -99,17 +112,20 @@ export function ResultsView(props: ResultsViewProps) {
         fileName={props.fileName}
         sourceDocxUrl={props.sourceDocxUrl}
         sourceImages={props.sourceImages}
-        onDataChange={viewState.setData}
+        validationMap={validationMap}
+        onDataChange={handleDataChange}
         onRowFocus={handleFocusRow}
         onOpenImage={(image) => viewState.setExpandedImage({ url: image.url, name: image.name })}
       />
 
-      <ResultsCorrectionsPanel
-        hasUnsavedChanges={viewState.hasUnsavedChanges}
-        canSaveCorrections={canSaveCorrections}
-        isSavingCorrections={props.isSavingCorrections}
-        onSaveCorrections={handleSaveCorrections}
-      />
+        <ResultsCorrectionsPanel
+          hasUnsavedChanges={viewState.hasUnsavedChanges}
+          canSaveCorrections={canSaveCorrections}
+          isSavingCorrections={props.isSavingCorrections}
+          autosave={autosave.autosave}
+          onSaveCorrections={handleSaveCorrections}
+          onRetryAutosave={autosave.retry}
+        />
 
       <div className='grid gap-4 xl:grid-cols-2'>
         <ResultsIssuesPanel

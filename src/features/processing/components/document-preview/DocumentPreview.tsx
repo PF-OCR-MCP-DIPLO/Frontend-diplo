@@ -4,16 +4,18 @@ import { Card } from '@/components/ui/card';
 import { DocumentImageViewer } from '@/features/processing/components/document-preview/DocumentImageViewer';
 import { DocumentPreviewToolbar } from '@/features/processing/components/document-preview/DocumentPreviewToolbar';
 import { ImageNavigator } from '@/features/processing/components/document-preview/ImageNavigator';
+import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import type { PreviewImage } from '@/features/processing/types/processing.types';
 
 interface DocumentPreviewProps {
   sourceDocxUrl: string;
   fileName: string;
   images: PreviewImage[];
+  validationMap: ResultsValidationMap;
   onOpenImage: (image: PreviewImage) => void;
 }
 
-export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }: DocumentPreviewProps) {
+export function DocumentPreview({ sourceDocxUrl, fileName, images, validationMap, onOpenImage }: DocumentPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -23,6 +25,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
   }, [currentIndex, images.length]);
 
   const currentImage = images[safeIndex];
+  const currentImageIssues = currentImage ? validationMap.imageIssuesById[currentImage.id] ?? [] : [];
 
   return (
     <Card className='frame-card'>
@@ -46,10 +49,10 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
       {!collapsed ? (
         <div className='flex-1 overflow-auto bg-[linear-gradient(180deg,rgba(249,251,253,1),rgba(242,246,250,0.9))] p-5'>
           <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-            <div>
-              <p className='text-sm font-medium text-surface-foreground'>Documento fuente</p>
-              <p className='text-sm text-muted-foreground'>{fileName}</p>
-            </div>
+          <div>
+            <p className='text-sm font-medium text-surface-foreground'>Documento fuente</p>
+            <p className='text-sm text-muted-foreground'>{fileName}</p>
+          </div>
             <ImageNavigator
               currentIndex={safeIndex}
               total={images.length}
@@ -57,7 +60,7 @@ export function DocumentPreview({ sourceDocxUrl, fileName, images, onOpenImage }
               onNext={() => setCurrentIndex((index) => Math.min(images.length - 1, index + 1))}
             />
           </div>
-          <DocumentImageViewer image={currentImage} fileName={fileName} onOpenImage={onOpenImage} />
+          <DocumentImageViewer image={currentImage} issues={currentImageIssues} fileName={fileName} onOpenImage={onOpenImage} />
         </div>
       ) : null}
     </Card>

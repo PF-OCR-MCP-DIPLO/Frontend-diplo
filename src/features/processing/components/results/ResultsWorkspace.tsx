@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ResultsDataPanel } from '@/features/processing/components/results/ResultsDataPanel';
 import { ResultsPreviewPanel } from '@/features/processing/components/results/ResultsPreviewPanel';
+import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
 
 export type ResultsPrimaryView = 'table' | 'preview';
@@ -12,6 +13,7 @@ interface ResultsWorkspaceProps {
   fileName: string;
   sourceDocxUrl: string;
   sourceImages: PreviewImage[];
+  validationMap: ResultsValidationMap;
   onDataChange: (data: ConsignmentRow[]) => void;
   onRowFocus: (rowId: string) => void;
   onOpenImage: (image: PreviewImage) => void;
@@ -24,6 +26,7 @@ export function ResultsWorkspace({
   fileName,
   sourceDocxUrl,
   sourceImages,
+  validationMap,
   onDataChange,
   onRowFocus,
   onOpenImage,
@@ -54,17 +57,19 @@ export function ResultsWorkspace({
           </Button>
         </div>
       </div>
-      <div className='pt-4'>
-        {primaryView === 'table' ? (
-          <ResultsDataPanel data={data} onDataChange={onDataChange} onRowFocus={onRowFocus} />
-        ) : (
+      <div className='grid gap-4 pt-4 xl:grid-cols-[1.25fr_0.95fr] xl:items-start'>
+        <div className={primaryView === 'preview' ? 'xl:order-2' : ''}>
+          <ResultsDataPanel data={data} validationMap={validationMap} onDataChange={onDataChange} onRowFocus={onRowFocus} />
+        </div>
+        <div className={primaryView === 'table' ? 'xl:order-2' : ''}>
           <ResultsPreviewPanel
             fileName={fileName}
             sourceDocxUrl={sourceDocxUrl}
             sourceImages={sourceImages}
+            validationMap={validationMap}
             onOpenImage={onOpenImage}
           />
-        )}
+        </div>
       </div>
     </section>
   );
