@@ -1,7 +1,5 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock, FileSearch, FileUp, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppShellContext } from '@/app/layouts/AppShell';
-import { AssistantComposer } from '@/components/shared/AssistantComposer';
 import { MetricCard } from '@/components/shared/MetricCard';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatePanel } from '@/components/shared/StatePanel';
@@ -12,7 +10,6 @@ import { useOpenResult } from '@/features/processing/hooks/useOpenResult';
 import { useProcessingActionsContext, useProcessingHistoryContext } from '@/features/processing/hooks/useProcessingContext';
 
 export function DashboardPage() {
-  const { showAssistant, setShowAssistant } = useAppShellContext();
   const navigate = useNavigate();
   const openResult = useOpenResult();
   const { refreshHistory } = useProcessingActionsContext();
@@ -22,7 +19,6 @@ export function DashboardPage() {
   const pendingRuns = processedFiles.filter((file) => file.status === 'uploaded' || file.status === 'processing').length;
   const runsWithObservations = processedFiles.filter((file) => file.status === 'completed_with_errors' || file.status === 'failed').length;
   const latestRun = processedFiles[0];
-  const recentJobId = latestRun?.id ? Number(latestRun.id) : null;
 
   const kpiCards = [
     {
@@ -182,8 +178,6 @@ export function DashboardPage() {
           </div>
         )}
       </Card>
-
-      <AssistantComposer open={showAssistant} errors={0} jobId={recentJobId} onClose={() => setShowAssistant(false)} />
     </div>
   );
 }

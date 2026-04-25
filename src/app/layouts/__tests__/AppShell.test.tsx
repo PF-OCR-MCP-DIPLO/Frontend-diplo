@@ -21,6 +21,6 @@ describe('AppShell', () => {
     expect(screen.getByLabelText('Resultados')).toBeInTheDocument();
     expect(screen.getByLabelText('Historial')).toBeInTheDocument();
     expect(screen.getByLabelText('Configuracion')).toBeInTheDocument();
+    expect(screen.queryByText('Ventana flotante persistente')).not.toBeInTheDocument();
   });
 });
-
