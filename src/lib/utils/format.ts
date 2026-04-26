@@ -1,3 +1,6 @@
+/**
+ * Formatea valores usados en la UI de resultados y métricas.
+ */
 export function formatCurrency(value: string | number) {
   const numeric = Number(value);
   if (Number.isNaN(numeric)) {

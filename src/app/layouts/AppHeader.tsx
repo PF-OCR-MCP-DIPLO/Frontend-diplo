@@ -1,3 +1,13 @@
+/**
+ * Encabezado superior persistente de la aplicación.
+ *
+ * Muestra el contexto de navegación actual y concentra la acción de acceso
+ * rápido a configuración desde cualquier pantalla.
+ *
+ * @remarks
+ * El estado visual del botón de configuración depende de la ruta activa para
+ * reforzar la ubicación actual del usuario.
+ */
 import { Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavigationItem } from "@/types/navigation";

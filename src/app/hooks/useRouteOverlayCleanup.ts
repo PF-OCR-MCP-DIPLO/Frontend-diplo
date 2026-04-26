@@ -1,3 +1,13 @@
+/**
+ * Registra limpiezas globales que deben correr al cambiar de ruta.
+ *
+ * Este mecanismo evita dejar abiertos overlays, paneles o listeners
+ * pertenecientes a una pantalla anterior.
+ *
+ * @remarks
+ * La limpieza es best-effort: un error en un handler no debe impedir que los
+ * demás se ejecuten.
+ */
 import { useEffect } from 'react';
 
 type CleanupFn = () => void;

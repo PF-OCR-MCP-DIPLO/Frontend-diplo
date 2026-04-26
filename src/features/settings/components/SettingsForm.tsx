@@ -1,3 +1,9 @@
+/**
+ * Coordina el formulario principal de configuración.
+ *
+ * Agrupa proveedores OCR/LLM/asistente y criterios de extracción para que la
+ * pantalla persista un único contrato con el backend.
+ */
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AssistantSettingsSection } from '@/features/settings/components/sections/AssistantSettingsSection';

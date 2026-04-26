@@ -1,22 +1,26 @@
-# Front-PRY
+# Frontend-diplo
 
-Interfaz frontend en React para el **Procesador de Consignaciones**, basada en el diseño de Figma.
+Frontend React + TypeScript + Vite para el procesador de consignaciones.
 
-## Requisitos
+## Ruta canónica
 
-- Node.js 18+
+- [Inicio de documentación](docs/index.md)
+- [Arquitectura](docs/architecture/overview.md)
+- [Integración frontend-backend](docs/integration/frontend-backend.md)
+- [Testing](docs/TESTING.md)
+- [Deployment](docs/deployment.md)
+- [Mantenimiento de docs](docs/DOCS_MAINTENANCE.md)
 
-## Ejecutar en desarrollo
+## Uso rápido
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Build de producción
+## Documentación
 
-```bash
-npm run build
-npm run preview
-```
-# Frontend-diplo
+- La documentación canónica vive en `docs/`.
+- La documentación heredada se conserva en `docs/archive/` y en los documentos
+  marcados como históricos en la navegación.
+- La validación local de docs usa `mkdocs build --strict`.

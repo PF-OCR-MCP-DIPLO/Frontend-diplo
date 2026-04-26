@@ -1,3 +1,9 @@
+/**
+ * Abre el asistente desde settings preservando el contexto actual.
+ *
+ * La intención es transportar la configuración o la pregunta inicial a la
+ * pantalla del asistente sin perder el punto de entrada.
+ */
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 
 const SETTINGS_ASSISTANT_KEY = 'assistant_settings_context_v1';

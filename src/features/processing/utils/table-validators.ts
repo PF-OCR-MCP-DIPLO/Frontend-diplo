@@ -1,3 +1,9 @@
+/**
+ * Valida filas editables antes de persistirlas o exportarlas.
+ *
+ * La validación en frontend complementa al backend para mostrar errores
+ * inmediatos sin reemplazar la verificación final del servidor.
+ */
 import type { ConsignmentRow, RowStatus } from '@/features/processing/types/processing.types';
 import { isValidCurrencyInput } from '@/features/processing/utils/table-formatters';
 

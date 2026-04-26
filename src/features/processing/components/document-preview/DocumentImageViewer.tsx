@@ -1,3 +1,9 @@
+/**
+ * Muestra una imagen extraída del DOCX junto con sus hallazgos.
+ *
+ * El visor sirve como referencia visual para contrastar el OCR y ubicar la
+ * fila o celda que se está revisando.
+ */
 import { Expand, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { FieldValidationIssue } from '@/features/processing/components/results/results-validation';

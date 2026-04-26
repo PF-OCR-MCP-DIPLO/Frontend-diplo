@@ -1,3 +1,8 @@
+/**
+ * Agrupa acciones rápidas de la vista previa documental.
+ *
+ * Permite colapsar el panel y abrir el archivo fuente sin salir de la vista.
+ */
 import { ExternalLink, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

@@ -1,3 +1,9 @@
+/**
+ * Permite cambiar el alcance del contexto que se enviará al asistente.
+ *
+ * El selector ayuda a acotar la conversación a job, fila, celda, imagen o
+ * hallazgos visibles sin reconstruir contexto manualmente.
+ */
 import { Button } from '@/components/ui/button';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';

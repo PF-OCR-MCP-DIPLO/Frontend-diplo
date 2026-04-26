@@ -1,3 +1,13 @@
+/**
+ * Define el mapa de pantallas de primer nivel de la SPA.
+ *
+ * Mantiene las rutas visibles de negocio en un único lugar para que el
+ * layout global pueda envolverlas sin conocer detalles de cada página.
+ *
+ * @remarks
+ * La ruta comodín redirige al dashboard para evitar pantallas vacías cuando
+ * el usuario entra por una URL antigua o mal escrita.
+ */
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { UploadPage } from '@/pages/upload/UploadPage';
@@ -6,6 +16,9 @@ import { HistoryPage } from '@/pages/history/HistoryPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { AssistantPage } from '@/pages/assistant/AssistantPage';
 
+/**
+ * Renderiza el árbol de rutas públicas de la aplicación.
+ */
 export function AppRoutes() {
   return (
     <Routes>

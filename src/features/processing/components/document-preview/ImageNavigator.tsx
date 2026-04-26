@@ -1,3 +1,9 @@
+/**
+ * Navega entre las imágenes extraídas del documento.
+ *
+ * Evita salir del contexto de la vista previa cuando un DOCX contiene varias
+ * capturas o páginas relevantes.
+ */
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

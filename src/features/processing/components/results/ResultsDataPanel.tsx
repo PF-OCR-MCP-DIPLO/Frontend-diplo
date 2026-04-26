@@ -1,3 +1,9 @@
+/**
+ * Enlaza la tabla editable con la vista de resultados.
+ *
+ * Este panel mantiene aislada la composición de la tabla para que la vista
+ * principal solo orqueste estado y acciones de mayor nivel.
+ */
 import { EditableTable } from '@/features/processing/components/editable-table/EditableTable';
 import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
 import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';

@@ -1,3 +1,9 @@
+/**
+ * Define el contexto que viaja entre la UI y el asistente.
+ *
+ * Este contrato describe qué parte de la pantalla o del job debe priorizar el
+ * backend al construir la respuesta del chat.
+ */
 export type AssistantPageContext =
   | 'dashboard'
   | 'upload'

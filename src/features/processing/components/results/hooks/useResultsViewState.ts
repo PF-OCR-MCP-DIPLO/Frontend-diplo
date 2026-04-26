@@ -1,3 +1,9 @@
+/**
+ * Administra el estado visual y derivado de la pantalla de resultados.
+ *
+ * Mantiene selección, logs, foco de imágenes y conteos sin acoplar la vista a
+ * detalles del backend.
+ */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getJobLogs } from '@/features/processing/api/processing.api';
 import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
@@ -32,6 +38,8 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
   }
 
   function handleErrorClick(rowId: string, field?: string) {
+    // El scroll alinea la fila afectada con el panel lateral para facilitar la
+    // corrección manual desde la tabla.
     setSelectedRowId(rowId);
     setSelectedField(field ?? null);
     const element = document.getElementById(rowId);

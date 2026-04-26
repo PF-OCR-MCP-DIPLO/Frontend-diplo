@@ -1,3 +1,13 @@
+/**
+ * Marco visual persistente de la aplicación.
+ *
+ * Controla la navegación lateral, el estado de colapso del sidebar y el cierre
+ * de overlays al cambiar de ruta para evitar estados huérfanos en pantalla.
+ *
+ * @remarks
+ * La limpieza explícita de overlays evita que modales, paneles o menús queden
+ * abiertos después de navegar a otra pantalla.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -7,6 +17,9 @@ import { SidebarMobile } from '@/components/shared/sidebar/SidebarMobile';
 import { AppViewport } from './AppViewport';
 import { runRouteOverlayCleanups } from '@/app/hooks/useRouteOverlayCleanup';
 
+/**
+ * Ensambla el shell de navegación y el viewport principal.
+ */
 export function AppShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -1,3 +1,13 @@
+/**
+ * Cliente HTTP compartido para la API Django.
+ *
+ * Centraliza la resolución de URLs, la inyección opcional de `X-API-Key` y la
+ * normalización de errores para que los feature clients no repitan lógica.
+ *
+ * @remarks
+ * El cliente intenta extraer mensajes útiles de distintos formatos de error
+ * porque el backend mantiene compatibilidad con varios sobres de respuesta.
+ */
 export class HttpError extends Error {
   status: number;
   code?: string;
@@ -17,6 +27,12 @@ const apiKey = import.meta.env.VITE_API_KEY ?? '';
 const apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
 const backendBaseUrl = apiBaseUrl.replace(/\/api$/, '');
 
+/**
+ * Resuelve una ruta de media o asset del backend a una URL navegable desde el frontend.
+ *
+ * @param path - Ruta absoluta o relativa devuelta por Django.
+ * @returns URL completa o cadena vacía cuando no hay valor útil.
+ */
 export function resolveAssetUrl(path?: string | null) {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) {
@@ -35,6 +51,12 @@ function buildApiUrl(path: string) {
   return `${apiBaseUrl}/${path.replace(/^\//, '')}`;
 }
 
+/**
+ * Extrae el mensaje más accionable posible desde una respuesta fallida.
+ *
+ * @param response - Respuesta HTTP no satisfactoria.
+ * @returns Mensaje legible para la interfaz.
+ */
 async function extractErrorMessage(response: Response) {
   let message = `Error ${response.status}`;
 
@@ -82,6 +104,17 @@ async function extractErrorMessage(response: Response) {
   return message;
 }
 
+/**
+ * Ejecuta una petición HTTP contra la API Django.
+ *
+ * @param path - Ruta relativa o absoluta de la API.
+ * @param init - Opciones estándar de `fetch`.
+ * @returns Datos tipados cuando la respuesta es JSON o `undefined` en 204.
+ *
+ * @remarks
+ * El helper inyecta `X-API-Key` cuando existe en el entorno y convierte los
+ * fallos no exitosos en `HttpError`.
+ */
 export async function httpRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (apiKey) {

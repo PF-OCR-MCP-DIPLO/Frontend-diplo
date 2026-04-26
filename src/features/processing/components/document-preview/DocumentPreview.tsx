@@ -1,3 +1,9 @@
+/**
+ * Renderiza la vista previa del documento fuente y sus imágenes extraídas.
+ *
+ * La vista previa permite comparar el documento original con los resultados
+ * estructurados para orientar correcciones y reprocesos.
+ */
 import { FileText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';

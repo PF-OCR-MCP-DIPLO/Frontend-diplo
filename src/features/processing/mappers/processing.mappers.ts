@@ -1,7 +1,15 @@
+/**
+ * Convierte respuestas del backend a estructuras consumibles por la UI.
+ *
+ * Los mappers concentran la normalización de estados, errores y rutas de media
+ * para que las pantallas no repitan reglas de transformación.
+ */
 import type { ApiJobDetail, ApiJobListItem } from '@/features/processing/types/processing.api';
 import type { ConsignmentRow, PreviewImage, ProcessedFile, RowStatus } from '@/features/processing/types/processing.types';
 
 function resolveRowStatus(hasImageError: boolean, hasObservations: boolean): RowStatus {
+  // La fila se marca en error si su imagen fuente falló o si el depósito ya
+  // trae observaciones que requieren revisión manual.
   return hasImageError || hasObservations ? 'error' : 'valid';
 }
 

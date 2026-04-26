@@ -1,3 +1,9 @@
+/**
+ * Contexto compartido del chat del asistente.
+ *
+ * Persiste mensajes, contexto de consulta e input actual para que la interfaz
+ * del asistente mantenga continuidad entre rutas y recargas.
+ */
 import {
   createContext,
   useContext,
@@ -46,6 +52,8 @@ const initialMessages: AssistantChatMessage[] = [
 const AssistantChatContext = createContext<AssistantChatContextValue | null>(null);
 
 function stableStringify(value: unknown): string {
+  // La serialización estable evita re-renderizaciones falsas al comparar
+  // contextos anidados con el mismo contenido pero distinto orden de claves.
   if (value === null || typeof value !== 'object') {
     return JSON.stringify(value);
   }

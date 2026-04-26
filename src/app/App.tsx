@@ -1,3 +1,9 @@
+/**
+ * Punto de composición principal de la aplicación React.
+ *
+ * Ensambla proveedores globales, captura errores de render y delega el
+ * enrutamiento a la capa de rutas de la aplicación.
+ */
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/app/layouts/AppShell';
 import { AppProviders } from '@/app/providers/AppProviders';

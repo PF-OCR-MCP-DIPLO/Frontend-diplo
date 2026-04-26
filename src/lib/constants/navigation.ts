@@ -1,3 +1,6 @@
+/**
+ * Navegación principal visible en el shell de la aplicación.
+ */
 import { BarChart3, FileUp, History, LayoutDashboard, MessageSquare, Settings } from 'lucide-react';
 import type { NavigationItem } from '@/types/navigation';
 

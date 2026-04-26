@@ -1,3 +1,9 @@
+/**
+ * Gestiona el autosave de correcciones en la vista de resultados.
+ *
+ * El hook difiere la persistencia para evitar golpear el backend en cada tecla
+ * y mantiene estados de guardado que la UI puede mostrar de forma explícita.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { saveJobCorrections } from '@/features/processing/api/processing.api';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';
@@ -27,6 +33,8 @@ interface UseResultsAutosaveParams {
 }
 
 function buildPayload(rows: ConsignmentRow[]) {
+  // El payload se normaliza antes de salir de la UI para respetar el contrato
+  // de corrección parcial esperado por la API.
   return {
     items: rows.map((row) => ({
       id: row.depositId,
@@ -39,6 +47,8 @@ function buildPayload(rows: ConsignmentRow[]) {
 }
 
 function normalizeError(error: unknown) {
+  // La UI necesita un mensaje compacto para indicar si el autosave puede
+  // reintentarse o si el fallo proviene de red o validación.
   return error instanceof Error ? error.message : 'No se pudieron guardar los cambios';
 }
 

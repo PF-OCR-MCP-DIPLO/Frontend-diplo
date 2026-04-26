@@ -1,3 +1,9 @@
+/**
+ * Despacha el contenido lateral de resultados según el panel activo.
+ *
+ * Este componente une errores, logs, detalle de campo y preview del documento
+ * en un único contenedor acoplado al layout.
+ */
 import { ResultsDockPanel } from '@/features/processing/components/results/ResultsDockPanel';
 import { ResultsErrorPanel } from '@/features/processing/components/results/ResultsErrorPanel';
 import { ResultsFieldDetailContent } from '@/features/processing/components/results/ResultsFieldDetailPanel';

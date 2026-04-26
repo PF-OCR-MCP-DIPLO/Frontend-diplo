@@ -1,3 +1,19 @@
+/**
+ * Clientes API del flujo de procesamiento.
+ *
+ * Este módulo traduce respuestas del backend a formas más estables para la UI
+ * y resuelve rutas relativas de archivos servidos por Django.
+ *
+ * @remarks
+ * La normalización vive aquí para evitar que las pantallas tengan que conocer
+ * cómo Django representa rutas de media, campos opcionales o colecciones vacías.
+ */
+/**
+ * Clientes API del flujo de procesamiento.
+ *
+ * Este módulo traduce respuestas del backend a formas estables para la UI y
+ * resuelve rutas relativas de archivos servidos por Django.
+ */
 import { httpRequest, resolveAssetUrl } from '@/services/http/client';
 import type {
   ApiBulkDepositCorrectionPayload,
@@ -10,6 +26,16 @@ import type {
   ApiSourceImage,
 } from '@/features/processing/types/processing.api';
 
+/**
+ * Normaliza los depósitos asociados a una imagen fuente.
+ *
+ * @param deposits - Depósitos posiblemente parciales devueltos por la API.
+ * @returns Lista homogénea para renderizado y edición.
+ *
+ * @remarks
+ * Convierte `null`/`undefined` en listas vacías y asegura campos de texto
+ * presentes para que la UI no tenga que hacer defensas repetidas.
+ */
 function normalizeDeposits(deposits: ApiSourceImage['deposits'] | null | undefined): ApiExtractedDeposit[] {
   return (Array.isArray(deposits) ? deposits : []).map((deposit) => ({
     ...deposit,
@@ -22,6 +48,12 @@ function normalizeDeposits(deposits: ApiSourceImage['deposits'] | null | undefin
   }));
 }
 
+/**
+ * Normaliza las imágenes fuente de una corrida.
+ *
+ * @param images - Fuente parcial o incompleta proveniente del backend.
+ * @returns Imágenes con rutas de media resueltas y campos básicos presentes.
+ */
 export function normalizeSourceImages(images: ApiJobDetail['source_images'] | null | undefined): ApiSourceImage[] {
   return (Array.isArray(images) ? images : []).map((image) => ({
     ...image,
@@ -35,6 +67,12 @@ export function normalizeSourceImages(images: ApiJobDetail['source_images'] | nu
   }));
 }
 
+/**
+ * Normaliza un detalle de corrida para consumo de UI.
+ *
+ * @param job - Detalle parcial o completo devuelto por el backend.
+ * @returns Un objeto con la forma esperada por la capa visual.
+ */
 export function normalizeJobDetail(job: Partial<ApiJobDetail>): ApiJobDetail {
   return {
     ...job,
@@ -55,6 +93,12 @@ export function normalizeJobDetail(job: Partial<ApiJobDetail>): ApiJobDetail {
   };
 }
 
+/**
+ * Sube un DOCX para crear una corrida de procesamiento.
+ *
+ * @param file - Archivo DOCX seleccionado por el usuario.
+ * @returns Detalle normalizado de la corrida creada.
+ */
 export function uploadDocument(file: File) {
   const formData = new FormData();
   formData.append('file', file);
@@ -65,18 +109,37 @@ export function uploadDocument(file: File) {
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Solicita el procesamiento de una corrida existente.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Corrida normalizada luego de iniciar o completar el proceso.
+ */
 export function processJob(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/process/`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Elimina una corrida y sus artefactos asociados.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns `void` cuando la operación se completa sin error.
+ */
 export function deleteJob(jobId: number) {
   return httpRequest<void>(`jobs/${jobId}/`, {
     method: 'DELETE',
   });
 }
 
+/**
+ * Persiste correcciones manuales sobre varios depósitos.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @param payload - Payload de corrección inferido por uso del formulario.
+ * @returns Corrida normalizada con los cambios persistidos.
+ */
 export function saveJobCorrections(jobId: number, payload: ApiBulkDepositCorrectionPayload) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/deposits/`, {
     method: 'PATCH',
@@ -87,46 +150,101 @@ export function saveJobCorrections(jobId: number, payload: ApiBulkDepositCorrect
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Reprocesa el depósito asociado a una consignación.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @param depositId - Identificador del depósito.
+ * @returns Corrida normalizada luego del reproceso.
+ */
 export function reprocessDeposit(jobId: number, depositId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/deposits/${depositId}/reprocess/`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Reprocesa todas las fuentes que quedaron con error.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Corrida normalizada con el nuevo estado.
+ */
 export function reprocessFailed(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/reprocess-failed/`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Reprocesa una imagen fuente individual.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @param sourceImageId - Identificador de la imagen fuente.
+ * @returns Corrida normalizada con el nuevo estado.
+ */
 export function reprocessSourceImage(jobId: number, sourceImageId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/source-images/${sourceImageId}/reprocess/`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Obtiene una corrida por su identificador.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Detalle normalizado de la corrida.
+ */
 export function getJob(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/`).then(normalizeJobDetail);
 }
 
+/**
+ * Lista corridas disponibles para el historial.
+ *
+ * @returns Lista normalizada o vacía si el backend no devuelve un array.
+ */
 export function listJobs() {
   return httpRequest<ApiJobListItem[]>('jobs/').then((jobs) => Array.isArray(jobs) ? jobs : []);
 }
 
+/**
+ * Genera la exportación Excel de una corrida.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Detalle normalizado con la ruta del archivo exportado.
+ */
 export function exportJob(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/export/`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }
 
+/**
+ * Obtiene los logs de extracción de una corrida.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Lista de logs o lista vacía si la respuesta no es iterable.
+ */
 export function getJobLogs(jobId: number) {
   return httpRequest<ApiExtractionLog[]>(`jobs/${jobId}/logs/`).then((logs) => Array.isArray(logs) ? logs : []);
 }
 
+/**
+ * Obtiene el resumen de diagnóstico de una corrida.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Resumen de diagnóstico del backend.
+ */
 export function getJobDiagnostics(jobId: number) {
   return httpRequest<ApiJobDiagnostics>(`jobs/${jobId}/diagnostics/`);
 }
 
+/**
+ * Obtiene el estado de procesamiento resumido para polling ligero.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Estado resumido de procesamiento.
+ */
 export function getProcessingState(jobId: number) {
   return httpRequest<ApiProcessingState>(`jobs/${jobId}/processing-state/`);
 }

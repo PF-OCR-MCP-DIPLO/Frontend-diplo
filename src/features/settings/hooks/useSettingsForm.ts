@@ -1,3 +1,9 @@
+/**
+ * Encapsula la carga, edición y persistencia de la configuración.
+ *
+ * El hook coordina el estado del formulario, las opciones disponibles y los
+ * modelos detectados sin mezclar esta lógica con la UI.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getOllamaModels, getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';

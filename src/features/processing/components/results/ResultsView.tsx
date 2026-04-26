@@ -1,3 +1,13 @@
+/**
+ * Coordina la vista completa de resultados de procesamiento.
+ *
+ * Este componente conecta la tabla editable, los paneles laterales, la vista
+ * previa del documento y las acciones de reproceso/exportación.
+ *
+ * @remarks
+ * Mantiene la composición de UI separada de la persistencia y del polling
+ * para que la pantalla sea legible y testeable.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
@@ -138,6 +148,8 @@ export function ResultsView(props: ResultsViewProps) {
   useRouteOverlayCleanup(resetOverlays);
 
   function handleFocusRow(rowId: string) {
+    // La selección se sincroniza con el panel de hallazgos para mantener el
+    // foco visual en la fila afectada sin duplicar navegación de estado.
     openPanel('issues');
     window.setTimeout(() => {
       viewState.handleErrorClick(rowId);
@@ -177,6 +189,8 @@ export function ResultsView(props: ResultsViewProps) {
   }
 
   function handleDataChange(nextData: ConsignmentRow[]) {
+    // El autosave se dispara desde la edición local para evitar perder cambios
+    // si el usuario cambia de panel o navega antes de guardar manualmente.
     viewState.setData(nextData);
     autosave.scheduleSave(nextData);
   }

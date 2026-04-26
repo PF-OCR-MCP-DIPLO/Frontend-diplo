@@ -1,3 +1,9 @@
+/**
+ * Renderiza un panel lateral acoplado para detalles de resultados.
+ *
+ * Se usa para errores, logs, detalle de campo y vista previa sin romper el
+ * contexto de la pantalla principal.
+ */
 import { Minus, PanelRightClose, PanelRightOpen, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';

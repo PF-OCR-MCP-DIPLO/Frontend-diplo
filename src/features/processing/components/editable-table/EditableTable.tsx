@@ -1,3 +1,9 @@
+/**
+ * Renderiza la tabla editable de consignaciones.
+ *
+ * La tabla conecta validaciones, edición local, selección de fila y accesos al
+ * asistente para mantener el ciclo revisar -> corregir -> guardar.
+ */
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useEditableTable } from '@/features/processing/hooks/useEditableTable';
 import { EditableCell } from '@/features/processing/components/editable-table/EditableCell';
@@ -48,7 +54,7 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick, s
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-            <TableRow key={row.id} id={row.id} className={`cursor-pointer ${reprocessingDepositId === row.depositId ? 'opacity-70' : ''}`} onClick={() => onRowClick?.(row)}>
+              <TableRow key={row.id} id={row.id} className={`cursor-pointer ${reprocessingDepositId === row.depositId ? 'opacity-70' : ''}`} onClick={() => onRowClick?.(row)}>
                 {columns.map((column) => (
                   <TableCell key={column.key} className='py-2'>
                     <EditableCell

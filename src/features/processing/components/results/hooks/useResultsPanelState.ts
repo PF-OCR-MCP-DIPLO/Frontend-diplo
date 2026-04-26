@@ -1,3 +1,8 @@
+/**
+ * Encapsula el estado de paneles laterales de la pantalla de resultados.
+ *
+ * Solo coordina UI local; no conoce red ni persistencia.
+ */
 import { useCallback, useEffect, useState } from 'react';
 import type { ResultFieldKey } from '@/features/processing/types/processing.types';
 

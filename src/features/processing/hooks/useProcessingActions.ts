@@ -1,3 +1,13 @@
+/**
+ * Encapsula las operaciones de negocio de la pantalla de procesamiento.
+ *
+ * Concentra acceso a API, sincronización del historial, polling de corridas,
+ * exportación y persistencia de la ejecución activa en almacenamiento local.
+ *
+ * @remarks
+ * Este hook coordina varios efectos secundarios que la UI no debe repetir en
+ * cada componente: fetch, localStorage y reconciliación del resultado activo.
+ */
 import { useCallback, useMemo, useRef } from "react";
 import { HttpError } from "@/services/http/client";
 import {

@@ -1,3 +1,9 @@
+/**
+ * Configura el proveedor y modelo del asistente conversacional.
+ *
+ * Mantiene separado el perfil del asistente del perfil de extracción para que
+ * la UI no mezcle contratos diferentes.
+ */
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';

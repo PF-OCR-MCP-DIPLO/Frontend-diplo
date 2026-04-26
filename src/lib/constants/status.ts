@@ -1,3 +1,6 @@
+/**
+ * Etiquetas y estilos derivados para estados de jobs.
+ */
 export const statusLabel: Record<string, string> = {
   uploaded: 'Cargado',
   processing: 'Procesando',

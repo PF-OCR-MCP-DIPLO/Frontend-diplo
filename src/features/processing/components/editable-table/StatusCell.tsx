@@ -1,3 +1,9 @@
+/**
+ * Resume el estado visual de una fila de consignación.
+ *
+ * Usa la validación derivada para mostrar si la fila está válida, en error o
+ * aún sin señales suficientes para destacarla.
+ */
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ConsignmentRow } from '@/features/processing/types/processing.types';

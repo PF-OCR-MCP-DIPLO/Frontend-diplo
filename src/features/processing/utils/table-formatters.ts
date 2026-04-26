@@ -1,3 +1,6 @@
+/**
+ * Normaliza y valida entradas monetarias editadas en la tabla.
+ */
 export function parseCurrencyInput(value: string) {
   const normalized = value.replace(/[^\d.-]/g, '').trim();
   if (!normalized || normalized === '-' || normalized === '.' || normalized === '-.') {

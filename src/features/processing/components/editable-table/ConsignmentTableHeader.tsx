@@ -1,3 +1,9 @@
+/**
+ * Encabezado contextual de la tabla de consignaciones.
+ *
+ * Explica al usuario cuántos hallazgos siguen abiertos antes de editar o
+ * exportar el resultado.
+ */
 import { AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 

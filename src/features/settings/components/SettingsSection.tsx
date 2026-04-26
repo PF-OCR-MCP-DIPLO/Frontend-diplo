@@ -1,3 +1,9 @@
+/**
+ * Agrupa visualmente una sección del formulario de configuración.
+ *
+ * Sirve como contenedor semántico para dividir proveedores, criterios y
+ * parámetros del asistente sin repetir estructura.
+ */
 import type { ReactNode } from 'react';
 
 export function SettingsSection({

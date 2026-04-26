@@ -1,3 +1,9 @@
+/**
+ * Renderiza una celda editable con validación visual contextual.
+ *
+ * La celda alterna entre modo lectura y edición inline, preservando ayudas y
+ * sugerencias del sistema para guiar correcciones manuales.
+ */
 import { Input } from '@/components/ui/input';
 import { ContextualTooltip } from '@/components/shared/ContextualTooltip';
 import type { FieldValidationIssue, ResultsValidationMap } from '@/features/processing/components/results/results-validation';

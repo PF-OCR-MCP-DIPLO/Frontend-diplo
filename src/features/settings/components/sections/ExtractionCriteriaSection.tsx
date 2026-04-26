@@ -1,3 +1,9 @@
+/**
+ * Edita los criterios de extracción que el backend usa como contrato semántico.
+ *
+ * La sección permite definir campos, validaciones y orden sin abandonar la
+ * pantalla de configuración.
+ */
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +21,8 @@ interface ExtractionCriteriaSectionProps {
 const FIELD_TYPES: Array<ExtractionFieldCriterion['type']> = ['text', 'number', 'date', 'currency', 'boolean'];
 
 function buildRules(field: ExtractionFieldCriterion): ExtractionValidationRule[] {
+  // Las reglas se derivan del estado del campo para que el backend reciba un
+  // contrato coherente incluso si el usuario solo edita controles parciales.
   const rules: ExtractionValidationRule[] = [];
   if (field.required) {
     rules.push({ kind: 'required', message: `${field.label || field.key} es obligatorio.` });

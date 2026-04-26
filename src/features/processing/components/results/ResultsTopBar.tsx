@@ -1,3 +1,10 @@
+/**
+ * Muestra el estado resumido del job y sus acciones principales.
+ *
+ * Incluye estados de procesamiento, autosave, exportación, logs y apertura del
+ * asistente para que la pantalla de resultados concentre la navegación de alto
+ * nivel.
+ */
 import { Download, FileDown, MessageSquare, RefreshCw, ScrollText } from 'lucide-react';
 import type { ApiJobDiagnosticsSummary, ApiProcessingState } from '@/features/processing/types/processing.api';
 import type { ProcessingStatus } from '@/features/processing/types/processing.types';
@@ -32,6 +39,8 @@ interface ResultsTopBarProps {
 }
 
 function getPrimaryLabel(status: ProcessingStatus) {
+  // Los jobs cerrados permiten una nueva ejecución sin exponer una ruta
+  // separada para duplicar lógica de recuperación.
   return status === 'completed' || status === 'completed_with_errors' ? 'Procesar de nuevo' : 'Procesar';
 }
 

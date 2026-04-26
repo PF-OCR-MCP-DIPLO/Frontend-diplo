@@ -1,3 +1,13 @@
+/**
+ * Expone el estado y las acciones de procesamiento al resto de la SPA.
+ *
+ * El provider restaura historial, rehidrata la ejecución activa y mantiene
+ * separadas las vistas de historial, estado actual y flags de UI.
+ *
+ * @remarks
+ * La restauración desde `localStorage` permite retomar una corrida interrumpida
+ * sin obligar al usuario a navegar manualmente al detalle.
+ */
 import type { ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 import {
@@ -19,6 +29,8 @@ export function ProcessingProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function bootstrap() {
+      // Se carga primero el historial para reconstruir el índice de corridas
+      // antes de intentar rehidratar la ejecución activa guardada localmente.
       try {
         await refreshHistory();
         if (cancelled || typeof window === 'undefined') {

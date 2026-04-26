@@ -1,3 +1,9 @@
+/**
+ * Renderiza la conversación principal del asistente.
+ *
+ * La UI combina historial, sugerencias, estado de envío y contexto operativo
+ * para dialogar sobre un job, una fila o un hallazgo puntual.
+ */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bot,
@@ -211,13 +217,14 @@ export function AIChat({
   );
   const [showContext, setShowContext] = useState(false);
 
-  // 👇 Función para ajustar la altura del textarea dinámicamente
+  // El textarea crece hasta un máximo para evitar scroll interno agresivo y
+  // mantener visible el contexto del chat.
   const adjustTextareaHeight = () => {
     if (!textareaRef.current) return;
     const textarea = textareaRef.current;
     // Resetear altura para obtener el scrollHeight real
     textarea.style.height = "auto";
-    const maxHeight = 200; // Altura máxima en píxeles
+    const maxHeight = 200;
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
     textarea.style.height = `${newHeight}px`;
     // Mostrar scroll solo si el contenido supera la altura máxima
@@ -225,12 +232,10 @@ export function AIChat({
       textarea.scrollHeight > maxHeight ? "auto" : "hidden";
   };
 
-  // 👇 Ajustar la altura cada vez que cambia el texto
   useEffect(() => {
     adjustTextareaHeight();
   }, [input]);
 
-  // 👇 Ajustar al montar y al redimensionar la ventana (por si cambia el ancho)
   useEffect(() => {
     adjustTextareaHeight();
     window.addEventListener("resize", adjustTextareaHeight);

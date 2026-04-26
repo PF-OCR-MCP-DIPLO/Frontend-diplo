@@ -1,3 +1,9 @@
+/**
+ * Deriva el estado visual y los mensajes auxiliares de validación de resultados.
+ *
+ * Esta capa traduce errores crudos en señales que la UI puede mostrar en filas,
+ * celdas e imágenes sin duplicar heurísticas en componentes.
+ */
 import type { ConsignmentRow, ResultFieldKey, ResultRowId, ValidationSeverity } from '@/features/processing/types/processing.types';
 
 export type FieldValidationIssue = {
@@ -43,6 +49,8 @@ const FIELD_HINTS: Array<{ field: ResultFieldKey; patterns: RegExp[] }> = [
 ];
 
 function inferFieldFromMessage(message: string): ResultFieldKey | undefined {
+  // Inferimos el campo a partir del mensaje para mantener utilizable la
+  // validación incluso cuando el backend envía observaciones textuales.
   const normalized = message.toLowerCase();
   const matched = FIELD_HINTS.find(({ patterns }) => patterns.some((pattern) => pattern.test(normalized)));
   return matched?.field;
