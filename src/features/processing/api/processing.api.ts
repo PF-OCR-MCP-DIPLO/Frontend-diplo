@@ -91,6 +91,18 @@ export function reprocessDeposit(jobId: number, depositId: number) {
   }).then(normalizeJobDetail);
 }
 
+export function reprocessFailed(jobId: number) {
+  return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/reprocess-failed/`, {
+    method: 'POST',
+  }).then(normalizeJobDetail);
+}
+
+export function reprocessSourceImage(jobId: number, sourceImageId: number) {
+  return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/source-images/${sourceImageId}/reprocess/`, {
+    method: 'POST',
+  }).then(normalizeJobDetail);
+}
+
 export function getJob(jobId: number) {
   return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/`).then(normalizeJobDetail);
 }

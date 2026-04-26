@@ -17,7 +17,7 @@ import type { ConsignmentRow } from '@/features/processing/types/processing.type
 export function ResultsPage() {
   const navigate = useNavigate();
   const openAssistantWithContext = useOpenAssistantWithContext();
-  const { runProcessing, refreshJob, exportCurrentJob, saveCurrentCorrections } = useProcessingActionsContext();
+  const { runProcessing, reprocessFailedJob, refreshJob, exportCurrentJob, saveCurrentCorrections } = useProcessingActionsContext();
   const { currentResults } = useProcessingCurrentResultContext();
   const { isProcessing, isRefreshing, isExporting, isSavingCorrections } = useProcessingFlagsContext();
 
@@ -38,6 +38,15 @@ export function ResultsPage() {
       toast.error(error instanceof Error ? error.message : 'No se pudo consultar la ejecucion');
     }
   }, [refreshJob]);
+
+  const handleReprocessFailed = useCallback(async () => {
+    try {
+      const result = await reprocessFailedJob();
+      if (result) toast.success(`Fallidos reprocesados para la ejecución ${result.jobId}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron reprocesar los fallidos');
+    }
+  }, [reprocessFailedJob]);
 
   const handleExport = useCallback(async () => {
     try {
@@ -99,6 +108,7 @@ export function ResultsPage() {
       isExporting={isExporting}
       isSavingCorrections={isSavingCorrections}
       onProcess={() => void handleProcess()}
+      onReprocessFailed={() => void handleReprocessFailed()}
       onRefresh={() => void handleRefresh()}
       onExport={() => void handleExport()}
       onSaveCorrections={handleSaveCorrections}

@@ -31,6 +31,7 @@ interface ResultsViewProps {
   isExporting: boolean;
   isSavingCorrections: boolean;
   onProcess: () => void;
+  onReprocessFailed: () => void;
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: (rows: ConsignmentRow[]) => Promise<void>;
@@ -209,6 +210,7 @@ export function ResultsView(props: ResultsViewProps) {
             canSaveCorrections={!props.isSavingCorrections && !props.isProcessing && props.status !== 'processing' && viewState.hasUnsavedChanges}
             canRetryAutosave={autosave.autosave.status === 'error'}
             onProcess={props.onProcess}
+            onReprocessFailed={props.onReprocessFailed}
             onRefresh={props.onRefresh}
             onExport={props.onExport}
             onSaveCorrections={() => {

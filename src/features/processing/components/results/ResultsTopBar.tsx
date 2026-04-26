@@ -19,6 +19,7 @@ interface ResultsTopBarProps {
   canSaveCorrections: boolean;
   canRetryAutosave: boolean;
   onProcess: () => void;
+  onReprocessFailed: () => void;
   onRefresh: () => void;
   onExport: () => void;
   onSaveCorrections: () => void;
@@ -52,6 +53,7 @@ export function ResultsTopBar({
   onExport,
   onSaveCorrections,
   onRetryAutosave,
+  onReprocessFailed,
   onOpenPanel,
   onOpenAssistant,
 }: ResultsTopBarProps) {
@@ -101,9 +103,16 @@ export function ResultsTopBar({
         <Button type='button' variant='outline' size='sm' className='gap-2' onClick={() => onOpenPanel('preview')}>
           Previsualizar
         </Button>
-        <Button type='button' size='sm' className='gap-2' onClick={onProcess} disabled={isProcessing || status === 'processing'}>
-          {getPrimaryLabel(status)}
-        </Button>
+        {status !== 'completed_with_errors' ? (
+          <Button type='button' size='sm' className='gap-2' onClick={onProcess} disabled={isProcessing || status === 'processing'}>
+            {getPrimaryLabel(status)}
+          </Button>
+        ) : null}
+        {(status === 'completed_with_errors' || status === 'failed') && errorCount > 0 ? (
+          <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onReprocessFailed} disabled={isProcessing}>
+            Reprocesar fallidos
+          </Button>
+        ) : null}
         <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onExport} disabled={isExporting || !canExport}>
           <Download className='size-4' />
           {excelUrl ? 'Exportar' : isExporting ? 'Generando...' : 'Excel'}

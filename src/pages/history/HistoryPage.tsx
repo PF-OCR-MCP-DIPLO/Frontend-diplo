@@ -12,7 +12,7 @@ import { useProcessingActionsContext, useProcessingHistoryContext } from '@/feat
 export function HistoryPage() {
   const navigate = useNavigate();
   const openResult = useOpenResult();
-  const { refreshHistory, runProcessing, exportCurrentJob, deleteJobResult } = useProcessingActionsContext();
+  const { refreshHistory, runProcessing, reprocessFailedJob, exportCurrentJob, deleteJobResult } = useProcessingActionsContext();
   const { processedFiles, isLoadingHistory, historyError } = useProcessingHistoryContext();
   const [deletingJobId, setDeletingJobId] = useState<number | null>(null);
   const [processingJobId, setProcessingJobId] = useState<number | null>(null);
@@ -71,6 +71,21 @@ export function HistoryPage() {
       toast.error(error instanceof Error ? error.message : 'No se pudo exportar la ejecución');
     } finally {
       setExportingJobId(null);
+    }
+  }
+
+  async function handleReprocessFailed(jobId: number) {
+    setProcessingJobId(jobId);
+    try {
+      const result = await reprocessFailedJob(jobId);
+      if (result) {
+        toast.success(`Fallidos reprocesados para la ejecución ${result.jobId}`);
+        await refreshHistory();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudieron reprocesar los fallidos');
+    } finally {
+      setProcessingJobId(null);
     }
   }
 
@@ -143,6 +158,7 @@ export function HistoryPage() {
         exportingJobId={exportingJobId}
         onOpenResult={(id) => void openResult(id, 'No se pudo abrir la ejecución')}
         onProcessJob={(jobId) => void handleProcess(jobId)}
+        onReprocessFailedJob={(jobId) => void handleReprocessFailed(jobId)}
         onExportJob={(jobId) => void handleExport(jobId)}
         onDeleteJob={(jobId) => {
           const job = processedFiles.find((item) => item.jobId === jobId);

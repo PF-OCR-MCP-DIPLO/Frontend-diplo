@@ -5,6 +5,7 @@ import { HistoryPage } from '@/pages/history/HistoryPage';
 const navigateMock = vi.fn();
 const refreshHistoryMock = vi.fn();
 const runProcessingMock = vi.fn();
+const reprocessFailedJobMock = vi.fn();
 const exportCurrentJobMock = vi.fn();
 const deleteJobResultMock = vi.fn();
 const openResultMock = vi.fn();
@@ -38,6 +39,7 @@ vi.mock('@/features/processing/hooks/useProcessingContext', () => ({
   useProcessingActionsContext: () => ({
     refreshHistory: refreshHistoryMock,
     runProcessing: runProcessingMock,
+    reprocessFailedJob: reprocessFailedJobMock,
     exportCurrentJob: exportCurrentJobMock,
     deleteJobResult: deleteJobResultMock,
   }),
@@ -49,6 +51,7 @@ describe('HistoryPage', () => {
     navigateMock.mockReset();
     refreshHistoryMock.mockReset();
     runProcessingMock.mockReset();
+    reprocessFailedJobMock.mockReset();
     exportCurrentJobMock.mockReset();
     deleteJobResultMock.mockReset();
     openResultMock.mockReset();
@@ -189,5 +192,29 @@ describe('HistoryPage', () => {
 
     expect(screen.getByRole('button', { name: /Procesar job abril\.docx/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Borrar job abril\.docx/i })).toBeDisabled();
+  });
+
+  it('uses partial reprocess for completed_with_errors jobs', async () => {
+    historyState.processedFiles = [
+      {
+        id: '9',
+        jobId: 9,
+        name: 'fallidos.docx',
+        date: new Date('2026-04-21T00:00:00Z'),
+        status: 'completed_with_errors',
+        displayStatus: 'error',
+      },
+    ];
+    reprocessFailedJobMock.mockResolvedValue({ jobId: 9, status: 'completed' });
+    refreshHistoryMock.mockResolvedValue(undefined);
+
+    render(<HistoryPage />);
+    fireEvent.click(screen.getByRole('button', { name: /Reprocesar fallidos job fallidos\.docx/i }));
+
+    await waitFor(() => {
+      expect(reprocessFailedJobMock).toHaveBeenCalledWith(9);
+      expect(runProcessingMock).not.toHaveBeenCalled();
+      expect(refreshHistoryMock).toHaveBeenCalled();
+    });
   });
 });

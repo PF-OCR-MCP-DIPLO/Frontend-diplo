@@ -28,13 +28,14 @@ describe('HistoryJobsTable', () => {
         items={items}
         onOpenResult={vi.fn()}
         onProcessJob={vi.fn()}
+        onReprocessFailedJob={vi.fn()}
         onExportJob={vi.fn()}
         onDeleteJob={vi.fn()}
       />,
     );
 
     expect(screen.getAllByRole('button', { name: /Abrir/i })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: /Reprocesar job marzo\.docx/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Reprocesar fallidos job marzo\.docx/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Exportar job marzo\.docx/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Borrar job marzo\.docx/i })).toBeInTheDocument();
   });
@@ -45,6 +46,7 @@ describe('HistoryJobsTable', () => {
         items={items}
         onOpenResult={vi.fn()}
         onProcessJob={vi.fn()}
+        onReprocessFailedJob={vi.fn()}
         onExportJob={vi.fn()}
         onDeleteJob={vi.fn()}
       />,
@@ -61,6 +63,7 @@ describe('HistoryJobsTable', () => {
         deletingJobId={7}
         onOpenResult={vi.fn()}
         onProcessJob={vi.fn()}
+        onReprocessFailedJob={vi.fn()}
         onExportJob={vi.fn()}
         onDeleteJob={vi.fn()}
       />,
@@ -79,6 +82,7 @@ describe('HistoryJobsTable', () => {
         items={items}
         onOpenResult={onOpenResult}
         onProcessJob={vi.fn()}
+        onReprocessFailedJob={vi.fn()}
         onExportJob={vi.fn()}
         onDeleteJob={onDeleteJob}
       />,

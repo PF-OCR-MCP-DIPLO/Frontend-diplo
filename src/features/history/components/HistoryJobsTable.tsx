@@ -13,6 +13,7 @@ interface HistoryJobsTableProps {
   exportingJobId?: number | null;
   onOpenResult: (id: string) => void;
   onProcessJob: (jobId: number) => void;
+  onReprocessFailedJob: (jobId: number) => void;
   onExportJob: (jobId: number) => void;
   onDeleteJob: (jobId: number) => void;
 }
@@ -28,6 +29,7 @@ export function HistoryJobsTable({
   exportingJobId,
   onOpenResult,
   onProcessJob,
+  onReprocessFailedJob,
   onExportJob,
   onDeleteJob,
 }: HistoryJobsTableProps) {
@@ -53,7 +55,7 @@ export function HistoryJobsTable({
               const isProcessing = processingJobId === item.jobId;
               const isExporting = exportingJobId === item.jobId;
               const isBusy = isDeleting || isProcessing || isExporting;
-              const processingLabel = item.status === 'completed' || item.status === 'completed_with_errors' ? 'Reprocesar' : 'Procesar';
+              const processingLabel = item.status === 'completed_with_errors' ? 'Reprocesar fallidos' : item.status === 'completed' ? 'Procesar de nuevo' : 'Procesar';
 
               return (
                 <TableRow key={item.id} className='cursor-pointer' onClick={() => onOpenResult(item.id)}>
@@ -94,7 +96,11 @@ export function HistoryJobsTable({
                         size='sm'
                         onClick={(event) => {
                           event.stopPropagation();
-                          onProcessJob(item.jobId);
+                          if (item.status === 'completed_with_errors') {
+                            onReprocessFailedJob(item.jobId);
+                          } else {
+                            onProcessJob(item.jobId);
+                          }
                         }}
                         className='gap-2'
                         disabled={isBusy || item.status === 'processing'}

@@ -5,12 +5,14 @@ import type { ProcessingState } from '@/features/processing/hooks/useProcessingS
 
 const uploadDocumentMock = vi.fn();
 const processJobMock = vi.fn();
+const reprocessFailedMock = vi.fn();
 const saveJobCorrectionsMock = vi.fn();
 const deleteJobMock = vi.fn();
 
 vi.mock('@/features/processing/api/processing.api', () => ({
   uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
   processJob: (...args: unknown[]) => processJobMock(...args),
+  reprocessFailed: (...args: unknown[]) => reprocessFailedMock(...args),
   deleteJob: (...args: unknown[]) => deleteJobMock(...args),
   saveJobCorrections: (...args: unknown[]) => saveJobCorrectionsMock(...args),
   getJob: vi.fn(),
@@ -23,6 +25,7 @@ describe('useProcessingActions', () => {
   beforeEach(() => {
     uploadDocumentMock.mockReset();
     processJobMock.mockReset();
+    reprocessFailedMock.mockReset();
     deleteJobMock.mockReset();
   });
 
@@ -135,5 +138,48 @@ describe('useProcessingActions', () => {
     expect(deleteJobMock).toHaveBeenCalledWith(7);
     expect(setProcessedFiles).toHaveBeenCalledTimes(1);
     expect(setCurrentResults).toHaveBeenCalledTimes(1);
+  });
+
+  it('reprocessFailedJob calls the partial retry endpoint and updates current job', async () => {
+    reprocessFailedMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 2,
+      total_records: 2,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: '2026-04-21T00:00:00Z',
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: { jobId: 7 } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+    const processed = await result.current.reprocessFailedJob();
+
+    expect(reprocessFailedMock).toHaveBeenCalledWith(7);
+    expect(processed).toMatchObject({ jobId: 7, status: 'completed' });
   });
 });

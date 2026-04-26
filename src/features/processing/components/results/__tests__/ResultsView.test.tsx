@@ -70,6 +70,7 @@ function renderResultsView(overrides: Partial<ComponentProps<typeof ResultsView>
     isExporting: false,
     isSavingCorrections: false,
     onProcess: vi.fn(),
+    onReprocessFailed: vi.fn(),
     onRefresh: vi.fn(),
     onExport: vi.fn(),
     onSaveCorrections: vi.fn().mockResolvedValue(undefined),
@@ -106,7 +107,7 @@ describe('ResultsView', () => {
     renderResultsView();
 
     expect(screen.getAllByText('consignaciones.docx').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: /Procesar de nuevo/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Reprocesar fallidos/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Actualizar/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Exportar/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Descargar/i })).toHaveAttribute('href', 'https://example.test/export.xlsx');
@@ -125,6 +126,14 @@ describe('ResultsView', () => {
         context: expect.objectContaining({ page: 'results', jobId: 42 }),
       }),
     );
+  });
+
+  it('calls the failed-source reprocess action from the top bar', () => {
+    const { props } = renderResultsView();
+
+    fireEvent.click(screen.getByRole('button', { name: /Reprocesar fallidos/i }));
+
+    expect(props.onReprocessFailed).toHaveBeenCalledTimes(1);
   });
 
   it('renders safely with empty results and no source images', () => {

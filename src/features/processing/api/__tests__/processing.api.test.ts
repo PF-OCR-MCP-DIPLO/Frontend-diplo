@@ -21,7 +21,7 @@ vi.mock('@/services/http/client', () => ({
   resolveAssetUrl: (path: string) => resolveAssetUrlMock(path),
 }));
 
-import { deleteJob, getJob, listJobs, processJob, saveJobCorrections } from '@/features/processing/api/processing.api';
+import { deleteJob, getJob, listJobs, processJob, reprocessFailed, reprocessSourceImage, saveJobCorrections } from '@/features/processing/api/processing.api';
 
 describe('processing.api', () => {
   beforeEach(() => {
@@ -122,6 +122,31 @@ describe('processing.api', () => {
       status: 409,
       code: 'job_already_processing',
     });
+  });
+
+  it('sends partial reprocess requests to the dedicated endpoints', async () => {
+    httpRequestMock.mockResolvedValue({
+      id: 7,
+      original_filename: 'partial.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 2,
+      total_records: 2,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+
+    await reprocessFailed(7);
+    await reprocessSourceImage(7, 22);
+
+    expect(httpRequestMock).toHaveBeenNthCalledWith(1, 'jobs/7/reprocess-failed/', { method: 'POST' });
+    expect(httpRequestMock).toHaveBeenNthCalledWith(2, 'jobs/7/source-images/22/reprocess/', { method: 'POST' });
   });
 
   it('sends bulk correction payload to the dedicated endpoint', async () => {
