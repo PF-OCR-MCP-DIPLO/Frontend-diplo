@@ -3,8 +3,10 @@ import type {
   ApiBulkDepositCorrectionPayload,
   ApiExtractedDeposit,
   ApiExtractionLog,
+  ApiJobDiagnostics,
   ApiJobDetail,
   ApiJobListItem,
+  ApiProcessingState,
   ApiSourceImage,
 } from '@/features/processing/types/processing.api';
 
@@ -119,4 +121,12 @@ export function exportJob(jobId: number) {
 
 export function getJobLogs(jobId: number) {
   return httpRequest<ApiExtractionLog[]>(`jobs/${jobId}/logs/`).then((logs) => Array.isArray(logs) ? logs : []);
+}
+
+export function getJobDiagnostics(jobId: number) {
+  return httpRequest<ApiJobDiagnostics>(`jobs/${jobId}/diagnostics/`);
+}
+
+export function getProcessingState(jobId: number) {
+  return httpRequest<ApiProcessingState>(`jobs/${jobId}/processing-state/`);
 }

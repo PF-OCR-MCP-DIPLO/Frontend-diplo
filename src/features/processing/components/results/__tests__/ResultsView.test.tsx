@@ -151,6 +151,53 @@ describe('ResultsView', () => {
     expect(screen.getByRole('columnheader', { name: /Referencia/i })).toBeInTheDocument();
   });
 
+  it('shows processing-state progress while the job is running', () => {
+    renderResultsView({
+      status: 'processing',
+      isProcessing: true,
+      processingState: {
+        job_id: 42,
+        status: 'processing',
+        current_stage: 'llm_structuring',
+        processed_images: 1,
+        total_images: 3,
+        failed_images: 0,
+        total_records: 1,
+        last_event_at: '2026-04-25T00:00:00Z',
+        elapsed_ms: 42_000,
+        stale_processing: false,
+      },
+    });
+
+    expect(screen.getByText(/Procesando imagen 2\/3/i)).toBeInTheDocument();
+    expect(screen.getByText(/llm_structuring/i)).toBeInTheDocument();
+    expect(screen.getByText(/42s/i)).toBeInTheDocument();
+  });
+
+  it('surfaces diagnostics access and slowest stage for partial failures', () => {
+    renderResultsView({
+      diagnosticsSummary: {
+        ocr_calls: 2,
+        llm_calls: 2,
+        failed_images: 1,
+        processed_images: 1,
+        slowest_stage: 'llm_structuring',
+        slowest_source_image_id: 9,
+        total_ocr_duration_ms: 100,
+        total_llm_duration_ms: 1200,
+        avg_ocr_duration_ms: 50,
+        avg_llm_duration_ms: 600,
+        polling_suspected: false,
+        provider_suspected: true,
+        stale_processing: false,
+        last_event_at: '2026-04-25T00:00:00Z',
+      },
+    });
+
+    expect(screen.getByText(/Etapa lenta: llm_structuring/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Diagnóstico/i })).toBeInTheDocument();
+  });
+
   it('opens preview in exactly one main dock panel', async () => {
     renderResultsView();
 
@@ -168,7 +215,7 @@ describe('ResultsView', () => {
     fireEvent.click(screen.getByRole('button', { name: /Previsualizar/i }));
     expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'preview');
 
-    fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Diagnóstico/i }));
 
     expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'logs');
     expect(screen.queryByText('Preview lateral')).not.toBeInTheDocument();
@@ -251,7 +298,7 @@ describe('ResultsView', () => {
 
     expect(screen.getByRole('dialog', { name: /pagina-1\.png/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /^Logs$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Diagnóstico/i }));
 
     expect(await screen.findByTestId('results-dock-panel')).toHaveAttribute('data-panel', 'logs');
     expect(screen.queryByRole('dialog', { name: /pagina-1\.png/i })).not.toBeInTheDocument();

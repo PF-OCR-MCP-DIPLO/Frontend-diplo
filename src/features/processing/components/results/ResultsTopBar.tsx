@@ -1,4 +1,5 @@
 import { Download, FileDown, MessageSquare, RefreshCw, ScrollText } from 'lucide-react';
+import type { ApiJobDiagnosticsSummary, ApiProcessingState } from '@/features/processing/types/processing.api';
 import type { ProcessingStatus } from '@/features/processing/types/processing.types';
 import { Button } from '@/components/ui/button';
 
@@ -7,6 +8,8 @@ interface ResultsTopBarProps {
   status: ProcessingStatus;
   totalImages: number;
   totalRecords: number;
+  processingState: ApiProcessingState | null;
+  diagnosticsSummary: ApiJobDiagnosticsSummary | null;
   errorCount: number;
   autosaveLabel: string;
   autosaveStatus: 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
@@ -37,6 +40,8 @@ export function ResultsTopBar({
   status,
   totalImages,
   totalRecords,
+  processingState,
+  diagnosticsSummary,
   errorCount,
   autosaveLabel,
   autosaveStatus,
@@ -57,6 +62,14 @@ export function ResultsTopBar({
   onOpenPanel,
   onOpenAssistant,
 }: ResultsTopBarProps) {
+  const elapsedSeconds = processingState?.elapsed_ms ? Math.round(processingState.elapsed_ms / 1000) : null;
+  const progressLabel = processingState
+    ? `Procesando imagen ${Math.min(processingState.processed_images + 1, processingState.total_images || 1)}/${processingState.total_images || totalImages || 1}`
+    : null;
+  const slowestLabel = diagnosticsSummary?.slowest_stage
+    ? `Etapa lenta: ${diagnosticsSummary.slowest_stage}${diagnosticsSummary.slowest_source_image_id ? ` · imagen ${diagnosticsSummary.slowest_source_image_id}` : ''}`
+    : null;
+
   return (
     <div className='flex flex-col gap-3 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between'>
       <div className='min-w-0'>
@@ -74,9 +87,14 @@ export function ResultsTopBar({
           </button>
         </div>
         <div className='mt-1 text-xs text-muted-foreground'>{autosaveLabel}</div>
-        <div className='mt-1 text-xs text-muted-foreground'>
-          Flujo recomendado: procesar, revisar hallazgos, guardar correcciones y luego exportar.
-        </div>
+        {status === 'processing' && processingState ? (
+          <div className='mt-1 text-xs text-muted-foreground'>
+            {progressLabel} · {processingState.current_stage ?? 'iniciando'} · {elapsedSeconds ?? 0}s
+            {processingState.stale_processing ? ' · sin eventos recientes' : ''}
+          </div>
+        ) : slowestLabel ? (
+          <div className='mt-1 text-xs text-muted-foreground'>{slowestLabel}</div>
+        ) : null}
       </div>
 
       <div className='flex flex-wrap items-center gap-2'>
@@ -94,7 +112,7 @@ export function ResultsTopBar({
         ) : null}
         <Button type='button' variant='ghost' size='sm' className='gap-2 text-muted-foreground' onClick={() => onOpenPanel('logs')}>
           <ScrollText className='size-4' />
-          Logs
+          {status === 'failed' || status === 'completed_with_errors' ? 'Diagnóstico' : 'Logs'}
         </Button>
         <Button type='button' variant='outline' size='sm' className='gap-2' onClick={onOpenAssistant}>
           <MessageSquare className='size-4' />

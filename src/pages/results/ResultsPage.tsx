@@ -102,6 +102,8 @@ export function ResultsPage() {
       totalImages={currentResults.totalImages}
       totalRecords={currentResults.totalRecords}
       errorMessage={currentResults.errorMessage}
+      processingState={currentResults.processingState ?? null}
+      diagnosticsSummary={currentResults.diagnosticsSummary ?? null}
       excelUrl={currentResults.excelUrl}
       isProcessing={isProcessing}
       isRefreshing={isRefreshing}

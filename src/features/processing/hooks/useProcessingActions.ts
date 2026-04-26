@@ -1,15 +1,35 @@
-import { useCallback, useMemo } from 'react';
-import { HttpError } from '@/services/http/client';
-import { deleteJob, exportJob, getJob, listJobs, processJob, reprocessFailed, saveJobCorrections, uploadDocument } from '@/features/processing/api/processing.api';
-import type { ProcessingState } from '@/features/processing/hooks/useProcessingState';
-import { mapJobListItemToPlaceholder, mapJobToProcessedFile } from '@/features/processing/mappers/processing.mappers';
-import type { ConsignmentRow } from '@/features/processing/types/processing.types';
-import { mergeProcessedJob } from '@/features/processing/utils/processing-store';
+import { useCallback, useMemo, useRef } from "react";
+import { HttpError } from "@/services/http/client";
+import {
+  deleteJob,
+  exportJob,
+  getJob,
+  getJobDiagnostics,
+  getProcessingState,
+  listJobs,
+  processJob,
+  reprocessFailed,
+  saveJobCorrections,
+  uploadDocument,
+} from "@/features/processing/api/processing.api";
+import type { ProcessingState } from "@/features/processing/hooks/useProcessingState";
+import {
+  mapJobListItemToPlaceholder,
+  mapJobToProcessedFile,
+} from "@/features/processing/mappers/processing.mappers";
+import type { ConsignmentRow } from "@/features/processing/types/processing.types";
+import { mergeProcessedJob } from "@/features/processing/utils/processing-store";
 
-const TERMINAL_STATUSES = new Set(['completed', 'completed_with_errors', 'failed']);
-const PROCESSING_POLL_INTERVAL_MS = 1500;
-const PROCESSING_POLL_TIMEOUT_MS = 90_000;
-export const ACTIVE_JOB_STORAGE_KEY = 'diplo.active-job-id';
+const TERMINAL_STATUSES = new Set([
+  "completed",
+  "completed_with_errors",
+  "failed",
+]);
+const PROCESSING_INITIAL_POLL_INTERVAL_MS = 1500;
+const PROCESSING_SLOW_POLL_INTERVAL_MS = 5000;
+const PROCESSING_BACKOFF_AFTER_MS = 30_000;
+const PROCESSING_POLL_TIMEOUT_MS = 180_000;
+export const ACTIVE_JOB_STORAGE_KEY = "diplo.active-job-id";
 
 export function useProcessingActions({
   currentResults,
@@ -23,15 +43,21 @@ export function useProcessingActions({
   setHistoryError,
 }: ProcessingState) {
   const currentJobId = currentResults?.jobId;
+  const activePollsRef = useRef(
+    new Map<number, Promise<ReturnType<typeof mapJobToProcessedFile> | null>>(),
+  );
 
-  const upsertCurrentJob = useCallback((job: ReturnType<typeof mapJobToProcessedFile>) => {
-    setProcessedFiles((previous) => mergeProcessedJob(previous, job));
-    setCurrentResults(job);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(ACTIVE_JOB_STORAGE_KEY, String(job.jobId));
-    }
-    return job;
-  }, [setCurrentResults, setProcessedFiles]);
+  const upsertCurrentJob = useCallback(
+    (job: ReturnType<typeof mapJobToProcessedFile>) => {
+      setProcessedFiles((previous) => mergeProcessedJob(previous, job));
+      setCurrentResults(job);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(ACTIVE_JOB_STORAGE_KEY, String(job.jobId));
+      }
+      return job;
+    },
+    [setCurrentResults, setProcessedFiles],
+  );
 
   const refreshHistory = useCallback(async () => {
     setIsLoadingHistory(true);
@@ -40,10 +66,15 @@ export function useProcessingActions({
       const jobs = await listJobs();
       setProcessedFiles((previous) => {
         const preserved = new Map(previous.map((item) => [item.jobId, item]));
-        return jobs.map((job) => preserved.get(job.id) ?? mapJobListItemToPlaceholder(job));
+        return jobs.map(
+          (job) => preserved.get(job.id) ?? mapJobListItemToPlaceholder(job),
+        );
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo cargar el historial';
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar el historial";
       setHistoryError(message);
       throw error;
     } finally {
@@ -51,156 +82,296 @@ export function useProcessingActions({
     }
   }, [setHistoryError, setIsLoadingHistory, setProcessedFiles]);
 
-  const selectResultByJobId = useCallback(async (jobId: number) => {
-    setIsRefreshing(true);
-    try {
-      const job = mapJobToProcessedFile(await getJob(jobId));
-      return upsertCurrentJob(job);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [setIsRefreshing, upsertCurrentJob]);
-
-  const deleteJobResult = useCallback(async (jobId: number) => {
-    await deleteJob(jobId);
-    setProcessedFiles((previous) => previous.filter((item) => item.jobId !== jobId));
-    setCurrentResults((previous) => {
-      if (previous?.jobId === jobId) {
-        if (typeof window !== 'undefined') {
-          window.localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY);
-        }
-        return null;
-      }
-      return previous;
-    });
-  }, [setCurrentResults, setProcessedFiles]);
-
-  const pollJobUntilSettled = useCallback(async (jobId: number) => {
-    const startedAt = Date.now();
-    let latestJob = await selectResultByJobId(jobId);
-
-    while (latestJob && !TERMINAL_STATUSES.has(latestJob.status)) {
-      if (Date.now() - startedAt >= PROCESSING_POLL_TIMEOUT_MS) {
-        throw new Error('El procesamiento sigue en curso. Usa "Actualizar estado" para consultar el resultado final.');
-      }
-      await new Promise((resolve) => window.setTimeout(resolve, PROCESSING_POLL_INTERVAL_MS));
+  const selectResultByJobId = useCallback(
+    async (jobId: number) => {
+      setIsRefreshing(true);
       try {
-        latestJob = await selectResultByJobId(jobId);
-      } catch (error) {
-        if (error instanceof HttpError && error.status === 404) {
-          setProcessedFiles((previous) => previous.filter((item) => item.jobId !== jobId));
-          setCurrentResults((previous) => previous?.jobId === jobId ? null : previous);
-          if (typeof window !== 'undefined') {
+        const job = mapJobToProcessedFile(await getJob(jobId));
+        return upsertCurrentJob(job);
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [setIsRefreshing, upsertCurrentJob],
+  );
+
+  const mergeProcessingState = useCallback(
+    async (jobId: number) => {
+      const state = await getProcessingState(jobId);
+      setProcessedFiles((previous) =>
+        previous.map((item) =>
+          item.jobId === jobId
+            ? {
+                ...item,
+                status: state.status,
+                totalImages: state.total_images,
+                totalRecords: state.total_records,
+                errorCount: state.failed_images,
+                displayStatus:
+                  state.failed_images > 0 || state.status === "failed"
+                    ? "error"
+                    : item.displayStatus,
+                processingState: state,
+              }
+            : item,
+        ),
+      );
+      setCurrentResults((previous) =>
+        previous?.jobId === jobId
+          ? {
+              ...previous,
+              status: state.status,
+              totalImages: state.total_images,
+              totalRecords: state.total_records,
+              errorCount: state.failed_images,
+              displayStatus:
+                state.failed_images > 0 || state.status === "failed"
+                  ? "error"
+                  : previous.displayStatus,
+              processingState: state,
+            }
+          : previous,
+      );
+      return state;
+    },
+    [setCurrentResults, setProcessedFiles],
+  );
+
+  const deleteJobResult = useCallback(
+    async (jobId: number) => {
+      await deleteJob(jobId);
+      setProcessedFiles((previous) =>
+        previous.filter((item) => item.jobId !== jobId),
+      );
+      setCurrentResults((previous) => {
+        if (previous?.jobId === jobId) {
+          if (typeof window !== "undefined") {
             window.localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY);
           }
-          throw new Error('La ejecución fue eliminada mientras se consultaba el estado.');
+          return null;
         }
-        throw error;
+        return previous;
+      });
+    },
+    [setCurrentResults, setProcessedFiles],
+  );
+
+  const pollJobUntilSettled = useCallback(
+    async (jobId: number) => {
+      const existing = activePollsRef.current.get(jobId);
+      if (existing) {
+        return existing;
       }
-    }
 
-    return latestJob;
-  }, [selectResultByJobId, setCurrentResults, setProcessedFiles]);
+      const pollPromise = (async () => {
+        const startedAt = Date.now();
+        let latestState = await mergeProcessingState(jobId);
 
-  const processFile = useCallback(async (file: File) => {
-    setIsProcessing(true);
-    try {
-      const job = mapJobToProcessedFile(await uploadDocument(file));
-      return upsertCurrentJob(job);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [setIsProcessing, upsertCurrentJob]);
+        while (latestState && !TERMINAL_STATUSES.has(latestState.status)) {
+          if (Date.now() - startedAt >= PROCESSING_POLL_TIMEOUT_MS) {
+            const diagnostics = await getJobDiagnostics(jobId).catch(
+              () => null,
+            );
+            const stage =
+              diagnostics?.summary?.slowest_stage ??
+              latestState.current_stage ??
+              "desconocida";
+            throw new Error(
+              `El procesamiento sigue en curso. Última etapa observada: ${stage}. Usa "Logs" para revisar el diagnóstico.`,
+            );
+          }
+          const elapsed = Date.now() - startedAt;
+          const interval =
+            elapsed > PROCESSING_BACKOFF_AFTER_MS
+              ? PROCESSING_SLOW_POLL_INTERVAL_MS
+              : PROCESSING_INITIAL_POLL_INTERVAL_MS;
+          await new Promise((resolve) => window.setTimeout(resolve, interval));
+          try {
+            latestState = await mergeProcessingState(jobId);
+          } catch (error) {
+            if (error instanceof HttpError && error.status === 404) {
+              setProcessedFiles((previous) =>
+                previous.filter((item) => item.jobId !== jobId),
+              );
+              setCurrentResults((previous) =>
+                previous?.jobId === jobId ? null : previous,
+              );
 
-  const runProcessing = useCallback(async (jobId?: number) => {
-    const targetJobId = jobId ?? currentJobId;
-    if (!targetJobId) {
-      return null;
-    }
+              if (typeof window !== "undefined") {
+                window.localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY);
+              }
 
-    setIsProcessing(true);
-    try {
-      const job = mapJobToProcessedFile(await processJob(targetJobId));
-      const updatedJob = upsertCurrentJob(job);
-      if (TERMINAL_STATUSES.has(updatedJob.status)) {
-        return updatedJob;
+              throw new Error(
+                "La ejecución fue eliminada mientras se consultaba el estado.",
+                {
+                  cause: error,
+                },
+              );
+            }
+
+            throw error;
+          }
+        }
+
+        const latestJob = await selectResultByJobId(jobId);
+        if (
+          latestJob.status === "failed" ||
+          latestJob.status === "completed_with_errors"
+        ) {
+          const diagnostics = await getJobDiagnostics(jobId).catch(() => null);
+          if (diagnostics?.summary) {
+            setCurrentResults((previous) =>
+              previous?.jobId === jobId
+                ? { ...previous, diagnosticsSummary: diagnostics.summary }
+                : previous,
+            );
+            setProcessedFiles((previous) =>
+              previous.map((item) =>
+                item.jobId === jobId
+                  ? { ...item, diagnosticsSummary: diagnostics.summary }
+                  : item,
+              ),
+            );
+          }
+        }
+        return latestJob;
+      })();
+
+      activePollsRef.current.set(jobId, pollPromise);
+      try {
+        return await pollPromise;
+      } finally {
+        activePollsRef.current.delete(jobId);
       }
-      return await pollJobUntilSettled(targetJobId);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [currentJobId, pollJobUntilSettled, setIsProcessing, upsertCurrentJob]);
+    },
+    [
+      mergeProcessingState,
+      selectResultByJobId,
+      setCurrentResults,
+      setProcessedFiles,
+    ],
+  );
 
-  const reprocessFailedJob = useCallback(async (jobId?: number) => {
-    const targetJobId = jobId ?? currentJobId;
-    if (!targetJobId) {
-      return null;
-    }
+  const processFile = useCallback(
+    async (file: File) => {
+      setIsProcessing(true);
+      try {
+        const job = mapJobToProcessedFile(await uploadDocument(file));
+        return upsertCurrentJob(job);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [setIsProcessing, upsertCurrentJob],
+  );
 
-    setIsProcessing(true);
-    try {
-      const job = mapJobToProcessedFile(await reprocessFailed(targetJobId));
-      return upsertCurrentJob(job);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [currentJobId, setIsProcessing, upsertCurrentJob]);
+  const runProcessing = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentJobId;
+      if (!targetJobId) {
+        return null;
+      }
 
-  const refreshJob = useCallback(async (jobId?: number) => {
-    const targetJobId = jobId ?? currentJobId;
-    if (!targetJobId) {
-      return null;
-    }
-    return selectResultByJobId(targetJobId);
-  }, [currentJobId, selectResultByJobId]);
+      setIsProcessing(true);
+      try {
+        const job = mapJobToProcessedFile(await processJob(targetJobId));
+        const updatedJob = upsertCurrentJob(job);
+        if (TERMINAL_STATUSES.has(updatedJob.status)) {
+          return updatedJob;
+        }
+        return await pollJobUntilSettled(targetJobId);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [currentJobId, pollJobUntilSettled, setIsProcessing, upsertCurrentJob],
+  );
 
-  const exportCurrentJob = useCallback(async (jobId?: number) => {
-    const targetJobId = jobId ?? currentJobId;
-    if (!targetJobId) {
-      return null;
-    }
+  const reprocessFailedJob = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentJobId;
+      if (!targetJobId) {
+        return null;
+      }
 
-    setIsExporting(true);
-    try {
-      const job = mapJobToProcessedFile(await exportJob(targetJobId));
-      return upsertCurrentJob(job);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [currentJobId, setIsExporting, upsertCurrentJob]);
+      setIsProcessing(true);
+      try {
+        const job = mapJobToProcessedFile(await reprocessFailed(targetJobId));
+        return upsertCurrentJob(job);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [currentJobId, setIsProcessing, upsertCurrentJob],
+  );
 
-  const saveCurrentCorrections = useCallback(async (rows: ConsignmentRow[], jobId?: number) => {
-    const targetJobId = jobId ?? currentJobId;
-    if (!targetJobId) {
-      return null;
-    }
+  const refreshJob = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentJobId;
+      if (!targetJobId) {
+        return null;
+      }
+      return selectResultByJobId(targetJobId);
+    },
+    [currentJobId, selectResultByJobId],
+  );
 
-    setIsSavingCorrections(true);
-    try {
-      const job = mapJobToProcessedFile(
-        await saveJobCorrections(targetJobId, {
-          items: rows.map((row) => ({
-            id: row.depositId,
-            fecha_consignacion: row.fecha === 'Sin fecha' ? '' : row.fecha,
-            hora_consignacion: row.hora,
-            referencia: row.referencia,
-            valor: row.monto,
-          })),
-        })
-      );
-      return upsertCurrentJob(job);
-    } finally {
-      setIsSavingCorrections(false);
-    }
-  }, [currentJobId, setIsSavingCorrections, upsertCurrentJob]);
+  const exportCurrentJob = useCallback(
+    async (jobId?: number) => {
+      const targetJobId = jobId ?? currentJobId;
+      if (!targetJobId) {
+        return null;
+      }
 
-  const selectResult = useCallback(async (id: string) => {
-    const jobId = Number(id);
-    if (Number.isNaN(jobId)) {
-      return null;
-    }
-    return selectResultByJobId(jobId);
-  }, [selectResultByJobId]);
+      setIsExporting(true);
+      try {
+        const job = mapJobToProcessedFile(await exportJob(targetJobId));
+        return upsertCurrentJob(job);
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [currentJobId, setIsExporting, upsertCurrentJob],
+  );
+
+  const saveCurrentCorrections = useCallback(
+    async (rows: ConsignmentRow[], jobId?: number) => {
+      const targetJobId = jobId ?? currentJobId;
+      if (!targetJobId) {
+        return null;
+      }
+
+      setIsSavingCorrections(true);
+      try {
+        const job = mapJobToProcessedFile(
+          await saveJobCorrections(targetJobId, {
+            items: rows.map((row) => ({
+              id: row.depositId,
+              fecha_consignacion: row.fecha === "Sin fecha" ? "" : row.fecha,
+              hora_consignacion: row.hora,
+              referencia: row.referencia,
+              valor: row.monto,
+            })),
+          }),
+        );
+        return upsertCurrentJob(job);
+      } finally {
+        setIsSavingCorrections(false);
+      }
+    },
+    [currentJobId, setIsSavingCorrections, upsertCurrentJob],
+  );
+
+  const selectResult = useCallback(
+    async (id: string) => {
+      const jobId = Number(id);
+      if (Number.isNaN(jobId)) {
+        return null;
+      }
+      return selectResultByJobId(jobId);
+    },
+    [selectResultByJobId],
+  );
 
   return useMemo(
     () => ({
@@ -215,6 +386,17 @@ export function useProcessingActions({
       exportCurrentJob,
       selectResult,
     }),
-    [deleteJobResult, exportCurrentJob, processFile, refreshHistory, refreshJob, reprocessFailedJob, runProcessing, saveCurrentCorrections, selectResult, selectResultByJobId]
+    [
+      deleteJobResult,
+      exportCurrentJob,
+      processFile,
+      refreshHistory,
+      refreshJob,
+      reprocessFailedJob,
+      runProcessing,
+      saveCurrentCorrections,
+      selectResult,
+      selectResultByJobId,
+    ],
   );
 }

@@ -1,4 +1,4 @@
-import type { ApiJobStatus, ApiSourceImage } from './processing.api';
+import type { ApiJobDiagnosticsSummary, ApiJobStatus, ApiProcessingState, ApiSourceImage } from './processing.api';
 
 export type ProcessingStatus = ApiJobStatus;
 export type RowStatus = 'valid' | 'error';
@@ -54,4 +54,6 @@ export interface ProcessedFile {
   sourceImages: ApiSourceImage[];
   data: ConsignmentRow[];
   errorCount: number;
+  processingState?: ApiProcessingState | null;
+  diagnosticsSummary?: ApiJobDiagnosticsSummary | null;
 }

@@ -63,6 +63,53 @@ export interface ApiExtractionLog {
   created_at: string;
 }
 
+export interface ApiProcessingState {
+  job_id: number;
+  status: ApiJobStatus;
+  current_stage: string | null;
+  processed_images: number;
+  total_images: number;
+  failed_images: number;
+  total_records: number;
+  last_event_at: string | null;
+  elapsed_ms: number | null;
+  stale_processing: boolean;
+}
+
+export interface ApiJobDiagnosticsSummary {
+  ocr_calls: number;
+  llm_calls: number;
+  failed_images: number;
+  processed_images: number;
+  slowest_stage: string | null;
+  slowest_source_image_id: number | null;
+  total_ocr_duration_ms: number;
+  total_llm_duration_ms: number;
+  avg_ocr_duration_ms: number;
+  avg_llm_duration_ms: number;
+  polling_suspected: boolean;
+  provider_suspected: boolean;
+  stale_processing: boolean;
+  last_event_at: string | null;
+}
+
+export interface ApiJobDiagnostics {
+  job: {
+    id: number;
+    status: ApiJobStatus;
+    total_images: number;
+    total_records: number;
+    started_at: string | null;
+    finished_at: string | null;
+    duration_ms: number | null;
+    error_message: string;
+  };
+  summary: ApiJobDiagnosticsSummary;
+  events: Array<Record<string, unknown>>;
+  source_images: Array<Record<string, unknown>>;
+  recommendations: string[];
+}
+
 export interface ApiDepositCorrectionItem {
   id: number;
   fecha_consignacion: string;

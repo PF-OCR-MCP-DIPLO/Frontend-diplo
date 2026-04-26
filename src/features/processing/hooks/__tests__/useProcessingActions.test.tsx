@@ -8,6 +8,9 @@ const processJobMock = vi.fn();
 const reprocessFailedMock = vi.fn();
 const saveJobCorrectionsMock = vi.fn();
 const deleteJobMock = vi.fn();
+const getJobMock = vi.fn();
+const getProcessingStateMock = vi.fn();
+const getJobDiagnosticsMock = vi.fn();
 
 vi.mock('@/features/processing/api/processing.api', () => ({
   uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
@@ -15,10 +18,12 @@ vi.mock('@/features/processing/api/processing.api', () => ({
   reprocessFailed: (...args: unknown[]) => reprocessFailedMock(...args),
   deleteJob: (...args: unknown[]) => deleteJobMock(...args),
   saveJobCorrections: (...args: unknown[]) => saveJobCorrectionsMock(...args),
-  getJob: vi.fn(),
+  getJob: (...args: unknown[]) => getJobMock(...args),
   listJobs: vi.fn(),
   exportJob: vi.fn(),
   getJobLogs: vi.fn(),
+  getProcessingState: (...args: unknown[]) => getProcessingStateMock(...args),
+  getJobDiagnostics: (...args: unknown[]) => getJobDiagnosticsMock(...args),
 }));
 
 describe('useProcessingActions', () => {
@@ -27,6 +32,9 @@ describe('useProcessingActions', () => {
     processJobMock.mockReset();
     reprocessFailedMock.mockReset();
     deleteJobMock.mockReset();
+    getJobMock.mockReset();
+    getProcessingStateMock.mockReset();
+    getJobDiagnosticsMock.mockReset();
   });
 
   it('runProcessing returns null when there is no current job id', async () => {
@@ -181,5 +189,191 @@ describe('useProcessingActions', () => {
 
     expect(reprocessFailedMock).toHaveBeenCalledWith(7);
     expect(processed).toMatchObject({ jobId: 7, status: 'completed' });
+  });
+
+  it('runProcessing polls the lightweight processing-state endpoint and then fetches detail once', async () => {
+    vi.useFakeTimers();
+    processJobMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'processing',
+      source_docx: '',
+      excel_file: null,
+      total_images: 2,
+      total_records: 0,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: '2026-04-21T00:00:00Z',
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+    getProcessingStateMock
+      .mockResolvedValueOnce({
+        job_id: 7,
+        status: 'processing',
+        current_stage: 'ocr',
+        processed_images: 0,
+        total_images: 2,
+        failed_images: 0,
+        total_records: 0,
+        last_event_at: '2026-04-21T00:00:01Z',
+        elapsed_ms: 1000,
+        stale_processing: false,
+      })
+      .mockResolvedValueOnce({
+        job_id: 7,
+        status: 'completed',
+        current_stage: 'job_finished',
+        processed_images: 2,
+        total_images: 2,
+        failed_images: 0,
+        total_records: 2,
+        last_event_at: '2026-04-21T00:00:03Z',
+        elapsed_ms: 3000,
+        stale_processing: false,
+      });
+    getJobMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 2,
+      total_records: 2,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: '2026-04-21T00:00:00Z',
+      finished_at: '2026-04-21T00:00:03Z',
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:03Z',
+      source_images: [],
+    });
+
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: { jobId: 7 } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+    const promise = result.current.runProcessing();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    const processed = await promise;
+
+    expect(processJobMock).toHaveBeenCalledWith(7);
+    expect(getProcessingStateMock).toHaveBeenCalledTimes(2);
+    expect(getJobMock).toHaveBeenCalledTimes(1);
+    expect(processed).toMatchObject({ jobId: 7, status: 'completed' });
+    vi.useRealTimers();
+  });
+
+  it('runProcessing reuses an active poll for the same job', async () => {
+    vi.useFakeTimers();
+    processJobMock.mockResolvedValue({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'processing',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 0,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+    getProcessingStateMock
+      .mockResolvedValueOnce({
+        job_id: 7,
+        status: 'processing',
+        current_stage: 'ocr',
+        processed_images: 0,
+        total_images: 1,
+        failed_images: 0,
+        total_records: 0,
+        last_event_at: '2026-04-21T00:00:01Z',
+        elapsed_ms: 1000,
+        stale_processing: false,
+      })
+      .mockResolvedValueOnce({
+        job_id: 7,
+        status: 'completed',
+        current_stage: 'job_finished',
+        processed_images: 1,
+        total_images: 1,
+        failed_images: 0,
+        total_records: 1,
+        last_event_at: '2026-04-21T00:00:03Z',
+        elapsed_ms: 3000,
+        stale_processing: false,
+      });
+    getJobMock.mockResolvedValue({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 1,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: '2026-04-21T00:00:03Z',
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:03Z',
+      source_images: [],
+    });
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: { jobId: 7 } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+
+    const first = result.current.runProcessing(7);
+    const second = result.current.runProcessing(7);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    await Promise.all([first, second]);
+
+    expect(processJobMock).toHaveBeenCalledTimes(2);
+    expect(getProcessingStateMock).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
   });
 });

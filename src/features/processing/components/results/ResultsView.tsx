@@ -13,6 +13,7 @@ import { useResultsViewState } from '@/features/processing/components/results/ho
 import { useRouteOverlayCleanup } from '@/app/hooks/useRouteOverlayCleanup';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
+import type { ApiJobDiagnosticsSummary, ApiProcessingState } from '@/features/processing/types/processing.api';
 import type { ConsignmentRow, PreviewImage, ProcessingStatus, ResultFieldKey } from '@/features/processing/types/processing.types';
 
 interface ResultsViewProps {
@@ -25,6 +26,8 @@ interface ResultsViewProps {
   totalImages: number;
   totalRecords: number;
   errorMessage: string;
+  processingState?: ApiProcessingState | null;
+  diagnosticsSummary?: ApiJobDiagnosticsSummary | null;
   excelUrl: string | null;
   isProcessing: boolean;
   isRefreshing: boolean;
@@ -198,6 +201,8 @@ export function ResultsView(props: ResultsViewProps) {
             status={props.status}
             totalImages={props.totalImages}
             totalRecords={props.totalRecords}
+            processingState={props.processingState ?? null}
+            diagnosticsSummary={props.diagnosticsSummary ?? null}
             errorCount={viewState.errorCount}
             autosaveLabel={autosaveLabel}
             autosaveStatus={autosave.autosave.status}
