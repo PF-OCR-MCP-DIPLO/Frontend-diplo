@@ -27,10 +27,18 @@ const OPTIONS: Array<{ scope: ContextScope; label: string; hint: string }> = [
   { scope: 'issues', label: 'Hallazgos', hint: 'Usa solo los hallazgos visibles.' },
 ];
 
+/**
+ * Selector de alcance conversacional para el asistente.
+ *
+ * @remarks
+ * No consulta red ni estado global: solo deriva contexto utilizable para
+ * enviar al backend según selección de fila/celda/imagen/hallazgos.
+ */
 export function AssistantContextSelector({ context, onChange, selectedRow, selectedImage, visibleIssueIds }: AssistantContextSelectorProps) {
   const activeScope = context.contextScope ?? (context.selectedField ? 'cell' : context.selectedRowId ? 'row' : context.currentImageId ? 'image' : context.visibleIssueIds?.length ? 'issues' : 'general');
 
   const setScope = (scope: ContextScope) => {
+    // Cada scope limpia campos incompatibles para no enviar contexto ambiguo.
     const base = { ...context, contextScope: scope };
     if (scope === 'general') onChange({ ...base, selectedRowId: undefined, selectedField: undefined, currentImageId: undefined, visibleIssueIds: undefined, sourceImageId: undefined, depositId: undefined, intentHint: 'general_question' });
     if (scope === 'job') onChange({ ...base, selectedRowId: undefined, selectedField: undefined, currentImageId: undefined, visibleIssueIds: undefined, intentHint: 'job_question' });

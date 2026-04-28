@@ -6,13 +6,27 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { getOllamaModels, getProcessingSettings, getProcessingSettingsOptions, updateProcessingSettings } from '@/features/settings/api/settings.api';
+import {
+  getOllamaModels,
+  getProcessingSettings,
+  getProcessingSettingsOptions,
+  updateProcessingSettings,
+} from '@/features/settings/api/settings.api';
 import { DEFAULT_EXTRACTION_CRITERIA } from '@/features/settings/types/extraction-criteria.types';
-import type { ApiOllamaModelsResponse, ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
+import type {
+  ApiOllamaModelsResponse,
+  ApiProcessingSettings,
+  ApiProcessingSettingsOptions,
+} from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
-import { normalizeSettings, normalizeSettingsOptions } from '@/features/settings/utils/settings-normalizers';
+import {
+  normalizeSettings,
+  normalizeSettingsOptions,
+} from '@/features/settings/utils/settings-normalizers';
 
 function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
+  // Las API keys nunca se rehidratan en texto plano para evitar exposición
+  // accidental en UI o snapshots de estado del navegador.
   return {
     ocr_mode: settings.ocr_mode,
     ocr_provider: settings.ocr_provider,
@@ -36,6 +50,49 @@ function serializeValues(values: SettingsFormValues | null) {
   return values ? JSON.stringify(values) : '';
 }
 
+function uniqueStrings(values: Array<string | undefined | null>) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => String(value ?? '').trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function buildModelOptions(
+  options: ApiProcessingSettingsOptions,
+  ollamaModels: ApiOllamaModelsResponse | null,
+  values: SettingsFormValues,
+) {
+  const ollamaModelNames = (ollamaModels?.models ?? [])
+    .map((model) => model.name)
+    .filter(Boolean);
+
+  const providerModels = options.provider_models ?? {};
+
+  const ocrModels =
+    values.ocr_provider === 'ollama'
+      ? ollamaModelNames
+      : providerModels[values.ocr_provider]?.ocr ?? [];
+
+  const llmModels =
+    values.llm_provider === 'ollama'
+      ? ollamaModelNames
+      : providerModels[values.llm_provider]?.llm ?? [];
+
+  const assistantModels =
+    values.assistant_provider === 'ollama'
+      ? ollamaModelNames
+      : providerModels[values.assistant_provider]?.llm ?? [];
+
+  return {
+    ocr: uniqueStrings([values.ocr_model, ...ocrModels]),
+    llm: uniqueStrings([values.llm_model, ...llmModels]),
+    assistant: uniqueStrings([values.assistant_model, ...assistantModels]),
+  };
+}
+
 export function useSettingsForm() {
   const [settings, setSettings] = useState<ApiProcessingSettings | null>(null);
   const [options, setOptions] = useState<ApiProcessingSettingsOptions | null>(null);
@@ -49,22 +106,29 @@ export function useSettingsForm() {
   const load = useCallback(async () => {
     setIsLoading(true);
     setLoadError(null);
+
     try {
       const [loadedSettings, loadedOptions, loadedOllamaModels] = await Promise.all([
         getProcessingSettings(),
         getProcessingSettingsOptions(),
         getOllamaModels(),
       ]);
+
       const safeSettings = normalizeSettings(loadedSettings);
       const safeOptions = normalizeSettingsOptions(loadedOptions);
       const nextValues = createFormValues(safeSettings);
+
       setSettings(safeSettings);
       setOptions(safeOptions);
       setOllamaModels(loadedOllamaModels);
       setValues(nextValues);
       setBaselineValues(nextValues);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo cargar la configuracion';
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la configuracion';
+
       setLoadError(message);
       toast.error(message);
     } finally {
@@ -122,10 +186,13 @@ export function useSettingsForm() {
     };
   }, [ollamaModels, options, values]);
 
-  async function save() {
-    if (!values) return;
+  const save = useCallback(async (): Promise<boolean> => {
+    if (!values) {
+      return false;
+    }
 
     setIsSaving(true);
+
     try {
       const {
         ocr_api_key,
@@ -133,24 +200,58 @@ export function useSettingsForm() {
         assistant_api_key,
         ...rest
       } = values;
-      const payload: Record<string, unknown> = { ...rest };
-      if (ocr_api_key.trim()) payload.ocr_api_key = ocr_api_key;
-      if (llm_api_key.trim()) payload.llm_api_key = llm_api_key;
-      if (assistant_api_key.trim()) payload.assistant_api_key = assistant_api_key;
-      payload.extraction_criteria = values.extraction_criteria;
 
-      const nextSettings = normalizeSettings(await updateProcessingSettings(payload));
-      const nextValues = createFormValues(nextSettings);
-      setSettings(nextSettings);
+      const payload: Record<string, unknown> = {
+        ...rest,
+        extraction_criteria: values.extraction_criteria,
+      };
+
+      if (ocr_api_key.trim()) {
+        payload.ocr_api_key = ocr_api_key.trim();
+      }
+
+      if (llm_api_key.trim()) {
+        payload.llm_api_key = llm_api_key.trim();
+      }
+
+      if (assistant_api_key.trim()) {
+        payload.assistant_api_key = assistant_api_key.trim();
+      }
+
+      const savedSettings = normalizeSettings(
+        await updateProcessingSettings(payload),
+      );
+
+      if (
+        values.assistant_provider === 'ollama' &&
+        values.assistant_model &&
+        savedSettings.assistant_model !== values.assistant_model
+      ) {
+        throw new Error(
+          `El backend no guardó el modelo del asistente. Enviado: ${values.assistant_model}. Recibido: ${savedSettings.assistant_model}`,
+        );
+      }
+
+      const nextValues = createFormValues(savedSettings);
+
+      setSettings(savedSettings);
       setValues(nextValues);
       setBaselineValues(nextValues);
+
       toast.success('Configuracion guardada correctamente');
+      return true;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo guardar la configuracion');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'No se pudo guardar la configuracion';
+
+      toast.error(message);
+      return false;
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [values]);
 
   function discardChanges() {
     if (!baselineValues) return;
