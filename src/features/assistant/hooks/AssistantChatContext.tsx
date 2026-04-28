@@ -73,6 +73,18 @@ export function areAssistantContextsEqual(
   return stableStringify(left ?? {}) === stableStringify(right ?? {});
 }
 
+function isValidAssistantChatMessage(value: unknown): value is AssistantChatMessage {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const message = value as Record<string, unknown>;
+  return (
+    (message.role === 'user' || message.role === 'assistant') &&
+    typeof message.content === 'string'
+  );
+}
+
 function loadStoredMessages() {
   if (typeof window === 'undefined') {
     return initialMessages;
@@ -86,7 +98,7 @@ function loadStoredMessages() {
     }
 
     const parsed = JSON.parse(rawValue) as {
-      messages?: AssistantChatMessage[];
+      messages?: unknown[];
       queryContext?: AssistantQueryContext;
     };
 
@@ -94,7 +106,12 @@ function loadStoredMessages() {
       return initialMessages;
     }
 
-    return parsed.messages;
+    const validMessages = parsed.messages.filter(isValidAssistantChatMessage);
+    if (validMessages.length === 0) {
+      return initialMessages;
+    }
+
+    return validMessages;
   } catch {
     return initialMessages;
   }

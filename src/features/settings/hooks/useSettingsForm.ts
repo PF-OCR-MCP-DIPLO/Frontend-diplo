@@ -110,7 +110,7 @@ export function useSettingsForm() {
           ? ollamaSuggestedModels
           : kind === 'ocr'
             ? ['gemma4:e2b', 'llava:7b', 'moondream']
-            : ['gemma4:e2b', 'llama3.2:3b', 'qwen2.5:3b'];
+            : ['gemma4:e2b', 'llama3.1:8b', 'qwen2.5:3b'];
       }
       return models;
     };

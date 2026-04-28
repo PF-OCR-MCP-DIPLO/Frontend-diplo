@@ -98,7 +98,7 @@ describe('ResultsView', () => {
     getJobLogsMock.mockReset();
     reprocessDepositMock.mockReset();
     getJobLogsMock.mockResolvedValue([
-      { id: 1, sequence_index: 1, stage: 'ocr', provider: 'ollama', model: 'qwen3:1.7b', ocr_mode: 'vision', notes: 'OCR completo', raw_payload: {}, raw_text: '', is_error: false, source_image_id: 1, created_at: '2026-04-25T00:00:00Z' },
+      { id: 1, sequence_index: 1, stage: 'ocr', provider: 'ollama', model: 'qwen2.5:7b', ocr_mode: 'vision', notes: 'OCR completo', raw_payload: {}, raw_text: '', is_error: false, source_image_id: 1, created_at: '2026-04-25T00:00:00Z' },
     ]);
     reprocessDepositMock.mockResolvedValue(undefined);
   });

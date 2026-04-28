@@ -25,6 +25,18 @@ export interface AssistantChatResponse {
   show_debug_details: boolean;
 }
 
+export function normalizeAssistantChatMessages(
+  messages: AssistantChatMessage[],
+): Array<{ role: 'user' | 'assistant'; content: string }> {
+  return messages
+    .filter(
+      (message): message is AssistantChatMessage =>
+        message?.role === 'user' || message?.role === 'assistant',
+    )
+    .filter((message) => typeof message.content === 'string')
+    .map((message) => ({ role: message.role, content: message.content }));
+}
+
 /**
  * Envía una conversación al asistente del backend.
  *
@@ -36,13 +48,18 @@ export function sendAssistantChat(
   messages: AssistantChatMessage[],
   options?: { jobId?: number | null; errors?: number; queryContext?: AssistantQueryContext },
 ) {
+  const normalizedMessages = normalizeAssistantChatMessages(messages);
+  if (normalizedMessages.length === 0) {
+    throw new Error('La conversación del asistente no contiene mensajes válidos.');
+  }
+
   return httpRequest<AssistantChatResponse>('assistant/chat/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      messages,
+      messages: normalizedMessages,
       job_id: options?.jobId ?? null,
       errors: options?.errors ?? 0,
       query_context: options?.queryContext ?? {},

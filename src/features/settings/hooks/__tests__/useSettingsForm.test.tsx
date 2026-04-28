@@ -172,7 +172,7 @@ describe('useSettingsForm', () => {
     getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
     updateProcessingSettingsMock.mockResolvedValue({
       ...settingsResponse,
-      assistant_model: 'llama3.2:3b',
+      assistant_model: 'llama3.1:8b',
     });
 
     const { result } = renderHook(() => useSettingsForm());
@@ -182,7 +182,7 @@ describe('useSettingsForm', () => {
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'llama3.2:3b',
+        assistant_model: 'llama3.1:8b',
         assistant_api_key: '',
         assistant_show_debug_details: true,
       });
@@ -194,7 +194,7 @@ describe('useSettingsForm', () => {
 
     expect(updateProcessingSettingsMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        assistant_model: 'llama3.2:3b',
+        assistant_model: 'llama3.1:8b',
         assistant_provider: 'ollama',
         assistant_temperature: 0.4,
         assistant_num_predict: 512,
@@ -212,7 +212,7 @@ describe('useSettingsForm', () => {
     getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
     updateProcessingSettingsMock.mockResolvedValue({
       ...settingsResponse,
-      assistant_model: 'qwen3:1.7b',
+      assistant_model: 'qwen2.5:7b',
     });
 
     const { result } = renderHook(() => useSettingsForm());
@@ -222,7 +222,7 @@ describe('useSettingsForm', () => {
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'qwen3:1.7b',
+        assistant_model: 'qwen2.5:7b',
       });
     });
 
@@ -233,12 +233,12 @@ describe('useSettingsForm', () => {
     });
 
     expect(result.current.hasUnsavedChanges).toBe(false);
-    expect(result.current.values?.assistant_model).toBe('qwen3:1.7b');
+    expect(result.current.values?.assistant_model).toBe('qwen2.5:7b');
 
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'llama3.2:3b',
+        assistant_model: 'llama3.1:8b',
       });
     });
 
@@ -257,7 +257,7 @@ describe('useSettingsForm', () => {
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'qwen3:1.7b',
+        assistant_model: 'qwen2.5:7b',
       });
     });
 
@@ -284,7 +284,7 @@ describe('useSettingsForm', () => {
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'qwen3:1.7b',
+        assistant_model: 'qwen2.5:7b',
       });
     });
 
@@ -313,7 +313,7 @@ describe('useSettingsForm', () => {
     act(() => {
       result.current.setValues({
         ...(result.current.values as NonNullable<typeof result.current.values>),
-        assistant_model: 'qwen3:1.7b',
+        assistant_model: 'qwen2.5:7b',
       });
     });
 
