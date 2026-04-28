@@ -28,11 +28,15 @@ export function SettingsPage() {
       return;
     }
 
-    const shouldLeave = window.confirm('Tienes cambios sin guardar. Si sales ahora, los perderás.');
+    const shouldLeave = window.confirm(
+      'Tienes cambios sin guardar. Si sales ahora, los perderás.',
+    );
+
     if (shouldLeave) {
       blocker.proceed();
       return;
     }
+
     blocker.reset();
   }, [blocker]);
 
@@ -92,7 +96,17 @@ export function SettingsPage() {
         isSaving={settingsForm.isSaving}
         hasUnsavedChanges={settingsForm.hasUnsavedChanges}
         modelOptions={settingsForm.modelOptions}
-        onOpenAssistant={(context, prompt) => openSettingsAssistant(context, prompt)}
+        onOpenAssistant={async (context, prompt) => {
+          if (settingsForm.hasUnsavedChanges) {
+            const saved = await settingsForm.save();
+
+            if (!saved) {
+              return;
+            }
+          }
+
+          openSettingsAssistant(context, prompt);
+        }}
       />
     </div>
   );

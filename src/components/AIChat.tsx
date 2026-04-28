@@ -5,6 +5,9 @@
  * para dialogar sobre un job, una fila o un hallazgo puntual.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import {
   Bot,
   CheckCircle2,
@@ -56,30 +59,39 @@ function getSuggestions(
           : queryContext?.visibleIssueIds?.length
             ? "issues"
             : "job");
-  if (scope === "cell")
+
+  if (scope === "cell") {
     return [
       { label: "Por qué falla", message: "Por qué falla este campo" },
       { label: "Corregir", message: "Propón un valor válido" },
       { label: "Explicar", message: "Explícame esta celda" },
     ];
-  if (scope === "row")
+  }
+
+  if (scope === "row") {
     return [
       { label: "Explicar fila", message: "Explica esta fila" },
       { label: "Campos", message: "Qué campos debo corregir" },
       { label: "Corregir", message: "Propón correcciones" },
     ];
-  if (scope === "image")
+  }
+
+  if (scope === "image") {
     return [
       { label: "Ver imagen", message: "Qué se ve en esta imagen" },
       { label: "Inconsistencias", message: "Detecta inconsistencias" },
       { label: "Relacionar", message: "Relaciona imagen con filas" },
     ];
-  if (scope === "issues")
+  }
+
+  if (scope === "issues") {
     return [
       { label: "Priorizar", message: "Prioriza errores" },
       { label: "Agrupar", message: "Agrupa los errores" },
       { label: "Rápido", message: "Qué puedo corregir primero" },
     ];
+  }
+
   return [
     { label: "Resumen", message: "Resume el resultado" },
     { label: "Prioridad", message: "Qué debo revisar primero" },
@@ -92,17 +104,25 @@ function formatContextLabel(
   jobId?: number | null,
 ) {
   const parts = [`Contexto: Job #${queryContext?.jobId ?? jobId ?? "—"}`];
-  if (queryContext?.selectedRowId)
+
+  if (queryContext?.selectedRowId) {
     parts.push(`Fila ${queryContext.selectedRowId}`);
-  if (queryContext?.selectedField)
+  }
+
+  if (queryContext?.selectedField) {
     parts.push(`Campo ${queryContext.selectedField}`);
-  if (queryContext?.currentImageId)
+  }
+
+  if (queryContext?.currentImageId) {
     parts.push(`Imagen ${queryContext.currentImageId}`);
+  }
+
   return parts.join(" · ");
 }
 
 function AssistantToolSummary({ message }: { message: AssistantChatMessage }) {
   if (!message.tool || message.tool === "none") return null;
+
   if (message.showDebugDetails && isRecord(message.toolData)) {
     return (
       <details className="mt-3 rounded-xl border border-border/60 bg-surface-subtle px-3 py-2 text-xs text-muted-foreground">
@@ -115,6 +135,7 @@ function AssistantToolSummary({ message }: { message: AssistantChatMessage }) {
       </details>
     );
   }
+
   return null;
 }
 
@@ -127,8 +148,10 @@ function PendingActionCard({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  if (!isRecord(message.toolData) || !message.toolData.requires_confirmation)
+  if (!isRecord(message.toolData) || !message.toolData.requires_confirmation) {
     return null;
+  }
+
   return (
     <div className="mt-3 rounded-xl border border-warning/25 bg-warning/10 p-3 text-sm">
       <p className="font-medium text-warning">
@@ -152,8 +175,101 @@ function PendingActionCard({
   );
 }
 
+function ChatMarkdown({ content }: { content: string }) {
+  return (
+    <div className="space-y-2 text-sm leading-6">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeSanitize]}
+        components={{
+          p: ({ children }) => (
+            <p className="whitespace-normal leading-6">{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className="ml-5 list-disc space-y-1">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="ml-5 list-decimal space-y-1">{children}</ol>
+          ),
+          li: ({ children }) => <li className="pl-1">{children}</li>,
+          strong: ({ children }) => (
+            <strong className="font-semibold text-foreground">{children}</strong>
+          ),
+          em: ({ children }) => <em className="italic">{children}</em>,
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-border pl-3 text-muted-foreground">
+              {children}
+            </blockquote>
+          ),
+          code: ({ children, className }) => {
+            const isLanguageBlock = Boolean(className);
+
+            if (!isLanguageBlock) {
+              return (
+                <code className="rounded bg-surface-subtle px-1.5 py-0.5 font-mono text-[0.85em]">
+                  {children}
+                </code>
+              );
+            }
+
+            return (
+              <code className={`${className ?? ""} font-mono text-[0.85em]`}>
+                {children}
+              </code>
+            );
+          },
+          pre: ({ children }) => (
+            <pre className="overflow-x-auto rounded-xl border border-border/70 bg-surface-subtle p-3 text-xs leading-5">
+              {children}
+            </pre>
+          ),
+          a: ({ href, children }) => {
+            if (!href || !/^https?:\/\//i.test(href)) {
+              return <span>{children}</span>;
+            }
+
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary underline underline-offset-4"
+              >
+                {children}
+              </a>
+            );
+          },
+          table: ({ children }) => (
+            <div className="overflow-x-auto rounded-xl border border-border/70">
+              <table className="w-full border-collapse text-left text-xs">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-surface-subtle">{children}</thead>
+          ),
+          th: ({ children }) => (
+            <th className="border-b border-border/70 px-3 py-2 font-semibold">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border-b border-border/50 px-3 py-2 align-top">
+              {children}
+            </td>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
 function ChatBubble({ message }: { message: AssistantChatMessage }) {
   const isUser = message.role === "user";
+
   return (
     <div
       className={`flex items-end gap-3 ${isUser ? "justify-end" : "justify-start"}`}
@@ -163,12 +279,23 @@ function ChatBubble({ message }: { message: AssistantChatMessage }) {
           <Bot className="size-4" />
         </div>
       ) : null}
+
       <div
-        className={`max-w-[min(780px,92%)] rounded-2xl px-4 py-3 text-sm leading-6 ${isUser ? "bg-primary text-primary-foreground" : "border border-border/70 bg-background text-foreground"}`}
+        className={`max-w-[min(780px,92%)] rounded-2xl px-4 py-3 text-sm leading-6 ${
+          isUser
+            ? "bg-primary text-primary-foreground"
+            : "border border-border/70 bg-background text-foreground"
+        }`}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <ChatMarkdown content={message.content} />
+        )}
+
         {!isUser ? <AssistantToolSummary message={message} /> : null}
       </div>
+
       {isUser ? (
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
           <User className="size-4" />
@@ -208,6 +335,7 @@ export function AIChat({
     queryContext: storedContext,
     setQueryContext,
   } = useAssistantChatContext();
+
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeContext = queryContext ?? storedContext;
@@ -221,13 +349,18 @@ export function AIChat({
   // mantener visible el contexto del chat.
   const adjustTextareaHeight = () => {
     if (!textareaRef.current) return;
+
     const textarea = textareaRef.current;
-    // Resetear altura para obtener el scrollHeight real
+
+    // Resetear altura para obtener el scrollHeight real.
     textarea.style.height = "auto";
+
     const maxHeight = 200;
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+
     textarea.style.height = `${newHeight}px`;
-    // Mostrar scroll solo si el contenido supera la altura máxima
+
+    // Mostrar scroll solo si el contenido supera la altura máxima.
     textarea.style.overflowY =
       textarea.scrollHeight > maxHeight ? "auto" : "hidden";
   };
@@ -239,18 +372,23 @@ export function AIChat({
   useEffect(() => {
     adjustTextareaHeight();
     window.addEventListener("resize", adjustTextareaHeight);
+
     return () => window.removeEventListener("resize", adjustTextareaHeight);
   }, []);
 
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (viewport) {
-      if (typeof viewport.scrollTo === "function") {
-        viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
-      } else {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
+
+    if (!viewport) {
+      return;
     }
+
+    if (typeof viewport.scrollTo === "function") {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
+      return;
+    }
+
+    viewport.scrollTop = viewport.scrollHeight;
   }, [messages, isSending]);
 
   useEffect(() => {
@@ -264,22 +402,31 @@ export function AIChat({
   }, [queryContext, setQueryContext, storedContext]);
 
   useEffect(() => {
-    if (initialPrompt && !input) setInput(initialPrompt);
+    if (initialPrompt && !input) {
+      setInput(initialPrompt);
+    }
   }, [initialPrompt, input, setInput]);
 
   const sendMessage = async (rawText?: string) => {
     const text = (rawText ?? input).trim();
-    if (!text || isSending) return;
+
+    if (!text || isSending) {
+      return;
+    }
+
     const userMessage: AssistantChatMessage = {
       id: `${Date.now()}`,
       role: "user",
       content: text,
       timestamp: new Date().toISOString(),
     };
+
     const nextMessages = [...messages, userMessage];
+
     setMessages(nextMessages);
     setInput("");
     setIsSending(true);
+
     try {
       const response = await sendAssistantChat(
         nextMessages.map((message) => ({
@@ -288,9 +435,11 @@ export function AIChat({
         })),
         { jobId, errors, queryContext: activeContext },
       );
+
       if (!areAssistantContextsEqual(response.query_context, storedContext)) {
         setQueryContext(response.query_context ?? {});
       }
+
       setMessages((current) => [
         ...current,
         {
@@ -340,6 +489,7 @@ export function AIChat({
               {errors > 0 ? `${errors} errores` : "Sin errores"}
             </p>
           </div>
+
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -355,6 +505,7 @@ export function AIChat({
               )}
               Ver contexto
             </Button>
+
             <Button
               type="button"
               variant="ghost"
@@ -368,6 +519,7 @@ export function AIChat({
             </Button>
           </div>
         </div>
+
         {showContext ? (
           <div className="mt-1 rounded-xl border border-border/60 bg-surface-subtle p-3">
             <AssistantContextSelector
@@ -408,6 +560,7 @@ export function AIChat({
                 </div>
               </div>
             ) : null}
+
             {messages.map((message) => (
               <div key={message.id}>
                 <ChatBubble message={message} />
@@ -420,6 +573,7 @@ export function AIChat({
                 ) : null}
               </div>
             ))}
+
             {isSending ? <ThinkingBubble /> : null}
           </div>
         </ScrollArea>
@@ -427,8 +581,6 @@ export function AIChat({
 
       <div className="border-t border-border/70 bg-card px-3 py-3">
         <div className="mx-auto max-w rounded-2xl border border-border/70 bg-surface-subtle p-1.5">
-          {" "}
-          {/* antes p-2 */}
           <textarea
             ref={textareaRef}
             value={input}
@@ -440,17 +592,16 @@ export function AIChat({
               }
             }}
             placeholder="Pregunta algo…"
-            className="min-h-[12px] w-full resize-none border-0 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground" // py-1 en vez de py-1.5, min-h-[36px]
+            className="min-h-[12px] w-full resize-none border-0 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
             disabled={isSending}
             style={{ overflowY: "hidden" }}
           />
+
           <div className="flex items-center justify-between px-1">
-            {" "}
-            {/* mt-1 en vez de mt-2 */}
             <p className="text-xs text-muted-foreground">
               Enter envía, Shift+Enter salto
-            </p>{" "}
-            {/* texto más corto */}
+            </p>
+
             <Button
               type="button"
               size="sm"
@@ -458,8 +609,6 @@ export function AIChat({
               onClick={() => void sendMessage()}
               disabled={isSending || !input.trim()}
             >
-              {" "}
-              {/* botón más compacto */}
               {isSending ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (

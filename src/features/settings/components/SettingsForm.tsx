@@ -11,7 +11,10 @@ import { ExtractionCriteriaSection } from '@/features/settings/components/sectio
 import { LlmSettingsSection } from '@/features/settings/components/sections/LlmSettingsSection';
 import { OcrSettingsSection } from '@/features/settings/components/sections/OcrSettingsSection';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
-import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
+import type {
+  ApiProcessingSettings,
+  ApiProcessingSettingsOptions,
+} from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
 
 interface SettingsFormProps {
@@ -19,15 +22,29 @@ interface SettingsFormProps {
   options: ApiProcessingSettingsOptions;
   values: SettingsFormValues;
   onChange: (values: SettingsFormValues) => void;
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
   onDiscard: () => void;
   isSaving: boolean;
   hasUnsavedChanges: boolean;
   modelOptions: { ocr: string[]; llm: string[]; assistant: string[] };
-  onOpenAssistant: (context: AssistantQueryContext, prompt: string) => void;
+  onOpenAssistant: (
+    context: AssistantQueryContext,
+    prompt: string,
+  ) => void | Promise<void>;
 }
 
-export function SettingsForm({ settings, options, values, onChange, onSave, onDiscard, isSaving, hasUnsavedChanges, modelOptions, onOpenAssistant }: SettingsFormProps) {
+export function SettingsForm({
+  settings,
+  options,
+  values,
+  onChange,
+  onSave,
+  onDiscard,
+  isSaving,
+  hasUnsavedChanges,
+  modelOptions,
+  onOpenAssistant,
+}: SettingsFormProps) {
   const updatedLabel = settings.updated_at
     ? new Date(settings.updated_at).toLocaleString('es-CO')
     : 'sin registro';
@@ -38,25 +55,46 @@ export function SettingsForm({ settings, options, values, onChange, onSave, onDi
         <div className='flex flex-col gap-3 border-b border-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <h2 className='font-semibold text-foreground'>Parametros</h2>
-            <p className='text-sm text-muted-foreground'>Aplica solo los cambios que necesites.</p>
+            <p className='text-sm text-muted-foreground'>
+              Aplica solo los cambios que necesites.
+            </p>
           </div>
+
           <div className='flex flex-wrap items-center gap-3'>
             <span className='meta-pill'>Actualizado {updatedLabel}</span>
-            <Button type='button' variant='outline' onClick={onDiscard} disabled={!hasUnsavedChanges || isSaving}>Descartar cambios</Button>
-            <Button onClick={onSave} disabled={isSaving || !hasUnsavedChanges} variant={hasUnsavedChanges ? 'default' : 'outline'}>
-              {isSaving ? 'Guardando...' : 'Guardar'}
-            </Button>
+
             <Button
               type='button'
               variant='outline'
-              onClick={() => onOpenAssistant(
-                {
-                  page: 'settings',
-                  jobId: undefined,
-                  intentHint: 'explain_settings',
-                },
-                'Ayúdame a revisar y simplificar esta configuración.',
-              )}
+              onClick={onDiscard}
+              disabled={!hasUnsavedChanges || isSaving}
+            >
+              Descartar cambios
+            </Button>
+
+            <Button
+              type='button'
+              onClick={() => void onSave()}
+              disabled={isSaving || !hasUnsavedChanges}
+              variant={hasUnsavedChanges ? 'default' : 'outline'}
+            >
+              {isSaving ? 'Guardando...' : 'Guardar'}
+            </Button>
+
+            <Button
+              type='button'
+              variant='outline'
+              disabled={isSaving}
+              onClick={() =>
+                void onOpenAssistant(
+                  {
+                    page: 'settings',
+                    jobId: undefined,
+                    intentHint: 'explain_settings',
+                  },
+                  'Ayúdame a revisar y simplificar esta configuración.',
+                )
+              }
             >
               Ayúdame con Assistant
             </Button>
@@ -65,13 +103,10 @@ export function SettingsForm({ settings, options, values, onChange, onSave, onDi
 
         {hasUnsavedChanges ? (
           <div className='notice-warning' role='status'>
-            Tienes cambios sin guardar. Guarda para actualizar la configuración activa o descártalos para volver al último estado guardado.
+            Tienes cambios sin guardar. Guarda para actualizar la configuración
+            activa o descártalos para volver al último estado guardado.
           </div>
         ) : null}
-
-        <div className='notice-warning'>
-          Para una demo estable de este MVP, prioriza `tesseract` u `ollama`. Otros proveedores visibles se muestran como referencia de expansión, pero no están operativos de extremo a extremo.
-        </div>
 
         <OcrSettingsSection
           settings={settings}
