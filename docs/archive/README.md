@@ -9,6 +9,7 @@ fuente canónica.
 - `FRONTEND.md`
 - `QA_ASSISTANT_E2E.md`
 - `TESTING.md`
+- Documentos legacy en `docs/frontend/`, `docs/setup/` y `docs/architecture/`.
 
 ## Regla
 

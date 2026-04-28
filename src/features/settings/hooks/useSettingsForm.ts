@@ -13,6 +13,8 @@ import type { SettingsFormValues } from '@/features/settings/types/settings.type
 import { normalizeSettings, normalizeSettingsOptions } from '@/features/settings/utils/settings-normalizers';
 
 function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
+  // Las API keys nunca se rehidratan en texto plano para evitar exposición
+  // accidental en UI o snapshots de estado del navegador.
   return {
     ocr_mode: settings.ocr_mode,
     ocr_provider: settings.ocr_provider,
@@ -123,6 +125,11 @@ export function useSettingsForm() {
   }, [ollamaModels, options, values]);
 
   async function save() {
+    /**
+     * Persiste cambios del formulario con payload parcial.
+     *
+     * Solo envía API keys cuando el usuario escribe nuevos valores.
+     */
     if (!values) return;
 
     setIsSaving(true);

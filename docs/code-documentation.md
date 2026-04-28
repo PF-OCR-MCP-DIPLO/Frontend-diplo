@@ -44,6 +44,20 @@ MkDocs se reserva para arquitectura, runbooks, ADRs, testing y operación.
 - Documentar qué endpoint alimenta cada cliente API.
 - Explicar normalizaciones antes de llegar a la UI.
 
+## Módulos críticos documentados en código
+
+- `src/services/http/client.ts`
+- `src/app/router/routes.tsx`
+- `src/app/providers/AppProviders.tsx`
+- `src/features/processing/hooks/useProcessingActions.ts`
+- `src/features/processing/hooks/ProcessingProvider.tsx`
+- `src/features/processing/api/processing.api.ts`
+- `src/features/settings/hooks/useSettingsForm.ts`
+- `src/features/settings/api/settings.api.ts`
+- `src/features/assistant/hooks/AssistantChatContext.tsx`
+- `src/features/assistant/components/AssistantContextSelector.tsx`
+- `src/features/assistant/api/assistant.api.ts`
+
 ## Efectos secundarios
 
 Documentar escrituras en storage, llamadas HTTP y mutaciones compartidas.
@@ -56,4 +70,9 @@ Documentar validaciones, conflictos, respuestas inválidas y fallos de red.
 
 - Documentar solo pruebas complejas o contraintuitivas.
 - Explicar el caso de negocio protegido por la prueba.
+
+## Pendiente de validar
+
+- Cobertura documental completa en componentes de bajo nivel `src/components/ui/*`
+  (se priorizó esta pasada en módulos de negocio y de integración).
 

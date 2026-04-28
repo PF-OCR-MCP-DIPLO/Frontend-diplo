@@ -41,6 +41,16 @@ const PROCESSING_BACKOFF_AFTER_MS = 30_000;
 const PROCESSING_POLL_TIMEOUT_MS = 180_000;
 export const ACTIVE_JOB_STORAGE_KEY = "diplo.active-job-id";
 
+/**
+ * Provee acciones de alto nivel para el dominio de procesamiento.
+ *
+ * @param state - Setters y estado interno administrado por `useProcessingState`.
+ * @returns Acciones memoizadas para upload, procesamiento, polling, exportación y guardado.
+ *
+ * @remarks
+ * Este hook es la frontera de side effects del módulo: llamadas HTTP, polling
+ * adaptativo y sincronización con `localStorage` de la corrida activa.
+ */
 export function useProcessingActions({
   currentResults,
   setCurrentResults,
@@ -168,6 +178,8 @@ export function useProcessingActions({
 
   const pollJobUntilSettled = useCallback(
     async (jobId: number) => {
+      // Se reutiliza un único polling por job para evitar carreras si varias
+      // vistas disparan refresco simultáneo del mismo procesamiento.
       const existing = activePollsRef.current.get(jobId);
       if (existing) {
         return existing;
@@ -178,6 +190,8 @@ export function useProcessingActions({
         let latestState = await mergeProcessingState(jobId);
 
         while (latestState && !TERMINAL_STATUSES.has(latestState.status)) {
+          // Timeout defensivo para evitar loops infinitos cuando el backend no
+          // transiciona a estado terminal por errores externos de proveedor.
           if (Date.now() - startedAt >= PROCESSING_POLL_TIMEOUT_MS) {
             const diagnostics = await getJobDiagnostics(jobId).catch(
               () => null,
@@ -353,6 +367,7 @@ export function useProcessingActions({
 
       setIsSavingCorrections(true);
       try {
+        // Se traduce la tabla editable al contrato PATCH esperado por backend.
         const job = mapJobToProcessedFile(
           await saveJobCorrections(targetJobId, {
             items: rows.map((row) => ({
