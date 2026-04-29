@@ -7,21 +7,13 @@ RUN npm ci
 
 COPY . /app
 
-ARG VITE_API_BASE_URL=http://localhost:8000/api
-ARG VITE_API_KEY=
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_API_KEY=$VITE_API_KEY
-
 RUN npm run build
 
-FROM node:20-slim AS runtime
-WORKDIR /app
+FROM nginx:1.27-alpine AS runtime
 
-ENV NODE_ENV=production
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY --from=build /app /app
+EXPOSE 80
 
-EXPOSE 5173
-
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]
-
+CMD ["nginx", "-g", "daemon off;"]
