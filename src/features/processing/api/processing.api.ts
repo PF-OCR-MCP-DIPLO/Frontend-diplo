@@ -26,6 +26,10 @@ import type {
   ApiSourceImage,
 } from '@/features/processing/types/processing.api';
 
+export interface ProcessJobOptions {
+  force?: boolean;
+}
+
 /**
  * Normaliza los depósitos asociados a una imagen fuente.
  *
@@ -113,10 +117,17 @@ export function uploadDocument(file: File) {
  * Solicita el procesamiento de una corrida existente.
  *
  * @param jobId - Identificador de la corrida.
+ * @param options - Opciones del proceso; `force` fuerza reprocesamiento completo.
  * @returns Corrida normalizada luego de iniciar o completar el proceso.
  */
-export function processJob(jobId: number) {
-  return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/process/`, {
+export function processJob(jobId: number, options: ProcessJobOptions = {}) {
+  const searchParams = new URLSearchParams();
+  if (options.force) {
+    searchParams.set('force', 'true');
+  }
+  const query = searchParams.toString();
+
+  return httpRequest<Partial<ApiJobDetail>>(`jobs/${jobId}/process/${query ? `?${query}` : ''}`, {
     method: 'POST',
   }).then(normalizeJobDetail);
 }

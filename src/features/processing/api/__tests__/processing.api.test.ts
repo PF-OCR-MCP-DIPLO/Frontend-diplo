@@ -115,6 +115,29 @@ describe('processing.api', () => {
     expect(job.status).toBe('completed');
   });
 
+  it('sends force=true when full reprocessing is requested', async () => {
+    httpRequestMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'done.docx',
+      status: 'processing',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 3,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+
+    await processJob(7, { force: true });
+
+    expect(httpRequestMock).toHaveBeenCalledWith('jobs/7/process/?force=true', { method: 'POST' });
+  });
+
   it('propagates process conflicts from the backend', async () => {
     httpRequestMock.mockRejectedValueOnce(new HttpError(409, 'Esta ejecución ya se encuentra en procesamiento.', { code: 'job_already_processing' }));
 

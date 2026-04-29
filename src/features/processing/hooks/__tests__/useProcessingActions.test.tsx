@@ -113,6 +113,107 @@ describe('useProcessingActions', () => {
     expect(processed).toMatchObject({ jobId: 1 });
   });
 
+  it('runProcessing forces full reprocessing for the current completed job and updates state', async () => {
+    processJobMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'done.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 2,
+      total_records: 4,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: '2026-04-21T00:00:00Z',
+      finished_at: '2026-04-21T00:00:03Z',
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:03Z',
+      source_images: [],
+    });
+    const setCurrentResults = vi.fn();
+    const setProcessedFiles = vi.fn();
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: {
+        jobId: 7,
+        status: 'completed',
+      } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: setCurrentResults as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: setProcessedFiles as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+    const processed = await result.current.runProcessing();
+
+    expect(processJobMock).toHaveBeenCalledWith(7, { force: true });
+    expect(setCurrentResults).toHaveBeenCalledWith(expect.objectContaining({
+      jobId: 7,
+      status: 'completed',
+      totalRecords: 4,
+    }));
+    expect(setProcessedFiles).toHaveBeenCalledTimes(1);
+    expect(processed).toMatchObject({ jobId: 7, status: 'completed' });
+  });
+
+  it('runProcessing also forces completed jobs launched from history', async () => {
+    processJobMock.mockResolvedValueOnce({
+      id: 8,
+      original_filename: 'history.docx',
+      status: 'completed',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 1,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: '2026-04-21T00:00:00Z',
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: null,
+      processedFiles: [
+        {
+          jobId: 8,
+          status: 'completed',
+        },
+      ] as ProcessingState['processedFiles'],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+    await result.current.runProcessing(8);
+
+    expect(processJobMock).toHaveBeenCalledWith(8, { force: true });
+  });
+
   it('deleteJobResult removes the active job from state and localStorage', async () => {
     deleteJobMock.mockResolvedValue(undefined);
     window.localStorage.setItem('diplo.active-job-id', '7');

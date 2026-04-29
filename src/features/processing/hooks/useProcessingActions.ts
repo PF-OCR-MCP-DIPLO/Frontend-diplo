@@ -53,6 +53,7 @@ export const ACTIVE_JOB_STORAGE_KEY = "diplo.active-job-id";
  */
 export function useProcessingActions({
   currentResults,
+  processedFiles,
   setCurrentResults,
   setIsExporting,
   setIsLoadingHistory,
@@ -296,9 +297,18 @@ export function useProcessingActions({
         return null;
       }
 
+      const targetStatus =
+        currentResults?.jobId === targetJobId
+          ? currentResults.status
+          : processedFiles.find((item) => item.jobId === targetJobId)?.status;
+      const force = targetStatus === "completed";
+
       setIsProcessing(true);
       try {
-        const job = mapJobToProcessedFile(await processJob(targetJobId));
+        const response = force
+          ? await processJob(targetJobId, { force: true })
+          : await processJob(targetJobId);
+        const job = mapJobToProcessedFile(response);
         const updatedJob = upsertCurrentJob(job);
         if (TERMINAL_STATUSES.has(updatedJob.status)) {
           return updatedJob;
@@ -308,7 +318,14 @@ export function useProcessingActions({
         setIsProcessing(false);
       }
     },
-    [currentJobId, pollJobUntilSettled, setIsProcessing, upsertCurrentJob],
+    [
+      currentJobId,
+      currentResults,
+      pollJobUntilSettled,
+      processedFiles,
+      setIsProcessing,
+      upsertCurrentJob,
+    ],
   );
 
   const reprocessFailedJob = useCallback(

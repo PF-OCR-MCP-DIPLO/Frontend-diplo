@@ -194,6 +194,32 @@ describe("ResultsView", () => {
     expect(props.onReprocessFailed).toHaveBeenCalledTimes(1);
   });
 
+  it("shows full reprocessing as the primary action for completed jobs", () => {
+    const { props } = renderResultsView({
+      status: "completed",
+      errorMessage: "",
+      initialData: [],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Procesar de nuevo/i }));
+
+    expect(props.onProcess).toHaveBeenCalledTimes(1);
+    expect(props.onReprocessFailed).not.toHaveBeenCalled();
+  });
+
+  it("disables processing actions while the job is processing", () => {
+    renderResultsView({
+      status: "processing",
+      isProcessing: true,
+      errorMessage: "",
+      initialData: [],
+    });
+
+    expect(
+      screen.getByRole("button", { name: /^Procesar$/i }),
+    ).toBeDisabled();
+  });
+
   it("renders safely with empty results and no source images", () => {
     renderResultsView({
       sourceImages: [],
