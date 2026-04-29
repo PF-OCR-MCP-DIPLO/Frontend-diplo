@@ -39,6 +39,8 @@ const settingsResponse = {
   assistant_temperature: 0.4,
   assistant_num_predict: 512,
   request_timeout_seconds: 30,
+  valid_consignation_month: 4,
+  valid_consignation_year: 2026,
   extraction_criteria: DEFAULT_EXTRACTION_CRITERIA,
   updated_at: '2025-01-01T00:00:00Z',
 } as const;
@@ -101,6 +103,8 @@ describe('useSettingsForm', () => {
     expect(result.current.options?.ocr_modes).toEqual(['tesseract', 'vision', 'auto']);
     expect(result.current.values?.assistant_model).toBe('gemma4:e2b');
     expect(result.current.values?.assistant_show_debug_details).toBe(true);
+    expect(result.current.values?.valid_consignation_month).toBe(4);
+    expect(result.current.values?.valid_consignation_year).toBe(2026);
     expect(result.current.values?.extraction_criteria.fields[0].key).toBe('fecha_consignacion');
     expect(result.current.modelOptions.assistant).toContain('llama3.2');
   });
@@ -204,6 +208,44 @@ describe('useSettingsForm', () => {
     const payload = updateProcessingSettingsMock.mock.calls[0][0] as Record<string, unknown>;
     expect(payload).not.toHaveProperty('assistant_api_key');
     expect(payload).toHaveProperty('extraction_criteria');
+  });
+
+  it('marks unsaved changes and sends the valid consignation period in the payload', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+    updateProcessingSettingsMock.mockResolvedValue({
+      ...settingsResponse,
+      valid_consignation_month: 5,
+      valid_consignation_year: 2027,
+    });
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setValues({
+        ...(result.current.values as NonNullable<typeof result.current.values>),
+        valid_consignation_month: 5,
+        valid_consignation_year: 2027,
+      });
+    });
+
+    expect(result.current.hasUnsavedChanges).toBe(true);
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(updateProcessingSettingsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        valid_consignation_month: 5,
+        valid_consignation_year: 2027,
+      }),
+    );
+    expect(result.current.values?.valid_consignation_month).toBe(5);
+    expect(result.current.values?.valid_consignation_year).toBe(2027);
   });
 
   it('tracks unsaved changes, clears them after save and updates the baseline', async () => {

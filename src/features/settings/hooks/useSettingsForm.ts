@@ -39,6 +39,8 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     assistant_temperature: settings.assistant_temperature,
     assistant_num_predict: settings.assistant_num_predict,
     request_timeout_seconds: settings.request_timeout_seconds,
+    valid_consignation_month: settings.valid_consignation_month,
+    valid_consignation_year: settings.valid_consignation_year,
     ocr_api_key: '',
     llm_api_key: '',
     assistant_api_key: '',

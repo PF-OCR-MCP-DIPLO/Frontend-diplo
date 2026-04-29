@@ -13,6 +13,8 @@ export type SettingsFormValues = {
   assistant_temperature: number;
   assistant_num_predict: number;
   request_timeout_seconds: number;
+  valid_consignation_month: number;
+  valid_consignation_year: number;
   ocr_api_key: string;
   llm_api_key: string;
   assistant_api_key: string;

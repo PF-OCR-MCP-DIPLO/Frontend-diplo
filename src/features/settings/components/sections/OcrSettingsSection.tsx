@@ -5,6 +5,12 @@ import { SettingsSection } from '@/features/settings/components/SettingsSection'
 import type { ApiProcessingSettings, ApiProcessingSettingsOptions } from '@/features/settings/types/settings.api';
 import type { SettingsFormValues } from '@/features/settings/types/settings.types';
 
+const TESSERACT_LANGUAGE_OPTIONS = [
+  { value: 'spa', label: 'Español' },
+  { value: 'eng', label: 'Inglés' },
+  { value: 'spa+eng', label: 'Español + Inglés' },
+] as const;
+
 interface OcrSettingsSectionProps {
   settings: ApiProcessingSettings;
   options: ApiProcessingSettingsOptions;
@@ -18,6 +24,7 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
   const ocrModes = options.ocr_modes ?? [];
   const ocrProviders = options.providers?.ocr ?? [];
   const ocrRequirements = options.provider_requirements?.[values.ocr_provider];
+  const tesseractLanguages = TESSERACT_LANGUAGE_OPTIONS.map((option) => option.value);
   const formatProviderLabel = (provider: string) => {
     const requirement = options.provider_requirements?.[provider];
     return requirement && !requirement.operational ? `${provider} (MVP no operativo)` : provider;
@@ -31,7 +38,16 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
           <Select
             id='ocr-mode'
             value={values.ocr_mode}
-            onChange={(event) => onChange({ ...values, ocr_mode: event.target.value as SettingsFormValues['ocr_mode'] })}
+            onChange={(event) => {
+              const nextMode = event.target.value as SettingsFormValues['ocr_mode'];
+              const nextValues: SettingsFormValues = { ...values, ocr_mode: nextMode };
+
+              if (nextMode === 'tesseract' && !tesseractLanguages.includes(values.ocr_model)) {
+                nextValues.ocr_model = 'spa';
+              }
+
+              onChange(nextValues);
+            }}
           >
             {ocrModes.length > 0 ? ocrModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) : (
               <option value={values.ocr_mode}>{values.ocr_mode}</option>
@@ -59,7 +75,15 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
       <div className='grid gap-5 sm:grid-cols-2'>
         <div className='field-stack'>
           <Label htmlFor='ocr-model'>Modelo OCR</Label>
-          {values.ocr_mode !== 'tesseract' && modelOptions.length > 0 ? (
+          {values.ocr_mode === 'tesseract' ? (
+            <Select
+              id='ocr-model'
+              value={tesseractLanguages.includes(values.ocr_model) ? values.ocr_model : 'spa'}
+              onChange={(event) => onChange({ ...values, ocr_model: event.target.value })}
+            >
+              {TESSERACT_LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </Select>
+          ) : modelOptions.length > 0 ? (
             <Select
               id='ocr-model'
               value={values.ocr_model}
@@ -72,11 +96,11 @@ export function OcrSettingsSection({ settings, options, values, modelOptions, on
               id='ocr-model'
               value={values.ocr_model}
               onChange={(event) => onChange({ ...values, ocr_model: event.target.value })}
-              placeholder={values.ocr_mode === 'tesseract' ? 'spa' : modelOptions[0] ?? 'model'}
+              placeholder={modelOptions[0] ?? 'model'}
             />
           )}
           {values.ocr_mode === 'tesseract' ? (
-            <p className='field-help'>Ejemplo: `spa`, `eng` o `spa+eng`.</p>
+            <p className='field-help'>Selecciona el idioma instalado para OCR local.</p>
           ) : modelOptions.length > 0 ? (
             <p className='field-help'>Sugeridos: {modelOptions.join(', ')}</p>
           ) : null}

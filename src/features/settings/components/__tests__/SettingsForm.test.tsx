@@ -16,6 +16,8 @@ const baseValues: SettingsFormValues = {
   assistant_temperature: 0.2,
   assistant_num_predict: 256,
   request_timeout_seconds: 320,
+  valid_consignation_month: 4,
+  valid_consignation_year: 2026,
   ocr_api_key: '',
   llm_api_key: '',
   assistant_api_key: '',
@@ -25,12 +27,13 @@ const baseValues: SettingsFormValues = {
 function renderForm(options = normalizeSettingsOptions(null), values = baseValues) {
   const onSave = vi.fn();
   const onDiscard = vi.fn();
+  const onChange = vi.fn();
   return render(
     <SettingsForm
       settings={DEFAULT_PROCESSING_SETTINGS}
       options={options}
       values={values}
-      onChange={vi.fn()}
+      onChange={onChange}
       onSave={onSave}
       onDiscard={onDiscard}
       isSaving={false}
@@ -91,5 +94,102 @@ describe('SettingsForm', () => {
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the valid consignation period controls', () => {
+    renderForm();
+
+    expect(screen.getByLabelText('Mes válido de consignación')).toBeInTheDocument();
+    expect(screen.getByLabelText('Año válido de consignación')).toBeInTheDocument();
+    expect(screen.getByText(/no al mes actual del sistema/i)).toBeInTheDocument();
+  });
+
+  it('renders tesseract OCR model as a select with predefined language options', () => {
+    renderForm(
+      normalizeSettingsOptions(null),
+      { ...baseValues, ocr_mode: 'tesseract', ocr_model: 'spa' },
+    );
+
+    const modelSelect = screen.getByLabelText('Modelo OCR');
+    expect(modelSelect.tagName).toBe('SELECT');
+    expect(screen.getByRole('option', { name: 'Español' })).toHaveValue('spa');
+    expect(screen.getByRole('option', { name: 'Inglés' })).toHaveValue('eng');
+    expect(screen.getByRole('option', { name: 'Español + Inglés' })).toHaveValue('spa+eng');
+    expect(screen.getByText('Selecciona el idioma instalado para OCR local.')).toBeInTheDocument();
+  });
+
+  it('updates ocr_model when selecting a tesseract language', () => {
+    const onSave = vi.fn();
+    const onDiscard = vi.fn();
+    const onChange = vi.fn();
+
+    render(
+      <SettingsForm
+        settings={DEFAULT_PROCESSING_SETTINGS}
+        options={normalizeSettingsOptions(null)}
+        values={{ ...baseValues, ocr_mode: 'tesseract', ocr_model: 'spa' }}
+        onChange={onChange}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        isSaving={false}
+        hasUnsavedChanges={false}
+        modelOptions={{ ocr: [], llm: [], assistant: [] }}
+        onOpenAssistant={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Modelo OCR'), { target: { value: 'spa+eng' } });
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ ocr_model: 'spa+eng' }));
+  });
+
+  it('normalizes remote OCR models to spa when switching to tesseract', () => {
+    const onSave = vi.fn();
+    const onDiscard = vi.fn();
+    const onChange = vi.fn();
+
+    render(
+      <SettingsForm
+        settings={DEFAULT_PROCESSING_SETTINGS}
+        options={normalizeSettingsOptions(null)}
+        values={{ ...baseValues, ocr_mode: 'vision', ocr_model: 'gemma4:e2b' }}
+        onChange={onChange}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        isSaving={false}
+        hasUnsavedChanges={false}
+        modelOptions={{ ocr: ['gemma4:e2b'], llm: [], assistant: [] }}
+        onOpenAssistant={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Modo OCR'), { target: { value: 'tesseract' } });
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      ocr_mode: 'tesseract',
+      ocr_model: 'spa',
+    }));
+  });
+
+  it('keeps remote OCR model selection behavior for vision and auto', () => {
+    render(
+      <SettingsForm
+        settings={DEFAULT_PROCESSING_SETTINGS}
+        options={normalizeSettingsOptions(null)}
+        values={{ ...baseValues, ocr_mode: 'vision', ocr_model: 'gemma4:e2b' }}
+        onChange={vi.fn()}
+        onSave={vi.fn()}
+        onDiscard={vi.fn()}
+        isSaving={false}
+        hasUnsavedChanges={false}
+        modelOptions={{ ocr: ['gemma4:e2b', 'llava:7b'], llm: [], assistant: [] }}
+        onOpenAssistant={vi.fn()}
+      />,
+    );
+
+    const modelSelect = screen.getByLabelText('Modelo OCR');
+    expect(modelSelect.tagName).toBe('SELECT');
+    expect(screen.getByRole('option', { name: 'gemma4:e2b' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'llava:7b' })).toBeInTheDocument();
   });
 });

@@ -15,6 +15,8 @@ export interface ApiProcessingSettings {
   assistant_temperature: number;
   assistant_num_predict: number;
   request_timeout_seconds: number;
+  valid_consignation_month: number;
+  valid_consignation_year: number;
   extraction_criteria: ExtractionCriteriaConfig;
   updated_at: string;
 }
@@ -34,6 +36,8 @@ export interface ApiProcessingSettingsPatch {
   ocr_api_key?: string;
   llm_api_key?: string;
   request_timeout_seconds?: number;
+  valid_consignation_month?: number;
+  valid_consignation_year?: number;
   extraction_criteria?: ExtractionCriteriaConfig;
 }
 

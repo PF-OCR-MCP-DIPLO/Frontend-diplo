@@ -10,6 +10,7 @@ import { AssistantSettingsSection } from '@/features/settings/components/section
 import { ExtractionCriteriaSection } from '@/features/settings/components/sections/ExtractionCriteriaSection';
 import { LlmSettingsSection } from '@/features/settings/components/sections/LlmSettingsSection';
 import { OcrSettingsSection } from '@/features/settings/components/sections/OcrSettingsSection';
+import { ValidConsignationPeriodSection } from '@/features/settings/components/sections/ValidConsignationPeriodSection';
 import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
 import type {
   ApiProcessingSettings,
@@ -129,6 +130,11 @@ export function SettingsForm({
           options={options}
           values={values}
           modelOptions={modelOptions.assistant}
+          onChange={onChange}
+        />
+
+        <ValidConsignationPeriodSection
+          values={values}
           onChange={onChange}
         />
 

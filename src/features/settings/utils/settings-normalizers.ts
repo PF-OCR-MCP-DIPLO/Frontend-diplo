@@ -25,6 +25,8 @@ export const DEFAULT_PROCESSING_SETTINGS: ApiProcessingSettings = {
   assistant_temperature: 0.2,
   assistant_num_predict: 256,
   request_timeout_seconds: 320,
+  valid_consignation_month: new Date().getMonth() + 1,
+  valid_consignation_year: new Date().getFullYear(),
   extraction_criteria: DEFAULT_EXTRACTION_CRITERIA,
   updated_at: '',
 };
@@ -39,6 +41,14 @@ function asBoolean(value: unknown, fallback: boolean) {
 
 function asNumber(value: unknown, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function normalizeIntegerInRange(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = typeof value === 'string' && value.trim() !== ''
+    ? Number.parseInt(value, 10)
+    : asNumber(value, Number.NaN);
+
+  return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
 }
 
 export function normalizeProviderModels(value: unknown): ApiProcessingSettingsOptions['provider_models'] {
@@ -104,6 +114,8 @@ export function normalizeSettings(settings?: Partial<ApiProcessingSettings> | nu
     assistant_temperature: asNumber(next.assistant_temperature, DEFAULT_PROCESSING_SETTINGS.assistant_temperature),
     assistant_num_predict: asNumber(next.assistant_num_predict, DEFAULT_PROCESSING_SETTINGS.assistant_num_predict),
     request_timeout_seconds: asNumber(next.request_timeout_seconds, DEFAULT_PROCESSING_SETTINGS.request_timeout_seconds),
+    valid_consignation_month: normalizeIntegerInRange(next.valid_consignation_month, DEFAULT_PROCESSING_SETTINGS.valid_consignation_month, 1, 12),
+    valid_consignation_year: normalizeIntegerInRange(next.valid_consignation_year, DEFAULT_PROCESSING_SETTINGS.valid_consignation_year, 2000, 2100),
     extraction_criteria: next.extraction_criteria ?? DEFAULT_EXTRACTION_CRITERIA,
     updated_at: next.updated_at ?? '',
   };
