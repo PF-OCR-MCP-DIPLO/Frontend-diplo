@@ -8,10 +8,11 @@
  * El estado visual del botón de configuración depende de la ruta activa para
  * reforzar la ubicación actual del usuario.
  */
-import { Menu, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { NavigationItem } from "@/types/navigation";
-import { Link, useLocation } from "react-router-dom";
+import { Menu, Settings } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ProcessingHeaderProgress } from '@/features/processing/components/ProcessingHeaderProgress';
+import { NavigationItem } from '@/types/navigation';
 
 type AppHeaderProps = {
   currentNavigationItem: NavigationItem;
@@ -27,7 +28,7 @@ export function AppHeader({
 
   return (
     <header className="sticky top-0 z-30 h-[60.5px] border-b border-border/70 bg-card/82 backdrop-blur-xl">
-      <div className="page-shell flex h-full items-center justify-between gap-4 px-4">
+      <div className='page-shell relative flex h-full items-center justify-between gap-4 px-4'>
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
@@ -48,7 +49,7 @@ export function AppHeader({
             </p>
           </div>
         </div>
-
+        <ProcessingHeaderProgress />
         <div className="flex items-center gap-2">
           <Link to="/settings" aria-label="Configuracion" title="Configuracion">
             <Button

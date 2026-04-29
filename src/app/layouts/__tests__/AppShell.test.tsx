@@ -2,8 +2,13 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/app/layouts/AppShell';
+
 vi.mock('@/components/AIChat', () => ({
   AIChat: () => <div>Assistant content</div>,
+}));
+
+vi.mock('@/features/processing/components/ProcessingHeaderProgress', () => ({
+  ProcessingHeaderProgress: () => <div data-testid='processing-header-progress' />,
 }));
 
 describe('AppShell', () => {
@@ -15,7 +20,7 @@ describe('AppShell', () => {
             <Route index element={<main id='app-main'>Contenido</main>} />
           </Route>
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText(/Saltar al contenido principal/i)).toBeInTheDocument();
@@ -23,7 +28,8 @@ describe('AppShell', () => {
     expect(screen.getByLabelText('Carga')).toBeInTheDocument();
     expect(screen.getByLabelText('Resultados')).toBeInTheDocument();
     expect(screen.getByLabelText('Historial')).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Configuracion').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('Configuracion')).toHaveLength(1);
+    expect(screen.getByTestId('processing-header-progress')).toBeInTheDocument();
     expect(screen.queryByText('Ventana flotante persistente')).not.toBeInTheDocument();
   });
 
@@ -36,13 +42,13 @@ describe('AppShell', () => {
             <Route path='/settings' element={<div>Settings page</div>} />
           </Route>
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     fireEvent.click(screen.getByRole('link', { name: 'Configuracion' }));
 
     expect(screen.getByText('Settings page')).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Configuracion')).toHaveLength(1);
+    expect(screen.getAllByText('OCR y modelos').length).toBeGreaterThan(0);
   });
 
   it('closes mobile sidebar on route change and keeps navigation working after assistant', async () => {
@@ -55,7 +61,7 @@ describe('AppShell', () => {
             <Route path='/results' element={<div>Resultados page</div>} />
           </Route>
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Abrir menu de navegacion/i }));
