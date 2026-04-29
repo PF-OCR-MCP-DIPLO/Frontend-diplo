@@ -109,6 +109,26 @@ describe('useSettingsForm', () => {
     expect(result.current.modelOptions.assistant).toContain('llama3.2');
   });
 
+  it('keeps the settings page usable when ollama models cannot be loaded', async () => {
+    getProcessingSettingsMock.mockResolvedValue(settingsResponse);
+    getProcessingSettingsOptionsMock.mockResolvedValue(optionsResponse);
+    getOllamaModelsMock.mockRejectedValue(new Error('Ollama unavailable'));
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.loadError).toBeNull();
+    expect(result.current.settings?.ocr_model).toBe('spa');
+    expect(result.current.ollamaModels).toMatchObject({
+      available: false,
+      models: [],
+      error: 'Ollama unavailable',
+    });
+    expect(result.current.modelOptions.assistant).toContain('gemma4:e2b');
+    expect(toastErrorMock).toHaveBeenCalledWith('Ollama unavailable');
+  });
+
   it('allows reload after an initial failure', async () => {
     getProcessingSettingsMock
       .mockRejectedValueOnce(new Error('Load failed'))
@@ -147,6 +167,37 @@ describe('useSettingsForm', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.modelOptions.assistant).toContain('gemma4:e2b');
+  });
+
+  it('preserves saved custom model values in the available options', async () => {
+    getProcessingSettingsMock.mockResolvedValue({
+      ...settingsResponse,
+      ocr_provider: 'openai',
+      ocr_model: 'gpt-4.1-custom-ocr',
+      llm_provider: 'openai',
+      llm_model: 'gpt-4.1-custom-llm',
+      assistant_provider: 'openai',
+      assistant_model: 'gpt-4.1-custom-assistant',
+    });
+    getProcessingSettingsOptionsMock.mockResolvedValue({
+      ...optionsResponse,
+      provider_models: {
+        ...optionsResponse.provider_models,
+        openai: {
+          ocr: ['gpt-4.1-mini'],
+          llm: ['gpt-4o-mini'],
+        },
+      },
+    });
+    getOllamaModelsMock.mockResolvedValue(ollamaModelsResponse);
+
+    const { result } = renderHook(() => useSettingsForm());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.modelOptions.ocr).toContain('gpt-4.1-custom-ocr');
+    expect(result.current.modelOptions.llm).toContain('gpt-4.1-custom-llm');
+    expect(result.current.modelOptions.assistant).toContain('gpt-4.1-custom-assistant');
   });
 
   it('normalizes partial settings options without crashing', async () => {

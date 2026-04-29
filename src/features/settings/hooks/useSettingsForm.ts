@@ -110,11 +110,24 @@ export function useSettingsForm() {
     setLoadError(null);
 
     try {
-      const [loadedSettings, loadedOptions, loadedOllamaModels] = await Promise.all([
+      const [loadedSettings, loadedOptions] = await Promise.all([
         getProcessingSettings(),
         getProcessingSettingsOptions(),
-        getOllamaModels(),
       ]);
+      const loadedOllamaModels = await getOllamaModels().catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'No se pudieron cargar los modelos de Ollama';
+
+        toast.error(message);
+        return {
+          provider: 'ollama' as const,
+          available: false,
+          models: [],
+          error: message,
+        };
+      });
 
       const safeSettings = normalizeSettings(loadedSettings);
       const safeOptions = normalizeSettingsOptions(loadedOptions);
@@ -166,26 +179,22 @@ export function useSettingsForm() {
       return { ocr: [], llm: [], assistant: [] };
     }
 
-    const ollamaSuggestedModels = (ollamaModels?.available ? ollamaModels.models.map((model) => model.name) : []);
-    const resolveModels = (provider: string, kind: 'ocr' | 'llm') => {
-      const providerModels = options.provider_models[provider];
-      const models = providerModels?.[kind] ?? [];
-      if (models.length > 0) return models;
-      if (provider === 'ollama') {
-        return ollamaSuggestedModels.length > 0
-          ? ollamaSuggestedModels
-          : kind === 'ocr'
-            ? ['gemma4:e2b', 'llava:7b', 'moondream']
-            : ['gemma4:e2b', 'llama3.1:8b', 'qwen2.5:3b'];
-      }
-      return models;
+    const normalizedOptions: ApiProcessingSettingsOptions = {
+      ...options,
+      provider_models: {
+        ...options.provider_models,
+        ollama: {
+          ocr: options.provider_models.ollama?.ocr?.length
+            ? options.provider_models.ollama.ocr
+            : ['gemma4:e2b', 'llava:7b', 'moondream'],
+          llm: options.provider_models.ollama?.llm?.length
+            ? options.provider_models.ollama.llm
+            : ['gemma4:e2b', 'llama3.1:8b', 'qwen2.5:3b'],
+        },
+      },
     };
 
-    return {
-      ocr: resolveModels(values.ocr_provider, 'ocr'),
-      llm: resolveModels(values.llm_provider, 'llm'),
-      assistant: resolveModels(values.assistant_provider, 'llm'),
-    };
+    return buildModelOptions(normalizedOptions, ollamaModels, values);
   }, [ollamaModels, options, values]);
 
   const save = useCallback(async (): Promise<boolean> => {
