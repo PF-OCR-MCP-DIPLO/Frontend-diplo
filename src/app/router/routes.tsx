@@ -15,6 +15,7 @@ import { ResultsPage } from '@/pages/results/ResultsPage';
 import { HistoryPage } from '@/pages/history/HistoryPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { AssistantPage } from '@/pages/assistant/AssistantPage';
+import { AboutPage } from '@/pages/about/AboutPage';
 
 /**
  * Renderiza el árbol de rutas públicas de la aplicación.
@@ -27,6 +28,7 @@ export function AppRoutes() {
       <Route path='/upload' element={<UploadPage />} />
       <Route path='/results' element={<ResultsPage />} />
       <Route path='/history' element={<HistoryPage />} />
+      <Route path='/about' element={<AboutPage />} />
       <Route path='/settings' element={<SettingsPage />} />
       <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>

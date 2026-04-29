@@ -11,6 +11,7 @@ vi.mock('@/pages/results/ResultsPage', () => ({ ResultsPage: () => <div>Results<
 vi.mock('@/pages/history/HistoryPage', () => ({ HistoryPage: () => <div>History</div> }));
 vi.mock('@/pages/settings/SettingsPage', () => ({ SettingsPage: () => <div>Settings</div> }));
 vi.mock('@/pages/assistant/AssistantPage', () => ({ AssistantPage: () => <div>Assistant</div> }));
+vi.mock('@/pages/about/AboutPage', () => ({ AboutPage: () => <div>About</div> }));
 
 describe('AppRoutes', () => {
   it('renders expected route element', () => {
@@ -26,6 +27,10 @@ describe('AppRoutes', () => {
     expect(appNavigation.some((item) => item.to === '/settings' && item.label === 'Configuracion')).toBe(true);
   });
 
+  it('keeps about route represented in navigation', () => {
+    expect(appNavigation.some((item) => item.to === '/about' && item.label === 'About')).toBe(true);
+  });
+
   it('redirects unknown routes to dashboard', () => {
     render(
       <MemoryRouter initialEntries={['/unknown']}>
@@ -36,12 +41,22 @@ describe('AppRoutes', () => {
   });
   
   it('renders assistant route', () => {
-  render(
-    <MemoryRouter initialEntries={['/assistant']}>
-      <AppRoutes />
-    </MemoryRouter>
-  );
+    render(
+      <MemoryRouter initialEntries={['/assistant']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
 
-  expect(screen.getByText('Assistant')).toBeInTheDocument();
-});
+    expect(screen.getByText('Assistant')).toBeInTheDocument();
+  });
+
+  it('renders about route', () => {
+    render(
+      <MemoryRouter initialEntries={['/about']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('About')).toBeInTheDocument();
+  });
 });

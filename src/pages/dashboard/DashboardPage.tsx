@@ -67,9 +67,6 @@ export function DashboardPage() {
               <p className='section-eyebrow'>Siguiente acción</p>
               <h2 className='section-title text-[clamp(1.7rem,1.5rem+0.5vw,2.2rem)]'>Haz una nueva carga o retoma una ejecución reciente.</h2>
               <p className='section-body max-w-2xl'>La ruta principal es simple: cargar, revisar y exportar.</p>
-              <p className='text-sm text-muted-foreground'>
-                Para una demo estable, prepara un `.docx` de prueba y conserva una ejecución previa en el historial como plan B.
-              </p>
             </div>
 
             <div className='flex flex-wrap items-center gap-3'>
