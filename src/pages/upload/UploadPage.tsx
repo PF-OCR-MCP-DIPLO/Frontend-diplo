@@ -23,7 +23,7 @@ export function UploadPage() {
 
     try {
       const job = await processFile(file);
-      toast.success(`Ejecucion ${job.jobId} creada correctamente`);
+      toast.success(`Ejecución ${job.jobId} creada correctamente`);
       navigate('/results');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo subir el documento');
@@ -61,7 +61,7 @@ export function UploadPage() {
       <PageHeader
         eyebrow='Carga'
         title='Cargar archivo'
-        description='Sube un `.docx` para crear una nueva ejecucion. El flujo esperado es: cargar, procesar, revisar y exportar.'
+        description='Sube un archivo `.docx` para crear una nueva ejecución. El flujo esperado es: cargar, procesar, revisar y exportar.'
       />
       <Card className='surface-card-hero p-6 sm:p-8'>
         <div className='space-y-4'>
@@ -101,7 +101,7 @@ export function UploadPage() {
                 <p className='mt-2 text-body text-muted-foreground'>
                   {dropzone.isDragReject
                     ? 'Solo se admiten documentos Word (.docx).'
-                    : 'Se creara una ejecucion nueva y pasaras a la revision.'}
+                    : 'Se creará una ejecución nueva y pasarás a la revisión.'}
                 </p>
                 <Button type='button' size='lg' className='mt-6'>
                   <Upload className='mr-2 size-5' />
@@ -125,7 +125,7 @@ export function UploadPage() {
             <div className='content-block-subtle p-4'>
               <p className='section-kicker'>Siguiente paso</p>
               <p className='mt-1 font-medium text-foreground'>Revisar resultados</p>
-              <p className='mt-1 text-sm text-muted-foreground'>Después podrás corregir, consultar logs y exportar a Excel.</p>
+              <p className='mt-1 text-sm text-muted-foreground'>Luego podrás corregir, consultar logs y exportar a Excel.</p>
             </div>
           </div>
         </div>

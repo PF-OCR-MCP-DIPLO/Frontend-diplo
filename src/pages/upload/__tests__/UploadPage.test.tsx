@@ -84,7 +84,7 @@ describe('UploadPage', () => {
     await dropzoneOptions!.onDrop([file]);
 
     expect(processFileMock).toHaveBeenCalledWith(file);
-    expect(toastSuccessMock).toHaveBeenCalledWith('Ejecucion 123 creada correctamente');
+    expect(toastSuccessMock).toHaveBeenCalledWith('Ejecución 123 creada correctamente');
     expect(navigateMock).toHaveBeenCalledWith('/results');
   });
 });

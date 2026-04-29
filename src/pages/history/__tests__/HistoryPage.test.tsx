@@ -88,7 +88,7 @@ describe('HistoryPage', () => {
     render(<HistoryPage />);
 
     expect(screen.getByText('marzo.docx')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Borrar job marzo\.docx/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i })).toBeInTheDocument();
   });
 
   it('does not call delete api when confirmation is cancelled', () => {
@@ -105,7 +105,7 @@ describe('HistoryPage', () => {
     vi.stubGlobal('confirm', vi.fn(() => false));
 
     render(<HistoryPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Borrar job marzo\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i }));
 
     expect(deleteJobResultMock).not.toHaveBeenCalled();
   });
@@ -124,7 +124,7 @@ describe('HistoryPage', () => {
     deleteJobResultMock.mockResolvedValue(undefined);
 
     render(<HistoryPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Borrar job marzo\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i }));
 
     await waitFor(() => {
       expect(deleteJobResultMock).toHaveBeenCalledWith(7);
@@ -145,7 +145,7 @@ describe('HistoryPage', () => {
     deleteJobResultMock.mockRejectedValue(new Error('No se pudo borrar la ejecución'));
 
     render(<HistoryPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Borrar job marzo\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i }));
 
     await waitFor(() => {
       expect(deleteJobResultMock).toHaveBeenCalledWith(7);
@@ -168,7 +168,7 @@ describe('HistoryPage', () => {
     refreshHistoryMock.mockResolvedValue(undefined);
 
     render(<HistoryPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Procesar job marzo\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Procesar ejecución marzo\.docx/i }));
 
     await waitFor(() => {
       expect(runProcessingMock).toHaveBeenCalledWith(7);
@@ -190,8 +190,8 @@ describe('HistoryPage', () => {
 
     render(<HistoryPage />);
 
-    expect(screen.getByRole('button', { name: /Procesar job abril\.docx/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Borrar job abril\.docx/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Procesar ejecución abril\.docx/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Eliminar ejecución abril\.docx/i })).toBeDisabled();
   });
 
   it('uses partial reprocess for completed_with_errors jobs', async () => {
@@ -209,7 +209,7 @@ describe('HistoryPage', () => {
     refreshHistoryMock.mockResolvedValue(undefined);
 
     render(<HistoryPage />);
-    fireEvent.click(screen.getByRole('button', { name: /Reprocesar fallidos job fallidos\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Reprocesar fallidos ejecución fallidos\.docx/i }));
 
     await waitFor(() => {
       expect(reprocessFailedJobMock).toHaveBeenCalledWith(9);

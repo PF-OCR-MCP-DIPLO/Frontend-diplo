@@ -24,18 +24,18 @@ export function ResultsPage() {
   const handleProcess = useCallback(async () => {
     try {
       const result = await runProcessing();
-      if (result) toast.success(`Ejecucion ${result.jobId} procesada`);
+      if (result) toast.success(`Ejecución ${result.jobId} procesada`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo procesar la ejecucion');
+      toast.error(error instanceof Error ? error.message : 'No se pudo procesar la ejecución');
     }
   }, [runProcessing]);
 
   const handleRefresh = useCallback(async () => {
     try {
       const result = await refreshJob();
-      if (result) toast.success(`Estado de la ejecucion ${result.jobId} actualizado`);
+      if (result) toast.success(`Estado de la ejecución ${result.jobId} actualizado`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo consultar la ejecucion');
+      toast.error(error instanceof Error ? error.message : 'No se pudo consultar la ejecución');
     }
   }, [refreshJob]);
 
@@ -83,7 +83,7 @@ export function ResultsPage() {
           tone='info'
           icon={FileSearch}
           title='No hay un resultado activo'
-          description='Carga un `.docx` para empezar una nueva revision.'
+          description='Carga un archivo `.docx` para iniciar una nueva revisión.'
           actions={<Button onClick={() => navigate('/upload')}>Ir a carga</Button>}
         />
       </div>
