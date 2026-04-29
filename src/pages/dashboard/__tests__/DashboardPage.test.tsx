@@ -35,7 +35,8 @@ describe('DashboardPage', () => {
   it('renders dashboard and navigates to upload CTA', () => {
     render(<DashboardPage />);
     expect(screen.getByText(/Resumen del flujo/i)).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: /Nueva carga/i })[0]);
+    expect(screen.getAllByRole('button', { name: /Nueva carga/i })).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /Nueva carga/i }));
     expect(navigateMock).toHaveBeenCalledWith('/upload');
   });
 });

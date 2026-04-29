@@ -52,10 +52,9 @@ export function DashboardPage() {
       <PageHeader
         eyebrow='Resumen'
         title='Resumen del flujo'
-        description='Empieza una carga nueva o retoma una ejecución reciente.'
+        description='Empieza una carga nueva o retoma una ejecución reciente desde el historial.'
         actions={
           <>
-            <Button onClick={() => navigate('/upload')} className='gap-2'><FileUp className='size-4' />Nueva carga</Button>
             <Button variant='outline' onClick={() => navigate('/history')} className='gap-2'>Ver historial</Button>
           </>
         }
@@ -66,21 +65,20 @@ export function DashboardPage() {
           <div className='space-y-5'>
             <div className='space-y-2'>
               <p className='section-eyebrow'>Siguiente acción</p>
-              <h2 className='section-title text-[clamp(1.7rem,1.5rem+0.5vw,2.2rem)]'>Empieza una nueva revisión o vuelve a una ya creada.</h2>
-              <p className='section-body max-w-2xl'>La ruta principal es simple: cargar, revisar, exportar.</p>
+              <h2 className='section-title text-[clamp(1.7rem,1.5rem+0.5vw,2.2rem)]'>Haz una nueva carga o retoma una ejecución reciente.</h2>
+              <p className='section-body max-w-2xl'>La ruta principal es simple: cargar, revisar y exportar.</p>
               <p className='text-sm text-muted-foreground'>
                 Para una demo estable, prepara un `.docx` de prueba y conserva una ejecución previa en el historial como plan B.
               </p>
             </div>
 
-            <div className='flex flex-wrap gap-3'>
-              <Button size='lg' className='gap-2' onClick={() => navigate('/upload')}>
-                Cargar archivo
+            <div className='flex flex-wrap items-center gap-3'>
+              <Button size='lg' className='h-14 gap-2 px-7 text-base' onClick={() => navigate('/upload')}>
+                <FileUp className='size-5' />
+                Nueva carga
                 <ArrowRight className='size-4' />
               </Button>
-              <Button size='lg' variant='outline' onClick={() => navigate('/history')}>
-                Abrir historial
-              </Button>
+              <p className='text-sm text-muted-foreground'>Usa el historial para abrir una ejecución existente.</p>
             </div>
 
             {latestRun ? (
@@ -156,10 +154,7 @@ export function DashboardPage() {
         ) : processedFiles.length === 0 ? (
           <div className='content-block-subtle'>
             <p className='panel-title'>No hay ejecuciones recientes</p>
-            <p className='mt-1 text-body text-muted-foreground'>Crea una carga para empezar.</p>
-            <div className='mt-4 flex flex-wrap gap-2'>
-              <Button onClick={() => navigate('/upload')}>Nueva carga</Button>
-            </div>
+            <p className='mt-1 text-body text-muted-foreground'>Tu próxima carga aparecerá aquí cuando completes el primer procesamiento.</p>
           </div>
         ) : (
           <div className='space-y-3'>
