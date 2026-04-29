@@ -36,27 +36,34 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick, s
   const table = useEditableTable(data, onDataChange);
 
   return (
-    <div className='overflow-hidden rounded-2xl border border-border/70 bg-card/95'>
-      <div className='flex items-center justify-between gap-3 border-b border-border/60 px-3 py-2 text-sm'>
+    <div className='overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]'>
+      <div className='flex items-center justify-between gap-3 border-b border-border/50 px-4 py-2.5 text-sm'>
         <div className='text-muted-foreground'>
-          {data.length} registros · {table.errorCount} hallazgos
+          {data.length} registro{data.length === 1 ? '' : 's'} · {table.errorCount} hallazgo{table.errorCount === 1 ? '' : 's'}
         </div>
       </div>
-      <div className='overflow-auto'>
-        <Table>
+      <div className='max-h-[calc(100vh-18rem)] min-h-0 overflow-auto'>
+        <Table className='min-w-[760px]'>
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.key} className={`${column.className} text-[0.72rem] uppercase tracking-[0.14em]`}>{column.label}</TableHead>
+                <TableHead key={column.key} className={`${column.className} border-b border-border/50`}>
+                  {column.label}
+                </TableHead>
               ))}
-              <TableHead className='w-[88px] text-[0.72rem] uppercase tracking-[0.14em]'>Estado</TableHead>
+              <TableHead className='w-[88px] border-b border-border/50'>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-              <TableRow key={row.id} id={row.id} className={`cursor-pointer ${reprocessingDepositId === row.depositId ? 'opacity-70' : ''}`} onClick={() => onRowClick?.(row)}>
+              <TableRow
+                key={row.id}
+                id={row.id}
+                className={`cursor-pointer ${reprocessingDepositId === row.depositId ? 'opacity-70' : ''}`}
+                onClick={() => onRowClick?.(row)}
+              >
                 {columns.map((column) => (
-                  <TableCell key={column.key} className='py-2'>
+                  <TableCell key={column.key} className='py-2 align-top'>
                     <EditableCell
                       row={row}
                       field={column.key}
@@ -74,7 +81,7 @@ export function EditableTable({ data, validationMap, onDataChange, onRowClick, s
                     />
                   </TableCell>
                 ))}
-                <TableCell className='py-2'>
+                <TableCell className='py-2 align-top'>
                   <StatusCell row={row} />
                 </TableCell>
               </TableRow>

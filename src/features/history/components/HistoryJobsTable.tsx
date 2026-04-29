@@ -39,8 +39,8 @@ export function HistoryJobsTable({
         <h2 className='font-semibold text-foreground'>Ejecuciones</h2>
         <p className='text-sm text-muted-foreground'>{items.length} resultado{items.length === 1 ? '' : 's'} disponible{items.length === 1 ? '' : 's'}.</p>
       </div>
-      <div className='overflow-auto'>
-        <Table>
+      <div className='max-h-[calc(100vh-20rem)] overflow-auto'>
+        <Table className='min-w-[860px]'>
           <TableHeader>
             <TableRow>
               <TableHead>Archivo</TableHead>
@@ -59,25 +59,25 @@ export function HistoryJobsTable({
 
               return (
                 <TableRow key={item.id} className='cursor-pointer' onClick={() => onOpenResult(item.id)}>
-                  <TableCell>
-                    <div className='flex items-center gap-2'>
-                      <div className='icon-chip-primary size-9'>
+                  <TableCell className='min-w-0'>
+                    <div className='flex items-center gap-3'>
+                      <div className='icon-chip-primary size-9 shrink-0'>
                         <FileText className='size-4' />
                       </div>
-                      <span className='font-medium text-foreground'>{item.name}</span>
+                      <span className='block truncate font-medium text-foreground'>{item.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className='whitespace-nowrap'>
                     <span className='text-muted-foreground'>{formatDateTime(item.date)}</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className='whitespace-nowrap'>
                     <div className='flex items-center gap-2'>
                       {item.displayStatus === 'success' ? <CheckCircle2 className='size-3' /> : <AlertCircle className='size-3' />}
                       <StatusBadge status={item.status} />
                     </div>
                   </TableCell>
                   <TableCell className='text-right'>
-                    <div className='flex justify-end gap-2'>
+                    <div className='flex justify-end gap-2 whitespace-nowrap'>
                       <Button
                         variant='outline'
                         size='sm'
@@ -104,7 +104,7 @@ export function HistoryJobsTable({
                         }}
                         className='gap-2'
                         disabled={isBusy || item.status === 'processing'}
-                        aria-label={`${processingLabel} job ${item.name || item.jobId}`}
+                        aria-label={`${processingLabel} ejecución ${item.name || item.jobId}`}
                       >
                         <Play className='size-4' />
                         {isProcessing ? 'Procesando…' : processingLabel}
@@ -118,7 +118,7 @@ export function HistoryJobsTable({
                         }}
                         className='gap-2'
                         disabled={isBusy || !canExport(item.status)}
-                        aria-label={`Exportar job ${item.name || item.jobId}`}
+                        aria-label={`Exportar ejecución ${item.name || item.jobId}`}
                       >
                         <FileDown className='size-4' />
                         {isExporting ? 'Exportando…' : 'Exportar'}
@@ -132,10 +132,10 @@ export function HistoryJobsTable({
                         }}
                         className='gap-2 text-danger hover:text-danger'
                         disabled={isDeleting || item.status === 'processing'}
-                        aria-label={`Borrar job ${item.name || item.jobId}`}
+                        aria-label={`Eliminar ejecución ${item.name || item.jobId}`}
                       >
                         <Trash2 className='size-4' />
-                        {isDeleting ? 'Borrando…' : 'Borrar'}
+                        {isDeleting ? 'Eliminando…' : 'Eliminar'}
                       </Button>
                     </div>
                   </TableCell>

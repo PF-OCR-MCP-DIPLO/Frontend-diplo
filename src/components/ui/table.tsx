@@ -6,15 +6,22 @@ import { cn } from "./utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto rounded-none border border-border/72 bg-white/72">
-      <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props} />
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-auto rounded-none border border-border/60 bg-white/80 overscroll-contain"
+    >
+      <table data-slot="table" className={cn("min-w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
-    <thead data-slot="table-header" className={cn("bg-surface-subtle [&_tr]:border-b [&_tr]:border-border/70", className)} {...props} />
+    <thead
+      data-slot="table-header"
+      className={cn("bg-surface-subtle/95 [&_tr]:border-b [&_tr]:border-border/70", className)}
+      {...props}
+    />
   );
 }
 
@@ -38,7 +45,10 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       data-slot="table-row"
-      className={cn("border-b border-border/65 transition-colors hover:bg-primary/5 data-[state=selected]:bg-primary/8", className)}
+      className={cn(
+        "border-b border-border/55 transition-colors hover:bg-primary/4 data-[state=selected]:bg-primary/7",
+        className
+      )}
       {...props}
     />
   );
@@ -49,7 +59,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-11 px-4 text-left align-middle text-[0.7rem] font-semibold whitespace-nowrap uppercase tracking-[0.18em] text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "sticky top-0 z-10 h-10 px-4 text-left align-middle text-[0.68rem] font-semibold whitespace-nowrap uppercase tracking-[0.16em] text-muted-foreground backdrop-blur supports-[backdrop-filter]:bg-surface-subtle/92 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -62,7 +72,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-4 py-3 align-middle whitespace-nowrap text-sm text-surface-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "px-4 py-2.5 align-middle whitespace-nowrap text-sm text-surface-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

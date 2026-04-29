@@ -35,9 +35,9 @@ describe('HistoryJobsTable', () => {
     );
 
     expect(screen.getAllByRole('button', { name: /Abrir/i })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: /Reprocesar fallidos job marzo\.docx/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Exportar job marzo\.docx/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Borrar job marzo\.docx/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Reprocesar fallidos ejecución marzo\.docx/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Exportar ejecución marzo\.docx/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i })).toBeInTheDocument();
   });
 
   it('disables destructive and processing actions for processing jobs', () => {
@@ -52,8 +52,8 @@ describe('HistoryJobsTable', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Procesar job abril\.docx/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Borrar job abril\.docx/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Procesar ejecución abril\.docx/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Eliminar ejecución abril\.docx/i })).toBeDisabled();
   });
 
   it('keeps other row actions enabled while one row is deleting', () => {
@@ -69,7 +69,7 @@ describe('HistoryJobsTable', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Borrar job marzo\.docx/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i })).toBeDisabled();
     expect(screen.getAllByRole('button', { name: /Abrir/i })[1]).toBeEnabled();
   });
 
@@ -88,7 +88,7 @@ describe('HistoryJobsTable', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Borrar job marzo\.docx/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Eliminar ejecución marzo\.docx/i }));
 
     expect(onDeleteJob).toHaveBeenCalledWith(7);
     expect(onOpenResult).not.toHaveBeenCalled();
