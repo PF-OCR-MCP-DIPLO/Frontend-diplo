@@ -25,29 +25,32 @@ vi.mock("@/features/processing/api/processing.api", async () => {
   };
 });
 
-vi.mock("@/features/processing/components/results/ResultsPreviewPanel", () => ({
+vi.mock('@/features/processing/components/results/ResultsPreviewPanel', () => ({
   ResultsPreviewPanel: ({
+    sourceImages,
+    selectedImageId,
     onOpenImage,
   }: {
+    sourceImages: PreviewImage[];
+    selectedImageId?: number | null;
     onOpenImage: (image: PreviewImage) => void;
-  }) => (
-    <div>
-      <p>Preview lateral</p>
-      <button
-        type="button"
-        onClick={() =>
-          onOpenImage({
-            id: 1,
-            url: "https://example.test/pagina-1.png",
-            name: "pagina-1.png",
-            status: "processed",
-          })
-        }
-      >
-        Abrir imagen completa
-      </button>
-    </div>
-  ),
+  }) => {
+    const selectedImage =
+      sourceImages.find((image) => image.id === selectedImageId) ?? sourceImages[0] ?? null;
+
+    return (
+      <div>
+        <p>Preview lateral</p>
+        <p>Imagen seleccionada: {selectedImageId ?? 'ninguna'}</p>
+
+        {selectedImage ? (
+          <button type='button' onClick={() => onOpenImage(selectedImage)}>
+            Abrir imagen completa
+          </button>
+        ) : null}
+      </div>
+    );
+  },
 }));
 
 const baseRows: ConsignmentRow[] = [
@@ -513,5 +516,40 @@ describe("ResultsView", () => {
         }),
       ]);
     });
+  });
+  it("opens the preview panel for the row source image when clicking a result row", async () => {
+    renderResultsView({
+      sourceImages: [
+        {
+          id: 1,
+          url: "https://example.test/pagina-1.png",
+          name: "pagina-1.png",
+          status: "processed",
+        },
+        {
+          id: 5,
+          url: "https://example.test/image5.png",
+          name: "image5.png",
+          status: "processed",
+        },
+      ],
+      initialData: [
+        {
+          ...baseRows[0],
+          id: "5-10",
+          sourceImageId: 5,
+          sourceName: "image5.png",
+          referencia: "REF-005",
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByText("REF-005"));
+
+    expect(await screen.findByTestId("results-dock-panel")).toHaveAttribute(
+      "data-panel",
+      "preview",
+    );
+    expect(screen.getByText('Imagen seleccionada: 5')).toBeInTheDocument();
   });
 });

@@ -345,6 +345,17 @@ export function AIChat({
     setQueryContext,
   } = useAssistantChatContext();
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  function cancelCurrentRequest() {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsSending(false);
+  }
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeContext = queryContext ?? storedContext;
@@ -412,65 +423,89 @@ export function AIChat({
   }, [initialPrompt, setInput]);
 
   const sendMessage = async (rawText?: string) => {
-    const text = (rawText ?? input).trim();
-    const content = input.trim();
-    
-    if (!text || isSending) return;
-    if (!content || isSending) return;
+    if (isSending) {
+      cancelCurrentRequest();
+      return;
+    }
 
-    setInput("");
+    const content = (rawText ?? input).trim();
+    if (!content) return;
+
     const userMessage: AssistantChatMessage = {
-      id: `${Date.now()}`,
+      id: crypto.randomUUID(),
       role: "user",
-      content: text,
+      content,
       timestamp: new Date().toISOString(),
     };
+
     const nextMessages = [...messages, userMessage];
+
     setMessages(nextMessages);
     setInput("");
     setIsSending(true);
 
-    try {
-      const response = await sendAssistantChat(
-        nextMessages.map((m) => ({ role: m.role, content: m.content })),
-        { jobId, errors, queryContext: activeContext },
-      );
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-      if (!areAssistantContextsEqual(response.query_context, storedContext)) {
-        setQueryContext(response.query_context ?? {});
+    try {
+      const response = await sendAssistantChat(nextMessages, {
+        jobId,
+        errors,
+        queryContext: activeContext,
+        signal: controller.signal,
+      });
+
+      if (controller.signal.aborted) return;
+
+      const assistantMessage: AssistantChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: response.reply || response.message || "Sin respuesta.",
+        timestamp: new Date().toISOString(),
+        tool: response.tool ?? "none",
+        toolData: response.data,
+        showDebugDetails: response.show_debug_details,
+      };
+
+      setMessages((current) => [...current, assistantMessage]);
+
+      if (response.query_context) {
+        setQueryContext(response.query_context);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
       }
 
       setMessages((current) => [
         ...current,
         {
-          id: `${Date.now() + 1}`,
-          role: "assistant",
-          content: response.message || response.reply,
-          tool: response.tool,
-          toolData: response.data,
-          showDebugDetails: response.show_debug_details,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          id: `${Date.now() + 1}`,
+          id: crypto.randomUUID(),
           role: "assistant",
           content:
             error instanceof Error
               ? error.message
-              : "No pude conectar con el asistente.",
+              : "No se pudo consultar el asistente.",
           timestamp: new Date().toISOString(),
         },
       ]);
     } finally {
-      setIsSending(false);
-      textareaRef.current?.focus();
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+        setIsSending(false);
+      }
     }
   };
 
+  function handleInputKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) return;
+
+    event.preventDefault();
+
+    if (!isSending) {
+      void sendMessage();
+    }
+  }
   return (
     <Card className="mx-auto flex h-full min-h-0 w-full max-w flex-col overflow-hidden border border-border/70 bg-card/95 shadow-[var(--shadow-soft)]">
       {/* CABECERA MODIFICADA */}
@@ -605,41 +640,55 @@ export function AIChat({
         </ScrollArea>
       </div>
 
-      <div className="border-t border-border/70 bg-card px-3 py-3">
-        <div className="mx-auto max-w rounded-2xl border border-border/70 bg-surface-subtle p-1.5">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+      <div className="border-t border-border/70 bg-card/95 px-4 py-4">
+        <div className="mx-auto max-w">
+          <div className="rounded-2xl border border-border/70 bg-background shadow-sm transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              placeholder={
+                isSending
+                  ? "El asistente está generando una respuesta…"
+                  : "Escribe tu pregunta..."
               }
-            }}
-            placeholder="Pregunta algo…"
-            className="min-h-[12px] w-full resize-none border-0 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
-            disabled={isSending}
-            style={{ overflowY: "hidden" }}
-          />
-          <div className="flex items-center justify-between px-1">
-            <p className="text-xs text-muted-foreground">
-              Enter envía, Shift+Enter salto
-            </p>
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 px-3 text-xs"
-              onClick={() => sendMessage()}
-              disabled={isSending || !input.trim()}
-            >
-              {isSending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Send className="size-3.5" />
-              )}
-              Enviar
-            </Button>
+              className="min-h-[52px] max-h-[200px] w-full resize-none border-0 bg-transparent px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isSending}
+              style={{ overflowY: "hidden" }}
+            />
+
+            <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                {isSending ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Procesando respuesta</span>
+                  </>
+                ) : (
+                  <span>Enter envía · Shift + Enter crea una nueva línea</span>
+                )}
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => void sendMessage()}
+                disabled={!isSending && !input.trim()}
+                variant={isSending ? "destructive" : "default"}
+                size="sm"
+                className="h-9 min-w-[96px] rounded-xl px-4 font-medium"
+                aria-label={isSending ? "Cancelar respuesta" : "Enviar mensaje"}
+              >
+                {isSending ? (
+                  <>Detener</>
+                ) : (
+                  <>
+                    <Send className="size-4" />
+                    Enviar
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

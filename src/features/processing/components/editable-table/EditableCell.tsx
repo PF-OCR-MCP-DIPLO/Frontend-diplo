@@ -102,6 +102,8 @@ export function EditableCell({
 
   return (
     <ContextualTooltip
+      openDelay={250}
+      closeDelay={220}
       trigger={
         <button
           type="button"

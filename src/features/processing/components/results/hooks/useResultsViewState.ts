@@ -4,24 +4,36 @@
  * Mantiene selección, logs, foco de imágenes y conteos sin acoplar la vista a
  * detalles del backend.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { getJobLogs } from '@/features/processing/api/processing.api';
-import type { ApiExtractionLog } from '@/features/processing/types/processing.api';
-import type { ConsignmentRow, PreviewImage } from '@/features/processing/types/processing.types';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getJobLogs } from "@/features/processing/api/processing.api";
+import type { ApiExtractionLog } from "@/features/processing/types/processing.api";
+import type {
+  ConsignmentRow,
+  PreviewImage,
+} from "@/features/processing/types/processing.types";
 
-export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]) {
+export function useResultsViewState(
+  jobId: number,
+  initialData: ConsignmentRow[],
+) {
   const [data, setData] = useState<ConsignmentRow[]>(initialData);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<PreviewImage | null>(null);
-  const [expandedImage, setExpandedImage] = useState<{ url: string; name: string } | null>(null);
+  const [expandedImage, setExpandedImage] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
   const logsCacheRef = useRef(new Map<number, ApiExtractionLog[]>());
 
-  const errorCount = useMemo(() => data.filter((row) => row.estado === 'error').length, [data]);
+  const errorCount = useMemo(
+    () => data.filter((row) => row.estado === "error").length,
+    [data],
+  );
 
   useEffect(() => {
     setData(initialData);
@@ -43,14 +55,20 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     setSelectedRowId(rowId);
     setSelectedField(field ?? null);
     const element = document.getElementById(rowId);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    element?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function focusCell(rowId: string, field: string) {
     setSelectedRowId(rowId);
     setSelectedField(field);
-    const element = document.querySelector<HTMLElement>(`[data-cell-id="${rowId}-${field}"]`);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const element = document.querySelector<HTMLElement>(
+      `[data-cell-id="${rowId}-${field}"]`,
+    );
+    element?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function selectImage(image: PreviewImage | null) {
+    setCurrentImage(image);
   }
 
   function focusImage(image: PreviewImage | null) {
@@ -77,7 +95,11 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
       logsCacheRef.current.set(jobId, payload);
       setLogs(payload);
     } catch (error) {
-      setLogsError(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
+      setLogsError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los logs",
+      );
       throw error;
     } finally {
       setIsLoadingLogs(false);
@@ -95,6 +117,7 @@ export function useResultsViewState(jobId: number, initialData: ConsignmentRow[]
     currentImage,
     expandedImage,
     setExpandedImage,
+    selectImage,
     focusImage,
     logs,
     isLoadingLogs,

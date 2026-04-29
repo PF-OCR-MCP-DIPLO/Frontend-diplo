@@ -46,15 +46,22 @@ export function normalizeAssistantChatMessages(
  */
 export function sendAssistantChat(
   messages: AssistantChatMessage[],
-  options?: { jobId?: number | null; errors?: number; queryContext?: AssistantQueryContext },
+  options?: {
+    jobId?: number | null;
+    errors?: number;
+    queryContext?: AssistantQueryContext;
+    signal?: AbortSignal;
+  },
 ) {
   const normalizedMessages = normalizeAssistantChatMessages(messages);
+
   if (normalizedMessages.length === 0) {
     throw new Error('La conversación del asistente no contiene mensajes válidos.');
   }
 
   return httpRequest<AssistantChatResponse>('assistant/chat/', {
     method: 'POST',
+    signal: options?.signal,
     headers: {
       'Content-Type': 'application/json',
     },

@@ -8,28 +8,28 @@
  * Mantiene la composición de UI separada de la persistencia y del polling
  * para que la pantalla sea legible y testeable.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { useLocation } from 'react-router-dom';
-import { useRouteOverlayCleanup } from '@/app/hooks/useRouteOverlayCleanup';
-import { ResultsImagePreviewDialog } from '@/features/processing/components/results/ResultsImagePreviewDialog';
-import { ResultsWorkspace } from '@/features/processing/components/results/ResultsWorkspace';
-import { ResultsTopBar } from '@/features/processing/components/results/ResultsTopBar';
-import { ResultsSidePanel } from '@/features/processing/components/results/ResultsSidePanel';
-import { buildResultsValidationMap } from '@/features/processing/components/results/results-validation';
-import { reprocessDeposit } from '@/features/processing/api/processing.api';
-import { useResultsAutosave } from '@/features/processing/components/results/hooks/useResultsAutosave';
-import { useResultsPanelState } from '@/features/processing/components/results/hooks/useResultsPanelState';
-import { useResultsViewState } from '@/features/processing/components/results/hooks/useResultsViewState';
-import type { AssistantQueryContext } from '@/features/assistant/types/assistant-query-context.types';
-import type { AssistantLaunchContext } from '@/features/assistant/hooks/useOpenAssistantWithContext';
-import type { ApiJobDiagnosticsSummary } from '@/features/processing/types/processing.api';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useLocation } from "react-router-dom";
+import { useRouteOverlayCleanup } from "@/app/hooks/useRouteOverlayCleanup";
+import { ResultsImagePreviewDialog } from "@/features/processing/components/results/ResultsImagePreviewDialog";
+import { ResultsWorkspace } from "@/features/processing/components/results/ResultsWorkspace";
+import { ResultsTopBar } from "@/features/processing/components/results/ResultsTopBar";
+import { ResultsSidePanel } from "@/features/processing/components/results/ResultsSidePanel";
+import { buildResultsValidationMap } from "@/features/processing/components/results/results-validation";
+import { reprocessDeposit } from "@/features/processing/api/processing.api";
+import { useResultsAutosave } from "@/features/processing/components/results/hooks/useResultsAutosave";
+import { useResultsPanelState } from "@/features/processing/components/results/hooks/useResultsPanelState";
+import { useResultsViewState } from "@/features/processing/components/results/hooks/useResultsViewState";
+import type { AssistantQueryContext } from "@/features/assistant/types/assistant-query-context.types";
+import type { AssistantLaunchContext } from "@/features/assistant/hooks/useOpenAssistantWithContext";
+import type { ApiJobDiagnosticsSummary } from "@/features/processing/types/processing.api";
 import type {
   ConsignmentRow,
   PreviewImage,
   ProcessingStatus,
   ResultFieldKey,
-} from '@/features/processing/types/processing.types';
+} from "@/features/processing/types/processing.types";
 
 interface ResultsViewProps {
   jobId: number;
@@ -54,7 +54,67 @@ interface ResultsViewProps {
   onSaveCorrections: (rows: ConsignmentRow[]) => Promise<void>;
   onOpenAssistant: (launch: AssistantLaunchContext) => void;
 }
+function normalizeText(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
 
+function extractFirstNumber(value: unknown) {
+  const match = String(value ?? "").match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+function resolvePreviewImageForRow(
+  row: ConsignmentRow | null,
+  sourceImages: PreviewImage[],
+): PreviewImage | null {
+  if (!row || sourceImages.length === 0) return null;
+
+  const directById = sourceImages.find(
+    (image) => image.id === row.sourceImageId,
+  );
+
+  if (directById) return directById;
+
+  const rowSourceName = normalizeText(row.sourceName);
+
+  if (rowSourceName) {
+    const directByName = sourceImages.find(
+      (image) => normalizeText(image.name) === rowSourceName,
+    );
+
+    if (directByName) return directByName;
+
+    const partialByName = sourceImages.find((image) => {
+      const imageName = normalizeText(image.name);
+      return (
+        imageName.includes(rowSourceName) || rowSourceName.includes(imageName)
+      );
+    });
+
+    if (partialByName) return partialByName;
+  }
+
+  const rowIdImageId = extractFirstNumber(row.id);
+  const byRowIdPrefix = sourceImages.find((image) => image.id === rowIdImageId);
+
+  if (byRowIdPrefix) return byRowIdPrefix;
+
+  const sourceNameNumber = extractFirstNumber(row.sourceName);
+  const bySourceNameNumber = sourceImages.find(
+    (image) => image.id === sourceNameNumber,
+  );
+
+  if (bySourceNameNumber) return bySourceNameNumber;
+
+  const byImageNameNumber = sourceImages.find((image) => {
+    const imageNumber = extractFirstNumber(image.name);
+    return imageNumber !== null && imageNumber === sourceNameNumber;
+  });
+
+  return byImageNameNumber ?? null;
+}
 export function ResultsView(props: ResultsViewProps) {
   const location = useLocation();
   const viewState = useResultsViewState(props.jobId, props.initialData);
@@ -68,15 +128,21 @@ export function ResultsView(props: ResultsViewProps) {
   } = useResultsPanelState(props.jobId);
 
   const { setExpandedImage } = viewState;
-  const [reprocessingDepositId, setReprocessingDepositId] = useState<number | null>(null);
+  const [reprocessingDepositId, setReprocessingDepositId] = useState<
+    number | null
+  >(null);
 
   const validationMap = buildResultsValidationMap(viewState.data);
 
   const selectedRow = useMemo(
-    () => viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null,
+    () =>
+      viewState.data.find((row) => row.id === viewState.selectedRowId) ?? null,
     [viewState.data, viewState.selectedRowId],
   );
-
+  const selectedPreviewImage = useMemo(
+    () => resolvePreviewImageForRow(selectedRow, props.sourceImages),
+    [selectedRow, props.sourceImages],
+  );
   const selectedIssues = useMemo(() => {
     if (!selectedRow) return [];
 
@@ -89,19 +155,19 @@ export function ResultsView(props: ResultsViewProps) {
 
   const autosave = useResultsAutosave({
     jobId: props.jobId,
-    enabled: !props.isProcessing && props.status !== 'processing',
+    enabled: !props.isProcessing && props.status !== "processing",
     onSaved: () => viewState.markSaved(),
   });
 
   const canExport =
-    (props.status === 'completed' ||
-      props.status === 'completed_with_errors' ||
+    (props.status === "completed" ||
+      props.status === "completed_with_errors" ||
       Boolean(props.excelUrl)) &&
     !viewState.hasUnsavedChanges;
 
   const assistantQueryContext = useMemo<AssistantQueryContext>(
     () => ({
-      page: 'results',
+      page: "results",
       jobId: props.jobId,
       jobStatus: props.status,
       jobName: props.fileName,
@@ -113,23 +179,25 @@ export function ResultsView(props: ResultsViewProps) {
       visibleIssueIds:
         selectedIssues.length > 0
           ? selectedIssues
-          : viewState.data.filter((row) => row.estado === 'error').map((row) => row.id),
+          : viewState.data
+              .filter((row) => row.estado === "error")
+              .map((row) => row.id),
       errorCount: viewState.errorCount,
       autosaveStatus: autosave.autosave.status,
       intentHint: viewState.selectedField
-        ? 'explain_cell_issue'
+        ? "explain_cell_issue"
         : viewState.selectedRowId
-          ? 'explain_row_issue'
+          ? "explain_row_issue"
           : props.errorMessage
-            ? 'explain_results'
-            : 'review_results',
+            ? "explain_results"
+            : "review_results",
       contextScope: viewState.selectedField
-        ? 'cell'
+        ? "cell"
         : viewState.selectedRowId
-          ? 'row'
+          ? "row"
           : selectedIssues.length > 0 || props.errorMessage
-            ? 'issues'
-            : 'job',
+            ? "issues"
+            : "job",
       pendingAction: undefined,
     }),
     [
@@ -154,7 +222,7 @@ export function ResultsView(props: ResultsViewProps) {
   }, [closePanel, setExpandedImage]);
 
   const openPanel = useCallback(
-    (panel: 'issues' | 'logs' | 'preview') => {
+    (panel: "issues" | "logs" | "preview") => {
       setExpandedImage(null);
       openResultsPanel(panel);
     },
@@ -165,22 +233,26 @@ export function ResultsView(props: ResultsViewProps) {
     try {
       await viewState.openLogs();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudieron cargar los logs');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los logs",
+      );
     }
 
     setExpandedImage(null);
-    openResultsPanel('logs');
+    openResultsPanel("logs");
   }
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         resetOverlays();
       }
     }
 
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [resetOverlays]);
 
   useEffect(() => {
@@ -190,11 +262,13 @@ export function ResultsView(props: ResultsViewProps) {
   useRouteOverlayCleanup(resetOverlays);
 
   function handleFocusRow(rowId: string) {
-    openPanel('issues');
+    const row = viewState.data.find((item) => item.id === rowId) ?? null;
+    const previewImage = resolvePreviewImageForRow(row, props.sourceImages);
 
-    window.setTimeout(() => {
-      viewState.handleErrorClick(rowId);
-    }, 0);
+    viewState.handleErrorClick(rowId);
+    viewState.selectImage(previewImage);
+
+    openPanel("preview");
   }
 
   function handleFocusCell(rowId: string, field: ResultFieldKey) {
@@ -212,7 +286,7 @@ export function ResultsView(props: ResultsViewProps) {
         ...assistantQueryContext,
         selectedRowId: rowId,
         selectedField: String(field),
-        intentHint: 'explain_cell_issue',
+        intentHint: "explain_cell_issue",
       },
     });
   }
@@ -223,9 +297,13 @@ export function ResultsView(props: ResultsViewProps) {
     try {
       await reprocessDeposit(props.jobId, depositId);
       props.onRefresh();
-      toast.success('Consignación reprocesada');
+      toast.success("Consignación reprocesada");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'No se pudo reprocesar la consignación');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo reprocesar la consignación",
+      );
     } finally {
       setReprocessingDepositId(null);
     }
@@ -237,21 +315,21 @@ export function ResultsView(props: ResultsViewProps) {
   }
 
   const autosaveLabel =
-    autosave.autosave.status === 'saving'
-      ? 'Guardando…'
-      : autosave.autosave.status === 'saved'
-        ? 'Guardado'
-        : autosave.autosave.status === 'error'
-          ? `Error al guardar · ${autosave.autosave.error ?? 'Reintentar'}`
-          : viewState.hasUnsavedChanges || autosave.autosave.status === 'dirty'
-            ? 'Cambios pendientes'
-            : 'Sin cambios pendientes';
+    autosave.autosave.status === "saving"
+      ? "Guardando…"
+      : autosave.autosave.status === "saved"
+        ? "Guardado"
+        : autosave.autosave.status === "error"
+          ? `Error al guardar · ${autosave.autosave.error ?? "Reintentar"}`
+          : viewState.hasUnsavedChanges || autosave.autosave.status === "dirty"
+            ? "Cambios pendientes"
+            : "Sin cambios pendientes";
 
   return (
     <>
-      <div className='min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90'>
-        <div className='lg:grid lg:grid-cols-[minmax(0,1fr)_auto]'>
-          <div className='min-w-0'>
+      <div className="min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="min-w-0">
             <ResultsTopBar
               fileName={props.fileName}
               status={props.status}
@@ -270,10 +348,10 @@ export function ResultsView(props: ResultsViewProps) {
               canSaveCorrections={
                 !props.isSavingCorrections &&
                 !props.isProcessing &&
-                props.status !== 'processing' &&
+                props.status !== "processing" &&
                 viewState.hasUnsavedChanges
               }
-              canRetryAutosave={autosave.autosave.status === 'error'}
+              canRetryAutosave={autosave.autosave.status === "error"}
               onProcess={props.onProcess}
               onReprocessFailed={props.onReprocessFailed}
               onRefresh={props.onRefresh}
@@ -290,7 +368,7 @@ export function ResultsView(props: ResultsViewProps) {
                 props.onOpenAssistant({ context: assistantQueryContext });
               }}
               onOpenPanel={(panel) => {
-                if (panel === 'logs') {
+                if (panel === "logs") {
                   void handleOpenLogs();
                   return;
                 }
@@ -300,7 +378,7 @@ export function ResultsView(props: ResultsViewProps) {
             />
           </div>
 
-          <div className='min-w-0 lg:row-span-3'>
+          <div className="min-w-0 lg:row-span-3">
             <ResultsSidePanel
               panelState={panelState}
               onClose={resetOverlays}
@@ -315,6 +393,7 @@ export function ResultsView(props: ResultsViewProps) {
               sourceImages={props.sourceImages}
               data={viewState.data}
               validationMap={validationMap}
+              selectedImageId={viewState.currentImage?.id ?? selectedPreviewImage?.id ?? null}
               selectedRowId={viewState.selectedRowId}
               selectedField={viewState.selectedField}
               reprocessingDepositId={reprocessingDepositId}
@@ -329,7 +408,7 @@ export function ResultsView(props: ResultsViewProps) {
             />
           </div>
 
-          <div className='min-w-0 border-t border-border/60 lg:col-start-1'>
+          <div className="min-w-0 border-t border-border/60 lg:col-start-1">
             <ResultsWorkspace
               data={viewState.data}
               validationMap={validationMap}
