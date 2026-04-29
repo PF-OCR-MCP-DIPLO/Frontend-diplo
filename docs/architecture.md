@@ -1,41 +1,26 @@
-# Arquitectura frontend
+# Arquitectura Frontend
 
-## Propósito
+## Mapa de módulos
 
-Describir la arquitectura real del frontend observada en código.
+- `src/app/`: arranque de la SPA, layout persistente, providers y rutas.
+- `src/pages/`: pantallas visibles para el usuario final.
+- `src/features/processing/`: carga, vista de resultados, correcciones, exportación y estado de ejecución.
+- `src/features/settings/`: configuración de OCR, LLM, asistente y criterios de extracción.
+- `src/features/assistant/`: contexto conversacional y apertura del asistente sobre una corrida.
+- `src/features/history/`: listado histórico de ejecuciones.
+- `src/services/http/`: cliente fetch común, resolución de URLs y manejo de errores.
 
-## Módulos principales
+## Flujo de datos
 
-- `src/app/`: shell, router y providers globales.
-- `src/features/processing/`: upload, resultados, correcciones y estado de corridas.
-- `src/features/assistant/`: chat, contexto y payloads para asistente.
-- `src/features/settings/`: formulario y persistencia de configuración.
-- `src/services/http/`: cliente base `fetch` y normalización de errores.
-- `src/lib/`: utilidades y constantes compartidas.
+1. La UI invoca un cliente de `features/*/api`.
+2. El cliente usa `httpRequest()` para hablar con Django.
+3. Las respuestas se normalizan antes de entrar al estado de la app.
+4. Los componentes renderizan datos ya adaptados, incluyendo rutas absolutas de archivos.
+5. Las acciones de usuario reenvían comandos al backend y actualizan el estado local.
 
-## Flujo principal
+## Puntos sensibles
 
-1. `AppProviders` monta contextos globales.
-2. `AppRoutes` resuelve pantallas por ruta.
-3. Features consumen API vía `httpRequest`.
-4. Mappers normalizan respuestas backend para consumo UI.
-5. El estado de procesamiento se sincroniza con historial y job activo local.
+- El backend puede devolver archivos relativos; `resolveAssetUrl()` los convierte en URLs usables.
+- Las respuestas de error intentan respetar el sobre `error`, pero conservan compatibilidad con formatos previos.
+- El `AppShell` limpia overlays al cambiar de ruta para evitar estados visuales inconsistentes.
 
-## Decisiones observadas
-
-- Arquitectura por feature para desacoplar dominios de pantalla.
-- Frontera HTTP centralizada (`src/services/http/client.ts`).
-- Contextos separados para estado de procesamiento y chat asistente.
-- Persistencia local de estado puntual (`localStorage` / `sessionStorage`) en hooks.
-
-## Riesgos técnicos
-
-- Dependencia de disponibilidad de backend para rutas de negocio.
-- Polling de jobs requiere control cuidadoso de timeout/estado terminal.
-- Divergencias potenciales entre payload backend y tipado frontend cuando cambie contrato.
-
-## Enlaces relacionados
-
-- [Rutas](routes.md)
-- [Estado global](state-management.md)
-- [Integración API](api-integration.md)

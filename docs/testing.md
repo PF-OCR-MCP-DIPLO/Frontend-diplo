@@ -1,36 +1,24 @@
-# Testing
+# Testing Frontend
 
-## Propósito
-
-Documentar pruebas disponibles y comandos reales para validar frontend.
-
-## Comandos verificados en `package.json`
+## Ejecución
 
 ```bash
-npm test
-npm run test:coverage
-npm run e2e
-npm run e2e:pw
-```
-
-## Cobertura funcional esperada
-
-- Unit/integration: hooks, utilidades, mappers y componentes críticos.
-- E2E: flujos de usuario principales definidos en scripts de proyecto.
-
-## Validaciones complementarias
-
-```bash
-npm run lint
+npm run test
 npm run typecheck
-npm run build
+npm run lint
 ```
 
-## Pendiente de validar
+## Qué cubren los tests
 
-- Alcance exacto de cobertura por feature en todas las suites E2E heredadas.
+- Routing y composición del shell.
+- Cliente HTTP y normalización de errores.
+- Clientes API de processing, settings y assistant.
+- Componentes críticos de resultados, tablas y formularios.
+- Hooks de estado y sincronización.
 
-## Enlaces relacionados
+## Convenciones
 
-- [Desarrollo](development.md)
-- [Arquitectura](architecture.md)
+- Probar el comportamiento visible, no detalles de implementación.
+- Aislar fetch y providers mediante mocks.
+- Agregar tests cuando cambie la forma normalizada de una respuesta.
+
