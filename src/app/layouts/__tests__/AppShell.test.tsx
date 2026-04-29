@@ -39,10 +39,10 @@ describe('AppShell', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getAllByRole('link', { name: 'Configuracion' })[0]);
+    fireEvent.click(screen.getByRole('link', { name: 'Configuracion' }));
 
     expect(screen.getByText('Settings page')).toBeInTheDocument();
-    expect(screen.getAllByText('OCR y modelos').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('Configuracion')).toHaveLength(1);
   });
 
   it('closes mobile sidebar on route change and keeps navigation working after assistant', async () => {

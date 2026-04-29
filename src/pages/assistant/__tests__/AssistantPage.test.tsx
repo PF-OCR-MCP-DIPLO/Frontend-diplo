@@ -4,11 +4,37 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AssistantChatProvider } from '@/features/assistant/hooks/AssistantChatContext';
 import { AssistantPage } from '@/pages/assistant/AssistantPage';
 
+// AL PRINCIPIO DEL ARCHIVO DE TEST
+type MockAIChatProps = {
+  queryContext?: {
+    jobId?: number | string | null;
+    selectedRowId?: number | string | null;
+    [key: string]: unknown;
+  };
+  initialPrompt?: string;
+  onClearContext?: () => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
+};
+
 vi.mock('@/components/AIChat', () => ({
-  AIChat: ({ queryContext, initialPrompt }: { queryContext?: Record<string, unknown>; initialPrompt?: string }) => (
-    <div data-testid='assistant-chat'>
-      {JSON.stringify(queryContext ?? {})}
-      {initialPrompt ? `|${initialPrompt}` : ''}
+  AIChat: ({
+    queryContext,
+    initialPrompt,
+    onClearContext,
+    showBackButton,
+    onBack,
+  }: MockAIChatProps) => (
+    <div data-testid="assistant-chat">
+      <div>
+        Contexto: Job #{queryContext?.jobId} · Fila {queryContext?.selectedRowId}
+      </div>
+
+      <button onClick={onClearContext}>Limpiar contexto</button>
+
+      {showBackButton && <button onClick={onBack}>Volver a resultados</button>}
+
+      {JSON.stringify(queryContext)}|{initialPrompt}
     </div>
   ),
 }));
@@ -35,9 +61,8 @@ describe('AssistantPage', () => {
       </AssistantChatProvider>,
     );
 
-    expect(screen.getByText(/Contexto activo/i)).toBeInTheDocument();
-    expect(screen.getByTestId('assistant-chat')).toHaveTextContent('"jobId":12');
-    expect(screen.getByText(/Limpiar contexto/i)).toBeInTheDocument();
+    expect(screen.getByText(/Contexto: Job #12 · Fila row-1/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Limpiar contexto/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Volver a resultados/i })).toBeInTheDocument();
   });
 });

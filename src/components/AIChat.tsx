@@ -9,13 +9,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import {
+  ArrowLeft,
   Bot,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   Loader2,
   Send,
-  Sparkles,
   Trash2,
   User,
 } from "lucide-react";
@@ -37,6 +37,10 @@ interface AIChatProps {
   variant?: "fullscreen" | "embedded";
   queryContext?: AssistantQueryContext;
   initialPrompt?: string;
+  // Nuevas props
+  onClearContext?: () => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
 type ChatSuggestion = { label: string; message: string };
@@ -193,7 +197,9 @@ function ChatMarkdown({ content }: { content: string }) {
           ),
           li: ({ children }) => <li className="pl-1">{children}</li>,
           strong: ({ children }) => (
-            <strong className="font-semibold text-foreground">{children}</strong>
+            <strong className="font-semibold text-foreground">
+              {children}
+            </strong>
           ),
           em: ({ children }) => <em className="italic">{children}</em>,
           blockquote: ({ children }) => (
@@ -323,6 +329,9 @@ export function AIChat({
   jobId = null,
   queryContext,
   initialPrompt,
+  onClearContext,
+  showBackButton = false,
+  onBack,
 }: AIChatProps) {
   const {
     messages,
@@ -345,22 +354,14 @@ export function AIChat({
   );
   const [showContext, setShowContext] = useState(false);
 
-  // El textarea crece hasta un máximo para evitar scroll interno agresivo y
-  // mantener visible el contexto del chat.
+  // Ajuste de altura del textarea (igual que antes)
   const adjustTextareaHeight = () => {
     if (!textareaRef.current) return;
-
     const textarea = textareaRef.current;
-
-    // Resetear altura para obtener el scrollHeight real.
     textarea.style.height = "auto";
-
     const maxHeight = 200;
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-
     textarea.style.height = `${newHeight}px`;
-
-    // Mostrar scroll solo si el contenido supera la altura máxima.
     textarea.style.overflowY =
       textarea.scrollHeight > maxHeight ? "auto" : "hidden";
   };
@@ -372,23 +373,17 @@ export function AIChat({
   useEffect(() => {
     adjustTextareaHeight();
     window.addEventListener("resize", adjustTextareaHeight);
-
     return () => window.removeEventListener("resize", adjustTextareaHeight);
   }, []);
 
   useEffect(() => {
     const viewport = viewportRef.current;
-
-    if (!viewport) {
-      return;
-    }
-
+    if (!viewport) return;
     if (typeof viewport.scrollTo === "function") {
       viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
-      return;
+    } else {
+      viewport.scrollTop = viewport.scrollHeight;
     }
-
-    viewport.scrollTop = viewport.scrollHeight;
   }, [messages, isSending]);
 
   useEffect(() => {
@@ -396,43 +391,48 @@ export function AIChat({
   }, []);
 
   useEffect(() => {
-    if (queryContext && !areAssistantContextsEqual(queryContext, storedContext)) {
+    if (
+      queryContext &&
+      !areAssistantContextsEqual(queryContext, storedContext)
+    ) {
       setQueryContext(queryContext);
     }
   }, [queryContext, setQueryContext, storedContext]);
 
+  const consumedInitialPromptRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (initialPrompt && !input) {
-      setInput(initialPrompt);
-    }
-  }, [initialPrompt, input, setInput]);
+    const nextPrompt = initialPrompt?.trim();
+
+    if (!nextPrompt) return;
+    if (consumedInitialPromptRef.current === nextPrompt) return;
+
+    consumedInitialPromptRef.current = nextPrompt;
+    setInput(nextPrompt);
+  }, [initialPrompt, setInput]);
 
   const sendMessage = async (rawText?: string) => {
     const text = (rawText ?? input).trim();
+    const content = input.trim();
+    
+    if (!text || isSending) return;
+    if (!content || isSending) return;
 
-    if (!text || isSending) {
-      return;
-    }
-
+    setInput("");
     const userMessage: AssistantChatMessage = {
       id: `${Date.now()}`,
       role: "user",
       content: text,
       timestamp: new Date().toISOString(),
     };
-
     const nextMessages = [...messages, userMessage];
-
     setMessages(nextMessages);
     setInput("");
     setIsSending(true);
 
     try {
       const response = await sendAssistantChat(
-        nextMessages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        })),
+        nextMessages.map((m) => ({ role: m.role, content: m.content })),
         { jobId, errors, queryContext: activeContext },
       );
 
@@ -473,30 +473,56 @@ export function AIChat({
 
   return (
     <Card className="mx-auto flex h-full min-h-0 w-full max-w flex-col overflow-hidden border border-border/70 bg-card/95 shadow-[var(--shadow-soft)]">
+      {/* CABECERA MODIFICADA */}
       <div className="border-b border-border/70 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Sparkles className="size-4" />
-              </span>
-              <h1 className="text-base font-semibold text-foreground">
+          {/* Icono y título al estilo del padre */}
+          <div className="flex items-center gap-3">
+            <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Bot className="size-5" />
+            </span>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">
                 Asistente
               </h1>
+              <p className="text-sm text-muted-foreground">
+                {formatContextLabel(activeContext, jobId)} ·{" "}
+                {errors > 0 ? `${errors} errores` : "Sin errores"}
+              </p>
             </div>
-            <p className="mt-1 truncate text-xs text-muted-foreground">
-              {formatContextLabel(activeContext, jobId)} ·{" "}
-              {errors > 0 ? `${errors} errores` : "Sin errores"}
-            </p>
           </div>
 
+          {/* Grupo de botones */}
           <div className="flex items-center gap-2">
+            {onClearContext && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs"
+                onClick={onClearContext}
+              >
+                Limpiar contexto
+              </Button>
+            )}
+            {showBackButton && onBack && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 text-xs text-muted-foreground"
+                onClick={onBack}
+              >
+                <ArrowLeft className="size-4" />
+                Volver a resultados
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-8 px-2 text-xs text-muted-foreground"
-              onClick={() => setShowContext((value) => !value)}
+              onClick={() => setShowContext((v) => !v)}
             >
               {showContext ? (
                 <ChevronUp className="size-4" />
@@ -505,7 +531,6 @@ export function AIChat({
               )}
               Ver contexto
             </Button>
-
             <Button
               type="button"
               variant="ghost"
@@ -520,17 +545,18 @@ export function AIChat({
           </div>
         </div>
 
-        {showContext ? (
-          <div className="mt-1 rounded-xl border border-border/60 bg-surface-subtle p-3">
+        {showContext && (
+          <div className="mt-3 rounded-xl border border-border/60 bg-surface-subtle p-3">
             <AssistantContextSelector
               context={activeContext ?? {}}
               onChange={setQueryContext}
               visibleIssueIds={activeContext?.visibleIssueIds}
             />
           </div>
-        ) : null}
+        )}
       </div>
 
+      {/* RESTO DEL CHAT (sin cambios) */}
       <div className="min-h-0 flex-1">
         <ScrollArea className="h-full px-3 py-4" viewportRef={viewportRef}>
           <div className="mx-auto space-y-3">
@@ -551,7 +577,7 @@ export function AIChat({
                       size="sm"
                       variant="outline"
                       className="h-8 rounded-full px-3 text-xs"
-                      onClick={() => void sendMessage(suggestion.message)}
+                      onClick={() => sendMessage(suggestion.message)}
                       disabled={isSending}
                     >
                       {suggestion.label}
@@ -564,17 +590,17 @@ export function AIChat({
             {messages.map((message) => (
               <div key={message.id}>
                 <ChatBubble message={message} />
-                {message.role === "assistant" ? (
+                {message.role === "assistant" && (
                   <PendingActionCard
                     message={message}
-                    onConfirm={() => void sendMessage("confirmar")}
-                    onCancel={() => void sendMessage("cancelar")}
+                    onConfirm={() => sendMessage("confirmar")}
+                    onCancel={() => sendMessage("cancelar")}
                   />
-                ) : null}
+                )}
               </div>
             ))}
 
-            {isSending ? <ThinkingBubble /> : null}
+            {isSending && <ThinkingBubble />}
           </div>
         </ScrollArea>
       </div>
@@ -584,11 +610,11 @@ export function AIChat({
           <textarea
             ref={textareaRef}
             value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                void sendMessage();
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
               }
             }}
             placeholder="Pregunta algo…"
@@ -596,17 +622,15 @@ export function AIChat({
             disabled={isSending}
             style={{ overflowY: "hidden" }}
           />
-
           <div className="flex items-center justify-between px-1">
             <p className="text-xs text-muted-foreground">
               Enter envía, Shift+Enter salto
             </p>
-
             <Button
               type="button"
               size="sm"
               className="h-7 px-3 text-xs"
-              onClick={() => void sendMessage()}
+              onClick={() => sendMessage()}
               disabled={isSending || !input.trim()}
             >
               {isSending ? (

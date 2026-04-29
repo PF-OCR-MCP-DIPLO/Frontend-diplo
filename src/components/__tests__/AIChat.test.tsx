@@ -59,4 +59,35 @@ describe('AIChat', () => {
 
     expect(sendAssistantChatMock).not.toHaveBeenCalled();
   });
+  
+  it('does not restore initialPrompt after sending with Enter', async () => {
+  sendAssistantChatMock.mockResolvedValueOnce({
+    reply: 'Listo.',
+    tool: 'none',
+    data: { kind: 'none' },
+    query_context: {},
+  });
+
+  render(
+    <AssistantChatProvider>
+      <AIChat
+        errors={2}
+        jobId={8}
+        queryContext={{ page: 'results', jobId: 8, contextScope: 'cell' }}
+        initialPrompt="Explícame cómo corregir este campo."
+      />
+    </AssistantChatProvider>,
+  );
+
+  const input = screen.getByRole('textbox');
+
+  await waitFor(() => {
+    expect(input).toHaveValue('Explícame cómo corregir este campo.');
+  });
+
+  fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+  await waitFor(() => expect(sendAssistantChatMock).toHaveBeenCalledTimes(1));
+  expect(input).toHaveValue('');
+});
 });

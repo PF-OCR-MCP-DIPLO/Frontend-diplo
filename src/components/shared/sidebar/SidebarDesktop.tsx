@@ -14,7 +14,7 @@ export function SidebarDesktop({
   return (
     <aside
       className={`sticky top-0 z-30 hidden border-r border-sidebar-border bg-sidebar/92 backdrop-blur-xl lg:flex lg:flex-col ${
-        collapsed ? 'lg:w-24' : 'lg:w-80'
+        collapsed ? 'lg:w-23' : 'lg:w-65'
       } h-screen overflow-y-auto`}
     >
       <SidebarHeader collapsed={collapsed} onToggle={onToggle} />

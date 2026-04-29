@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeAssistantChatMessages } from '@/features/assistant/api/assistant.api';
+import type { AssistantChatMessage } from '@/features/assistant/api/assistant.api';
 
 describe('assistant.api', () => {
   it('filters out invalid assistant messages before sending the payload', () => {
@@ -11,7 +12,7 @@ describe('assistant.api', () => {
       { role: 'assistant', content: 123 },
     ] as unknown as Array<{ role: string; content: unknown }>;
 
-    const normalized = normalizeAssistantChatMessages(messages as any);
+    const normalized = normalizeAssistantChatMessages(messages as unknown as AssistantChatMessage[]);
 
     expect(normalized).toEqual([
       { role: 'user', content: 'Hola' },

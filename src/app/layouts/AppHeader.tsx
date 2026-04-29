@@ -26,7 +26,7 @@ export function AppHeader({
   const isSettings = location.pathname === "/settings";
 
   return (
-    <header className="sticky top-0 z-30 h-[69px] border-b border-border/70 bg-card/82 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 h-[60.5px] border-b border-border/70 bg-card/82 backdrop-blur-xl">
       <div className="page-shell flex h-full items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-3">
           <Button
