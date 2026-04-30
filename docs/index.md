@@ -6,22 +6,25 @@ Este índice es el mapa canónico de documentación de `Frontend-diplo/`.
 
 1. [Primeros pasos](getting-started.md)
 2. [Arquitectura](architecture.md)
-3. [Configuración](configuration.md)
-4. [Desarrollo](development.md)
-5. [Rutas](routes.md)
-6. [Componentes](components.md)
-7. [Estado global](state-management.md)
-8. [Integración API](api-integration.md)
-9. [Autenticación](authentication.md)
-10. [UI patterns](ui-patterns.md)
-11. [Testing](testing.md)
-12. [Troubleshooting](troubleshooting.md)
-13. [Documentación en código](code-documentation.md)
+3. [Flujo de procesamiento](processing-flow.md)
+4. [Configuración](configuration.md)
+5. [Desarrollo](development.md)
+6. [Rutas](routes.md)
+7. [Componentes](components.md)
+8. [Estado global](state-management.md)
+9. [Integración API](api-integration.md)
+10. [Autenticación](authentication.md)
+11. [UI patterns](ui-patterns.md)
+12. [Testing](testing.md)
+13. [Troubleshooting](troubleshooting.md)
+14. [Documentación en código](code-documentation.md)
 
 ## Mapa documental
 
 - [getting-started.md](getting-started.md): arranque local y comandos mínimos.
 - [architecture.md](architecture.md): estructura real de módulos frontend.
+- [processing-flow.md](processing-flow.md): flujo UI de carga, procesamiento,
+  corrección, reproceso, exportación y asistente.
 - [configuration.md](configuration.md): variables de entorno y configuración runtime.
 - [development.md](development.md): scripts de desarrollo, lint, build y E2E.
 - [routes.md](routes.md): rutas principales y su propósito.
