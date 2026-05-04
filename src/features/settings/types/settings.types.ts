@@ -5,6 +5,7 @@ export type SettingsFormValues = {
   ocr_mode: ApiProcessingSettings['ocr_mode'];
   ocr_provider: ApiProcessingSettings['ocr_provider'];
   ocr_model: string;
+  vision_model: string;
   llm_provider: ApiProcessingSettings['llm_provider'];
   llm_model: string;
   assistant_provider: ApiProcessingSettings['assistant_provider'];

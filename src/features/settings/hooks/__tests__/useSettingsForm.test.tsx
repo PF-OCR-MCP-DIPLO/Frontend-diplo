@@ -28,6 +28,7 @@ const settingsResponse = {
   ocr_mode: 'tesseract',
   ocr_provider: 'openai',
   ocr_model: 'spa',
+  vision_model: 'gpt-4.1-mini',
   llm_provider: 'openai',
   llm_model: 'gpt-4o-mini',
   assistant_provider: 'ollama',
@@ -61,10 +62,12 @@ const optionsResponse = {
     provider_models: {
       openai: {
         ocr: ['gpt-4.1-mini'],
+        vision: ['gpt-4.1-vision'],
         llm: ['gpt-4o-mini'],
       },
       ollama: {
         ocr: [],
+        vision: [],
         llm: [],
       },
     },
@@ -157,6 +160,7 @@ describe('useSettingsForm', () => {
         ...optionsResponse.provider_models,
         ollama: {
           ocr: [],
+          vision: [],
           llm: [],
         },
       },
@@ -174,6 +178,7 @@ describe('useSettingsForm', () => {
       ...settingsResponse,
       ocr_provider: 'openai',
       ocr_model: 'gpt-4.1-custom-ocr',
+      vision_model: 'gpt-4.1-custom-vision',
       llm_provider: 'openai',
       llm_model: 'gpt-4.1-custom-llm',
       assistant_provider: 'openai',
@@ -185,6 +190,7 @@ describe('useSettingsForm', () => {
         ...optionsResponse.provider_models,
         openai: {
           ocr: ['gpt-4.1-mini'],
+          vision: ['gpt-4.1-vision'],
           llm: ['gpt-4o-mini'],
         },
       },
@@ -196,6 +202,7 @@ describe('useSettingsForm', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.modelOptions.ocr).toContain('gpt-4.1-custom-ocr');
+    expect(result.current.modelOptions.vision).toContain('gpt-4.1-custom-vision');
     expect(result.current.modelOptions.llm).toContain('gpt-4.1-custom-llm');
     expect(result.current.modelOptions.assistant).toContain('gpt-4.1-custom-assistant');
   });

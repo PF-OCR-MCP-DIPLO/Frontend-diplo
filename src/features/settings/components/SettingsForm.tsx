@@ -27,7 +27,7 @@ interface SettingsFormProps {
   onDiscard: () => void;
   isSaving: boolean;
   hasUnsavedChanges: boolean;
-  modelOptions: { ocr: string[]; llm: string[]; assistant: string[] };
+  modelOptions: { ocr: string[]; vision: string[]; llm: string[]; assistant: string[] };
   onOpenAssistant: (
     context: AssistantQueryContext,
     prompt: string,
@@ -113,7 +113,8 @@ export function SettingsForm({
           settings={settings}
           options={options}
           values={values}
-          modelOptions={modelOptions.ocr}
+          ocrModelOptions={modelOptions.ocr}
+          visionModelOptions={modelOptions.vision}
           onChange={onChange}
         />
 

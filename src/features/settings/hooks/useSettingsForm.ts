@@ -31,6 +31,7 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     ocr_mode: settings.ocr_mode,
     ocr_provider: settings.ocr_provider,
     ocr_model: settings.ocr_model,
+    vision_model: settings.vision_model,
     llm_provider: settings.llm_provider,
     llm_model: settings.llm_model,
     assistant_provider: settings.assistant_provider,
@@ -75,21 +76,33 @@ function buildModelOptions(
 
   const ocrModels =
     values.ocr_provider === 'ollama'
-      ? ollamaModelNames
+      ? providerModels[values.ocr_provider]?.ocr ?? []
       : providerModels[values.ocr_provider]?.ocr ?? [];
+
+  const visionModels =
+    values.ocr_provider === 'ollama'
+      ? ollamaModelNames.length > 0
+        ? ollamaModelNames
+        : providerModels[values.ocr_provider]?.vision ?? []
+      : providerModels[values.ocr_provider]?.vision ?? [];
 
   const llmModels =
     values.llm_provider === 'ollama'
-      ? ollamaModelNames
+      ? ollamaModelNames.length > 0
+        ? ollamaModelNames
+        : providerModels[values.llm_provider]?.llm ?? []
       : providerModels[values.llm_provider]?.llm ?? [];
 
   const assistantModels =
     values.assistant_provider === 'ollama'
-      ? ollamaModelNames
+      ? ollamaModelNames.length > 0
+        ? ollamaModelNames
+        : providerModels[values.assistant_provider]?.llm ?? []
       : providerModels[values.assistant_provider]?.llm ?? [];
 
   return {
     ocr: uniqueStrings([values.ocr_model, ...ocrModels]),
+    vision: uniqueStrings([values.vision_model, ...visionModels]),
     llm: uniqueStrings([values.llm_model, ...llmModels]),
     assistant: uniqueStrings([values.assistant_model, ...assistantModels]),
   };
@@ -176,7 +189,7 @@ export function useSettingsForm() {
 
   const modelOptions = useMemo(() => {
     if (!options || !values) {
-      return { ocr: [], llm: [], assistant: [] };
+      return { ocr: [], vision: [], llm: [], assistant: [] };
     }
 
     const normalizedOptions: ApiProcessingSettingsOptions = {
@@ -186,6 +199,9 @@ export function useSettingsForm() {
         ollama: {
           ocr: options.provider_models.ollama?.ocr?.length
             ? options.provider_models.ollama.ocr
+            : ['spa', 'eng', 'spa+eng'],
+          vision: options.provider_models.ollama?.vision?.length
+            ? options.provider_models.ollama.vision
             : ['gemma4:e2b', 'llava:7b', 'moondream'],
           llm: options.provider_models.ollama?.llm?.length
             ? options.provider_models.ollama.llm

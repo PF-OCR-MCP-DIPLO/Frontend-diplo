@@ -8,6 +8,7 @@ const baseValues: SettingsFormValues = {
   ocr_mode: 'vision',
   ocr_provider: 'ollama',
   ocr_model: '',
+  vision_model: '',
   llm_provider: 'ollama',
   llm_model: '',
   assistant_provider: 'ollama',
@@ -38,7 +39,7 @@ function renderForm(options = normalizeSettingsOptions(null), values = baseValue
       onDiscard={onDiscard}
       isSaving={false}
       hasUnsavedChanges={false}
-      modelOptions={{ ocr: [], llm: [], assistant: [] }}
+      modelOptions={{ ocr: [], vision: [], llm: [], assistant: [] }}
       onOpenAssistant={vi.fn()}
     />
   );
@@ -61,7 +62,8 @@ describe('SettingsForm', () => {
       providers: { ocr: ['ollama'], llm: ['ollama'] },
     }));
 
-    expect(screen.getByLabelText('Modelo OCR')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Modelo OCR')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Modelo Vision')).toBeInTheDocument();
     expect(screen.getAllByLabelText('Modelo')).toHaveLength(2);
     expect(screen.getByText(/No hay modelos detectados/i)).toBeInTheDocument();
   });
@@ -80,7 +82,7 @@ describe('SettingsForm', () => {
         onDiscard={onDiscard}
         isSaving={false}
         hasUnsavedChanges
-        modelOptions={{ ocr: [], llm: [], assistant: [] }}
+        modelOptions={{ ocr: [], vision: [], llm: [], assistant: [] }}
         onOpenAssistant={vi.fn()}
       />
     );
@@ -133,7 +135,7 @@ describe('SettingsForm', () => {
         onDiscard={onDiscard}
         isSaving={false}
         hasUnsavedChanges={false}
-        modelOptions={{ ocr: [], llm: [], assistant: [] }}
+        modelOptions={{ ocr: [], vision: [], llm: [], assistant: [] }}
         onOpenAssistant={vi.fn()}
       />,
     );
@@ -158,7 +160,7 @@ describe('SettingsForm', () => {
         onDiscard={onDiscard}
         isSaving={false}
         hasUnsavedChanges={false}
-        modelOptions={{ ocr: ['gemma4:e2b'], llm: [], assistant: [] }}
+        modelOptions={{ ocr: ['spa'], vision: ['gemma4:e2b'], llm: [], assistant: [] }}
         onOpenAssistant={vi.fn()}
       />,
     );
@@ -171,25 +173,35 @@ describe('SettingsForm', () => {
     }));
   });
 
-  it('keeps remote OCR model selection behavior for vision and auto', () => {
+  it('keeps vision model selection separate from OCR model', () => {
     render(
       <SettingsForm
         settings={DEFAULT_PROCESSING_SETTINGS}
         options={normalizeSettingsOptions(null)}
-        values={{ ...baseValues, ocr_mode: 'vision', ocr_model: 'gemma4:e2b' }}
+        values={{ ...baseValues, ocr_mode: 'vision', vision_model: 'gemma4:e2b' }}
         onChange={vi.fn()}
         onSave={vi.fn()}
         onDiscard={vi.fn()}
         isSaving={false}
         hasUnsavedChanges={false}
-        modelOptions={{ ocr: ['gemma4:e2b', 'llava:7b'], llm: [], assistant: [] }}
+        modelOptions={{ ocr: ['spa'], vision: ['gemma4:e2b', 'llava:7b'], llm: [], assistant: [] }}
         onOpenAssistant={vi.fn()}
       />,
     );
 
-    const modelSelect = screen.getByLabelText('Modelo OCR');
+    const modelSelect = screen.getByLabelText('Modelo Vision');
     expect(modelSelect.tagName).toBe('SELECT');
     expect(screen.getByRole('option', { name: 'gemma4:e2b' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'llava:7b' })).toBeInTheDocument();
+  });
+
+  it('shows both OCR and Vision model selectors in auto mode', () => {
+    renderForm(
+      normalizeSettingsOptions(null),
+      { ...baseValues, ocr_mode: 'auto', ocr_model: 'spa', vision_model: 'gemma4:e2b' },
+    );
+
+    expect(screen.getByLabelText('Modelo OCR')).toBeInTheDocument();
+    expect(screen.getByLabelText('Modelo Vision')).toBeInTheDocument();
   });
 });

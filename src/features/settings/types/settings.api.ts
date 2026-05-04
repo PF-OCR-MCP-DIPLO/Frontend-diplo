@@ -4,6 +4,7 @@ export interface ApiProcessingSettings {
   ocr_mode: 'tesseract' | 'vision' | 'auto';
   ocr_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek';
   ocr_model: string;
+  vision_model: string;
   llm_provider: 'ollama' | 'anthropic' | 'openai' | 'gemini' | 'deepseek';
   llm_model: string;
   assistant_provider: 'ollama' | 'openai' | 'gemini' | 'deepseek' | 'anthropic';
@@ -25,6 +26,7 @@ export interface ApiProcessingSettingsPatch {
   ocr_mode?: ApiProcessingSettings['ocr_mode'];
   ocr_provider?: ApiProcessingSettings['ocr_provider'];
   ocr_model?: string;
+  vision_model?: string;
   llm_provider?: ApiProcessingSettings['llm_provider'];
   llm_model?: string;
   assistant_provider?: ApiProcessingSettings['assistant_provider'];
@@ -53,6 +55,7 @@ export interface ApiProcessingSettingsOptions {
 
 export interface ProviderModels {
   ocr: string[];
+  vision: string[];
   llm: string[];
 }
 

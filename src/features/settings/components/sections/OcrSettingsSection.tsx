@@ -18,7 +18,8 @@ interface OcrSettingsSectionProps {
   settings: ApiProcessingSettings;
   options: ApiProcessingSettingsOptions;
   values: SettingsFormValues;
-  modelOptions: string[];
+  ocrModelOptions: string[];
+  visionModelOptions: string[];
   onChange: (values: SettingsFormValues) => void;
 }
 
@@ -26,7 +27,8 @@ export function OcrSettingsSection({
   settings,
   options,
   values,
-  modelOptions,
+  ocrModelOptions,
+  visionModelOptions,
   onChange,
 }: OcrSettingsSectionProps) {
   const shouldShowOcrProvider = values.ocr_mode !== "tesseract";
@@ -72,6 +74,9 @@ export function OcrSettingsSection({
                 nextMode === "tesseract" &&
                 !isTesseractLanguage(values.ocr_model)
               ) {
+                nextValues.ocr_model = "spa";
+              }
+              if (nextMode === "auto" && !isTesseractLanguage(values.ocr_model)) {
                 nextValues.ocr_model = "spa";
               }
 
@@ -126,9 +131,9 @@ export function OcrSettingsSection({
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <div className="field-stack">
-          <Label htmlFor="ocr-model">Modelo OCR</Label>
-          {values.ocr_mode === "tesseract" ? (
+        {values.ocr_mode === "tesseract" || values.ocr_mode === "auto" ? (
+          <div className="field-stack">
+            <Label htmlFor="ocr-model">Modelo OCR</Label>
             <Select
               id="ocr-model"
               value={
@@ -144,38 +149,52 @@ export function OcrSettingsSection({
                 </option>
               ))}
             </Select>
-          ) : modelOptions.length > 0 ? (
-            <Select
-              id="ocr-model"
-              value={values.ocr_model}
-              onChange={(event) =>
-                onChange({ ...values, ocr_model: event.target.value })
-              }
-            >
-              {modelOptions.map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <Input
-              id="ocr-model"
-              value={values.ocr_model}
-              onChange={(event) =>
-                onChange({ ...values, ocr_model: event.target.value })
-              }
-              placeholder={modelOptions[0] ?? "model"}
-            />
-          )}
-          {values.ocr_mode === "tesseract" ? (
             <p className="field-help">
               Selecciona el idioma instalado para OCR local.
             </p>
-          ) : modelOptions.length > 0 ? (
-            <p className="field-help">Sugeridos: {modelOptions.join(", ")}</p>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+
+        {values.ocr_mode === "vision" || values.ocr_mode === "auto" ? (
+          <div className="field-stack">
+            <Label htmlFor="vision-model">Modelo Vision</Label>
+            {visionModelOptions.length > 0 ? (
+              <Select
+                id="vision-model"
+                value={values.vision_model}
+                onChange={(event) =>
+                  onChange({ ...values, vision_model: event.target.value })
+                }
+              >
+                {visionModelOptions.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              <Input
+                id="vision-model"
+                value={values.vision_model}
+                onChange={(event) =>
+                  onChange({ ...values, vision_model: event.target.value })
+                }
+                placeholder={visionModelOptions[0] ?? "vision model"}
+              />
+            )}
+            {visionModelOptions.length > 0 ? (
+              <p className="field-help">Sugeridos: {visionModelOptions.join(", ")}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {values.ocr_mode === "auto" && ocrModelOptions.length > 0 ? (
+          <div className="field-stack sm:col-span-2">
+            <p className="field-help">
+              OCR local y Vision se enviaran como campos separados al backend.
+            </p>
+          </div>
+        ) : null}
         {shouldShowOcrProvider && ocrRequirements?.requires_api_key ? (
           <div className="field-stack">
             <Label htmlFor="ocr-api-key">API key OCR</Label>

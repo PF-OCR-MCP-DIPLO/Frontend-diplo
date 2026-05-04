@@ -14,6 +14,7 @@ export const DEFAULT_PROCESSING_SETTINGS: ApiProcessingSettings = {
   ocr_mode: 'vision',
   ocr_provider: 'ollama',
   ocr_model: '',
+  vision_model: '',
   llm_provider: 'ollama',
   llm_model: '',
   assistant_provider: 'ollama',
@@ -58,6 +59,7 @@ export function normalizeProviderModels(value: unknown): ApiProcessingSettingsOp
     const modelConfig = models && typeof models === 'object' ? models as Record<string, unknown> : {};
     acc[provider] = {
       ocr: asStringArray(modelConfig.ocr, []),
+      vision: asStringArray(modelConfig.vision, []),
       llm: asStringArray(modelConfig.llm, []),
     };
     return acc;
@@ -105,6 +107,7 @@ export function normalizeSettings(settings?: Partial<ApiProcessingSettings> | nu
   return {
     ...next,
     ocr_model: next.ocr_model ?? '',
+    vision_model: next.vision_model ?? '',
     llm_model: next.llm_model ?? '',
     assistant_model: next.assistant_model ?? '',
     assistant_show_debug_details: Boolean(next.assistant_show_debug_details),

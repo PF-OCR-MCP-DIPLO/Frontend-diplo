@@ -67,6 +67,12 @@ export function useProcessingActions({
   const activePollsRef = useRef(
     new Map<number, Promise<ReturnType<typeof mapJobToProcessedFile> | null>>(),
   );
+  const activeUploadsRef = useRef(
+    new Map<string, Promise<ReturnType<typeof mapJobToProcessedFile>>>(),
+  );
+  const activeProcessRequestsRef = useRef(
+    new Map<number, Promise<ReturnType<typeof mapJobToProcessedFile> | null>>(),
+  );
 
   const upsertCurrentJob = useCallback(
     (job: ReturnType<typeof mapJobToProcessedFile>) => {
@@ -279,11 +285,23 @@ export function useProcessingActions({
 
   const processFile = useCallback(
     async (file: File) => {
+      const fileKey = `${file.name}:${file.size}:${file.lastModified}`;
+      const existingUpload = activeUploadsRef.current.get(fileKey);
+      if (existingUpload) {
+        return existingUpload;
+      }
+
       setIsProcessing(true);
-      try {
+      const uploadPromise = (async () => {
         const job = mapJobToProcessedFile(await uploadDocument(file));
         return upsertCurrentJob(job);
+      })();
+
+      activeUploadsRef.current.set(fileKey, uploadPromise);
+      try {
+        return await uploadPromise;
       } finally {
+        activeUploadsRef.current.delete(fileKey);
         setIsProcessing(false);
       }
     },
@@ -296,6 +314,10 @@ export function useProcessingActions({
       if (!targetJobId) {
         return null;
       }
+      const existingRequest = activeProcessRequestsRef.current.get(targetJobId);
+      if (existingRequest) {
+        return existingRequest;
+      }
 
       const targetStatus =
         currentResults?.jobId === targetJobId
@@ -304,7 +326,7 @@ export function useProcessingActions({
       const force = targetStatus === "completed";
 
       setIsProcessing(true);
-      try {
+      const processPromise = (async () => {
         const response = force
           ? await processJob(targetJobId, { force: true })
           : await processJob(targetJobId);
@@ -314,7 +336,13 @@ export function useProcessingActions({
           return updatedJob;
         }
         return await pollJobUntilSettled(targetJobId);
+      })();
+
+      activeProcessRequestsRef.current.set(targetJobId, processPromise);
+      try {
+        return await processPromise;
       } finally {
+        activeProcessRequestsRef.current.delete(targetJobId);
         setIsProcessing(false);
       }
     },

@@ -473,7 +473,7 @@ describe('useProcessingActions', () => {
     });
     await Promise.all([first, second]);
 
-    expect(processJobMock).toHaveBeenCalledTimes(2);
+    expect(processJobMock).toHaveBeenCalledTimes(1);
     expect(getProcessingStateMock).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });
