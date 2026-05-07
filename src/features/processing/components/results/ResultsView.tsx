@@ -222,7 +222,7 @@ export function ResultsView(props: ResultsViewProps) {
   }, [closePanel, setExpandedImage]);
 
   const openPanel = useCallback(
-    (panel: "issues" | "logs" | "preview") => {
+    (panel: "issues" | "logs" | "trace" | "preview") => {
       setExpandedImage(null);
       openResultsPanel(panel);
     },
@@ -242,6 +242,21 @@ export function ResultsView(props: ResultsViewProps) {
 
     setExpandedImage(null);
     openResultsPanel("logs");
+  }
+
+  async function handleOpenTrace(refresh = false) {
+    try {
+      await viewState.openTrace({ refresh: refresh || props.status === "processing" });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar la trazabilidad",
+      );
+    }
+
+    setExpandedImage(null);
+    openResultsPanel("trace");
   }
 
   useEffect(() => {
@@ -327,8 +342,8 @@ export function ResultsView(props: ResultsViewProps) {
 
   return (
     <>
-      <div className="min-h-[calc(100vh-8rem)] overflow-hidden rounded-[24px] border border-border/60 bg-card/90">
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="min-h-[calc(100vh-8rem)] min-w-0 overflow-hidden rounded-[24px] border border-border/60 bg-card/90">
+        <div className="min-w-0 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="min-w-0">
             <ResultsTopBar
               fileName={props.fileName}
@@ -373,6 +388,11 @@ export function ResultsView(props: ResultsViewProps) {
                   return;
                 }
 
+                if (panel === "trace") {
+                  void handleOpenTrace();
+                  return;
+                }
+
                 openPanel(panel);
               }}
             />
@@ -389,6 +409,9 @@ export function ResultsView(props: ResultsViewProps) {
               logs={viewState.logs}
               logsError={viewState.logsError}
               isLoadingLogs={viewState.isLoadingLogs}
+              trace={viewState.trace}
+              traceError={viewState.traceError}
+              isLoadingTrace={viewState.isLoadingTrace}
               sourceDocxUrl={props.sourceDocxUrl}
               sourceImages={props.sourceImages}
               data={viewState.data}
@@ -404,6 +427,9 @@ export function ResultsView(props: ResultsViewProps) {
               onAskAssistant={props.onOpenAssistant}
               onReprocessDeposit={(depositId) => {
                 void handleReprocessDeposit(depositId);
+              }}
+              onRefreshTrace={() => {
+                void handleOpenTrace(true);
               }}
             />
           </div>

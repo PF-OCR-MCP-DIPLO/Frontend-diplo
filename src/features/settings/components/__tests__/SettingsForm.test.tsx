@@ -17,6 +17,8 @@ const baseValues: SettingsFormValues = {
   assistant_temperature: 0.2,
   assistant_num_predict: 256,
   request_timeout_seconds: 320,
+  max_images_warning_threshold: 50,
+  block_documents_over_image_limit: false,
   valid_consignation_month: 4,
   valid_consignation_year: 2026,
   ocr_api_key: '',
@@ -203,5 +205,35 @@ describe('SettingsForm', () => {
 
     expect(screen.getByLabelText('Modelo OCR')).toBeInTheDocument();
     expect(screen.getByLabelText('Modelo Vision')).toBeInTheDocument();
+  });
+
+  it('edits the recommended image warning threshold without forcing a hard block', () => {
+    const onChange = vi.fn();
+    render(
+      <SettingsForm
+        settings={DEFAULT_PROCESSING_SETTINGS}
+        options={normalizeSettingsOptions(null)}
+        values={baseValues}
+        onChange={onChange}
+        onSave={vi.fn()}
+        onDiscard={vi.fn()}
+        isSaving={false}
+        hasUnsavedChanges={false}
+        modelOptions={{ ocr: [], vision: [], llm: [], assistant: [] }}
+        onOpenAssistant={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Límite recomendado de imágenes'), {
+      target: { value: '53' },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Bloquear si supera/i }));
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      max_images_warning_threshold: 53,
+    }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      block_documents_over_image_limit: true,
+    }));
   });
 });

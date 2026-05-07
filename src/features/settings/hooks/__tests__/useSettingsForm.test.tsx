@@ -40,6 +40,8 @@ const settingsResponse = {
   assistant_temperature: 0.4,
   assistant_num_predict: 512,
   request_timeout_seconds: 30,
+  max_images_warning_threshold: 50,
+  block_documents_over_image_limit: false,
   valid_consignation_month: 4,
   valid_consignation_year: 2026,
   extraction_criteria: DEFAULT_EXTRACTION_CRITERIA,

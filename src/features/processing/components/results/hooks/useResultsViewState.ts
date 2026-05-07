@@ -5,8 +5,8 @@
  * detalles del backend.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getJobLogs } from "@/features/processing/api/processing.api";
-import type { ApiExtractionLog } from "@/features/processing/types/processing.api";
+import { getJobLogs, getJobTrace } from "@/features/processing/api/processing.api";
+import type { ApiExtractionLog, ApiProcessingTrace } from "@/features/processing/types/processing.api";
 import type {
   ConsignmentRow,
   PreviewImage,
@@ -28,7 +28,11 @@ export function useResultsViewState(
   const [logs, setLogs] = useState<ApiExtractionLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
+  const [trace, setTrace] = useState<ApiProcessingTrace | null>(null);
+  const [isLoadingTrace, setIsLoadingTrace] = useState(false);
+  const [traceError, setTraceError] = useState<string | null>(null);
   const logsCacheRef = useRef(new Map<number, ApiExtractionLog[]>());
+  const traceCacheRef = useRef(new Map<number, ApiProcessingTrace>());
 
   const errorCount = useMemo(
     () => data.filter((row) => row.estado === "error").length,
@@ -106,6 +110,36 @@ export function useResultsViewState(
     }
   }
 
+  async function openTrace({ refresh = false }: { refresh?: boolean } = {}) {
+    if (isLoadingTrace) {
+      return;
+    }
+
+    const cachedTrace = traceCacheRef.current.get(jobId);
+    if (cachedTrace && !refresh) {
+      setTrace(cachedTrace);
+      setTraceError(null);
+      return;
+    }
+
+    setIsLoadingTrace(true);
+    setTraceError(null);
+    try {
+      const payload = await getJobTrace(jobId);
+      traceCacheRef.current.set(jobId, payload);
+      setTrace(payload);
+    } catch (error) {
+      setTraceError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar la trazabilidad",
+      );
+      throw error;
+    } finally {
+      setIsLoadingTrace(false);
+    }
+  }
+
   return {
     data,
     setData: updateData,
@@ -122,8 +156,12 @@ export function useResultsViewState(
     logs,
     isLoadingLogs,
     logsError,
+    trace,
+    isLoadingTrace,
+    traceError,
     handleErrorClick,
     focusCell,
     openLogs,
+    openTrace,
   };
 }

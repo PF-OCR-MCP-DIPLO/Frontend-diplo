@@ -8,6 +8,7 @@ import { ResultsDockPanel } from "@/features/processing/components/results/Resul
 import { ResultsErrorPanel } from "@/features/processing/components/results/ResultsErrorPanel";
 import { ResultsFieldDetailContent } from "@/features/processing/components/results/ResultsFieldDetailPanel";
 import { ResultsPreviewPanel } from "@/features/processing/components/results/ResultsPreviewPanel";
+import { ResultsTracePanel } from "@/features/processing/components/results/ResultsTracePanel";
 import type { AssistantLaunchContext } from "@/features/assistant/hooks/useOpenAssistantWithContext";
 import type {
   ResultsFieldDetailState,
@@ -16,7 +17,7 @@ import type {
 } from "@/features/processing/components/results/hooks/useResultsPanelState";
 import { getFieldLabel } from "@/features/processing/components/results/results-validation";
 import type { ResultsValidationMap } from "@/features/processing/components/results/results-validation";
-import type { ApiExtractionLog } from "@/features/processing/types/processing.api";
+import type { ApiExtractionLog, ApiProcessingTrace } from "@/features/processing/types/processing.api";
 import type {
   ConsignmentRow,
   PreviewImage,
@@ -33,6 +34,9 @@ interface ResultsSidePanelProps {
   logs: ApiExtractionLog[];
   logsError: string | null;
   isLoadingLogs: boolean;
+  trace: ApiProcessingTrace | null;
+  traceError: string | null;
+  isLoadingTrace: boolean;
   sourceDocxUrl: string;
   sourceImages: PreviewImage[];
   data: ConsignmentRow[];
@@ -47,6 +51,7 @@ interface ResultsSidePanelProps {
   onEditField: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant: (launch: AssistantLaunchContext) => void;
   onReprocessDeposit: (depositId: number) => void;
+  onRefreshTrace: () => void;
 }
 
 function resolveTitle(
@@ -55,6 +60,7 @@ function resolveTitle(
 ) {
   if (mode === "issues") return "Hallazgos";
   if (mode === "logs") return "Logs";
+  if (mode === "trace") return "Trazabilidad";
   if (mode === "error") return "Errores";
   if (mode === "field-detail")
     return detailCell
@@ -67,6 +73,7 @@ function resolveDescription(mode: ResultsPanelMode) {
   if (mode === "preview")
     return "Compara el resultado con el documento fuente.";
   if (mode === "logs") return "Traza técnica del procesamiento ejecutado.";
+  if (mode === "trace") return "Trace del procesamiento por agente y etapa.";
   if (mode === "issues" || mode === "error")
     return "Revisa hallazgos y navega a la fila afectada.";
   return "Inspecciona, corrige o reprocesa el dato seleccionado.";
@@ -82,6 +89,9 @@ export function ResultsSidePanel({
   logs,
   logsError,
   isLoadingLogs,
+  trace,
+  traceError,
+  isLoadingTrace,
   sourceDocxUrl,
   sourceImages,
   data,
@@ -96,6 +106,7 @@ export function ResultsSidePanel({
   onEditField,
   onAskAssistant,
   onReprocessDeposit,
+  onRefreshTrace,
 }: ResultsSidePanelProps) {
   if (!panelState.mode) return null;
 
@@ -152,6 +163,15 @@ export function ResultsSidePanel({
             </div>
           ))}
         </div>
+      ) : null}
+
+      {panelState.mode === "trace" ? (
+        <ResultsTracePanel
+          trace={trace}
+          isLoading={isLoadingTrace}
+          error={traceError}
+          onRefresh={onRefreshTrace}
+        />
       ) : null}
 
       {panelState.mode === "field-detail" ? (

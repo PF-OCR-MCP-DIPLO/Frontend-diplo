@@ -223,6 +223,61 @@ export function OcrSettingsSection({
           en este MVP.
         </p>
       ) : null}
+
+      <div className="grid gap-5 border-t border-border/60 pt-5 sm:grid-cols-2">
+        <div className="field-stack">
+          <Label htmlFor="max-images-warning-threshold">
+            Límite recomendado de imágenes
+          </Label>
+          <Input
+            id="max-images-warning-threshold"
+            type="number"
+            min={1}
+            max={1000}
+            value={values.max_images_warning_threshold}
+            onChange={(event) =>
+              onChange({
+                ...values,
+                max_images_warning_threshold: Number.parseInt(
+                  event.target.value || "1",
+                  10,
+                ),
+              })
+            }
+          />
+          <p className="field-help">
+            Si el documento lo supera, se registrara una advertencia y seguira
+            el procesamiento.
+          </p>
+        </div>
+
+        <label
+          htmlFor="block-documents-over-image-limit"
+          className="flex items-start gap-3 rounded-lg border border-border/60 p-3 text-sm"
+        >
+          <input
+            id="block-documents-over-image-limit"
+            type="checkbox"
+            checked={values.block_documents_over_image_limit}
+            onChange={(event) =>
+              onChange({
+                ...values,
+                block_documents_over_image_limit: event.target.checked,
+              })
+            }
+            className="mt-1 size-4 rounded border-border text-primary focus:ring-primary"
+          />
+          <span>
+            <span className="block font-medium text-foreground">
+              Bloquear si supera el límite
+            </span>
+            <span className="text-muted-foreground">
+              Desactivado por defecto; al activarlo el backend rechaza el DOCX
+              con un error claro.
+            </span>
+          </span>
+        </label>
+      </div>
     </SettingsSection>
   );
 }

@@ -10,6 +10,7 @@ import type {
 } from "@/features/processing/types/processing.types";
 
 const getJobLogsMock = vi.fn();
+const getJobTraceMock = vi.fn();
 const reprocessDepositMock = vi.fn();
 
 vi.mock("@/features/processing/api/processing.api", async () => {
@@ -20,6 +21,8 @@ vi.mock("@/features/processing/api/processing.api", async () => {
     ...actual,
     getJobLogs: (...args: Parameters<typeof actual.getJobLogs>) =>
       getJobLogsMock(...args),
+    getJobTrace: (...args: Parameters<typeof actual.getJobTrace>) =>
+      getJobTraceMock(...args),
     reprocessDeposit: (...args: Parameters<typeof actual.reprocessDeposit>) =>
       reprocessDepositMock(...args),
   };
@@ -122,6 +125,7 @@ describe("ResultsView", () => {
     HTMLElement.prototype.scrollTo = vi.fn();
     HTMLElement.prototype.scrollIntoView = vi.fn();
     getJobLogsMock.mockReset();
+    getJobTraceMock.mockReset();
     reprocessDepositMock.mockReset();
     getJobLogsMock.mockResolvedValue([
       {
@@ -139,6 +143,42 @@ describe("ResultsView", () => {
         created_at: "2026-04-25T00:00:00Z",
       },
     ]);
+    getJobTraceMock.mockResolvedValue({
+      job_id: 42,
+      status: "completed_with_errors",
+      started_at: null,
+      finished_at: null,
+      duration_ms: 1200,
+      summary: {
+        total_images: 1,
+        processed_images: 1,
+        failed_images: 0,
+        total_records: 1,
+        terminal_status: true,
+      },
+      events: [
+        {
+          id: 1,
+          timestamp: "2026-04-25T00:00:00Z",
+          stage: "ocr",
+          status: "completed",
+          source_image_id: 1,
+          sequence_index: 1,
+          agent: "OCRAgent",
+          provider: "ollama",
+          model: "gemma",
+          ocr_mode: "vision",
+          attempt: 1,
+          duration_ms: 50,
+          input: {},
+          output: {},
+          decision: "ok",
+          error: null,
+          notes: "",
+          raw_payload: {},
+        },
+      ],
+    });
     reprocessDepositMock.mockResolvedValue(undefined);
   });
 
@@ -311,6 +351,20 @@ describe("ResultsView", () => {
     expect(screen.queryByText("Preview lateral")).not.toBeInTheDocument();
     expect(screen.getByText("OCR completo")).toBeInTheDocument();
     expect(screen.getAllByTestId("results-dock-panel")).toHaveLength(1);
+  });
+
+  it("opens processing trace in a panel separate from technical logs", async () => {
+    renderResultsView();
+
+    fireEvent.click(screen.getByRole("button", { name: /Trazabilidad/i }));
+
+    expect(await screen.findByTestId("results-dock-panel")).toHaveAttribute(
+      "data-panel",
+      "trace",
+    );
+    expect(getJobTraceMock).toHaveBeenCalledWith(42);
+    expect(screen.getByText("Trazabilidad del proceso")).toBeInTheDocument();
+    expect(screen.getByText("OCRAgent · intento 1 · imagen 1")).toBeInTheDocument();
   });
 
   it("switches from issues to preview without rendering two overlay surfaces", async () => {

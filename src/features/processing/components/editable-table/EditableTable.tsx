@@ -15,6 +15,7 @@ import {
 import { useEditableTable } from "@/features/processing/hooks/useEditableTable";
 import { EditableCell } from "@/features/processing/components/editable-table/EditableCell";
 import { StatusCell } from "@/features/processing/components/editable-table/StatusCell";
+import { useResizableColumns } from "@/features/processing/components/editable-table/useResizableColumns";
 import { getRowFieldIssues } from "@/features/processing/components/results/results-validation";
 import type {
   ConsignmentRow,
@@ -37,17 +38,27 @@ interface EditableTableProps {
 type EditableTableColumn = {
   key: ResultFieldKey;
   label: string;
-  width: string;
+  defaultWidth: number;
+  minWidth: number;
+  maxWidth: number;
   editable?: boolean;
 };
 
 const columns: EditableTableColumn[] = [
-  { key: "fecha", label: "Fecha", width: "10%" },
-  { key: "hora", label: "Hora", width: "9%" },
-  { key: "monto", label: "Monto", width: "12%" },
-  { key: "referencia", label: "Referencia", width: "28%" },
-  { key: "sourceName", label: "Archivo origen", width: "23%", editable: false },
+  { key: "fecha", label: "Fecha", defaultWidth: 132, minWidth: 108, maxWidth: 220 },
+  { key: "hora", label: "Hora", defaultWidth: 112, minWidth: 96, maxWidth: 180 },
+  { key: "monto", label: "Monto", defaultWidth: 146, minWidth: 120, maxWidth: 240 },
+  { key: "referencia", label: "Referencia", defaultWidth: 280, minWidth: 180, maxWidth: 520 },
+  { key: "sourceName", label: "Archivo origen", defaultWidth: 250, minWidth: 180, maxWidth: 520, editable: false },
 ];
+
+const statusColumn = {
+  key: "estado",
+  label: "Estado",
+  defaultWidth: 170,
+  minWidth: 140,
+  maxWidth: 260,
+};
 
 export function EditableTable({
   data,
@@ -61,36 +72,75 @@ export function EditableTable({
   reprocessingDepositId,
 }: EditableTableProps) {
   const table = useEditableTable(data, onDataChange);
+  const resizableColumns = useResizableColumns([...columns, statusColumn]);
+
+  function getAutoFitValues(key: string) {
+    if (key === statusColumn.key) return data.map((row) => row.estado);
+    return data.map((row) => String(row[key as ResultFieldKey] ?? ""));
+  }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
       <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-2.5 text-sm">
         <div className="text-muted-foreground">
           {data.length} registro{data.length === 1 ? "" : "s"} ·{" "}
           {table.errorCount} hallazgo{table.errorCount === 1 ? "" : "s"}
         </div>
       </div>
-      <div className="max-h-[calc(100vh-18rem)] min-h-0 overflow-auto">
-        <Table className="w-full min-w-[980px] table-fixed">
+      <div className="max-h-[calc(100vh-18rem)] min-h-0 w-full overflow-auto">
+        <Table
+          containerClassName="w-full overflow-visible rounded-none border-0 bg-transparent"
+          className="min-w-0 table-fixed"
+          style={{ minWidth: resizableColumns.totalWidth, width: "100%" }}
+        >
           <colgroup>
             {columns.map((column) => (
-              <col key={column.key} style={{ width: column.width }} />
+              <col
+                key={column.key}
+                style={{ width: resizableColumns.widths[column.key] }}
+              />
             ))}
-            <col style={{ width: "18%" }} />
+            <col style={{ width: resizableColumns.widths[statusColumn.key] }} />
           </colgroup>
 
           <TableHeader>
             <TableRow>
-              {columns.map((column) => (
+              {columns.map((column, columnIndex) => (
                 <TableHead
                   key={column.key}
-                  className="min-w-0 border-b border-border/50"
+                  className={`relative min-w-0 border-b border-border/50 pr-2 ${columnIndex === 0 ? "left-0 z-20 bg-surface-subtle/95" : ""}`}
                 >
-                  {column.label}
+                  <span className="block truncate pr-3">{column.label}</span>
+                  <button
+                    type="button"
+                    aria-label={`Redimensionar columna ${column.label}`}
+                    className="absolute right-0 top-0 h-full w-2 cursor-col-resize border-r border-transparent hover:border-primary/50 focus:border-primary focus:outline-none"
+                    onPointerDown={(event) => resizableColumns.startResize(column.key, event)}
+                    onDoubleClick={() =>
+                      resizableColumns.autoFitColumn(
+                        column.key,
+                        getAutoFitValues(column.key),
+                      )
+                    }
+                  />
                 </TableHead>
               ))}
-              <TableHead className="min-w-0 border-b border-border/50">
-                Estado
+              <TableHead className="relative min-w-0 border-b border-border/50 pr-2">
+                <span className="block truncate pr-3">{statusColumn.label}</span>
+                <button
+                  type="button"
+                  aria-label={`Redimensionar columna ${statusColumn.label}`}
+                  className="absolute right-0 top-0 h-full w-2 cursor-col-resize border-r border-transparent hover:border-primary/50 focus:border-primary focus:outline-none"
+                  onPointerDown={(event) =>
+                    resizableColumns.startResize(statusColumn.key, event)
+                  }
+                  onDoubleClick={() =>
+                    resizableColumns.autoFitColumn(
+                      statusColumn.key,
+                      getAutoFitValues(statusColumn.key),
+                    )
+                  }
+                />
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -102,10 +152,10 @@ export function EditableTable({
                 className={`cursor-pointer ${reprocessingDepositId === row.depositId ? "opacity-70" : ""}`}
                 onClick={() => onRowClick?.(row)}
               >
-                {columns.map((column) => (
+                {columns.map((column, columnIndex) => (
                   <TableCell
                     key={column.key}
-                    className="min-w-0 py-2 align-middle"
+                    className={`min-w-0 max-w-0 overflow-hidden py-2 align-middle ${columnIndex === 0 ? "sticky left-0 z-10 bg-card/95" : ""}`}
                   >
                     <EditableCell
                       row={row}
@@ -134,7 +184,7 @@ export function EditableTable({
                     />
                   </TableCell>
                 ))}
-                <TableCell className="min-w-0 py-2 align-middle">
+                <TableCell className="min-w-0 max-w-0 overflow-hidden py-2 align-middle">
                   <StatusCell row={row} validationMap={validationMap} />
                 </TableCell>
               </TableRow>

@@ -14,6 +14,8 @@ export type SettingsFormValues = {
   assistant_temperature: number;
   assistant_num_predict: number;
   request_timeout_seconds: number;
+  max_images_warning_threshold: number;
+  block_documents_over_image_limit: boolean;
   valid_consignation_month: number;
   valid_consignation_year: number;
   ocr_api_key: string;

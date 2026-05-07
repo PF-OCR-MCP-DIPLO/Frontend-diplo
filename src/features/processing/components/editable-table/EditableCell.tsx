@@ -66,7 +66,7 @@ export function EditableCell({
         onChange={(event) => onChange(row.id, field, event.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className={`h-8 rounded-md px-2 text-sm ${hasError ? "border-danger bg-danger/5 ring-danger/12" : cellStatus === "valid" ? "border-success/30 bg-success/5" : ""} ${isSelected ? "ring-1 ring-primary/25" : ""}`}
+        className={`h-8 w-full min-w-0 rounded-md px-2 text-sm ${hasError ? "border-danger bg-danger/5 ring-danger/12" : cellStatus === "valid" ? "border-success/30 bg-success/5" : ""} ${isSelected ? "ring-1 ring-primary/25" : ""}`}
       />
     );
   }
@@ -110,7 +110,7 @@ export function EditableCell({
           aria-label={label}
           onClick={() => onEdit(row.id, field)}
           onFocus={() => onFocusCell?.(row.id, field)}
-          className={`focus-ring flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm transition hover:bg-primary/6 ${hasError ? "bg-danger/8 text-danger ring-1 ring-danger/20" : cellStatus === "valid" ? "bg-success/5 text-foreground ring-1 ring-success/20" : ""} ${isSelected ? "ring-1 ring-primary/25" : ""}`}
+          className={`focus-ring flex w-full min-w-0 items-center justify-between rounded-md px-2 py-1 text-left text-sm transition hover:bg-primary/6 ${hasError ? "bg-danger/8 text-danger ring-1 ring-danger/20" : cellStatus === "valid" ? "bg-success/5 text-foreground ring-1 ring-success/20" : ""} ${isSelected ? "ring-1 ring-primary/25" : ""}`}
         >
           <span className="min-w-0 flex-1 truncate">{value || "—"}</span>
           <span className="ml-2 shrink-0 text-[11px] text-muted-foreground">

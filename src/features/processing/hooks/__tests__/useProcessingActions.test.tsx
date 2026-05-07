@@ -113,6 +113,57 @@ describe('useProcessingActions', () => {
     expect(processed).toMatchObject({ jobId: 1 });
   });
 
+  it('processFile reuses the in-flight upload for the same file', async () => {
+    let resolveUpload: (value: unknown) => void = () => undefined;
+    uploadDocumentMock.mockReturnValueOnce(new Promise((resolve) => {
+      resolveUpload = resolve;
+    }));
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: null,
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+    const file = new File(['x'], 'same.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const first = result.current.processFile(file);
+    const second = result.current.processFile(file);
+
+    resolveUpload({
+      id: 2,
+      original_filename: 'same.docx',
+      status: 'uploaded',
+      source_docx: '',
+      excel_file: null,
+      total_images: 0,
+      total_records: 0,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+
+    await expect(first).resolves.toMatchObject({ jobId: 2 });
+    await expect(second).resolves.toMatchObject({ jobId: 2 });
+    expect(uploadDocumentMock).toHaveBeenCalledTimes(1);
+  });
+
   it('runProcessing forces full reprocessing for the current completed job and updates state', async () => {
     processJobMock.mockResolvedValueOnce({
       id: 7,
@@ -476,5 +527,64 @@ describe('useProcessingActions', () => {
     expect(processJobMock).toHaveBeenCalledTimes(1);
     expect(getProcessingStateMock).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
+  });
+
+  it('runProcessing stops polling on timeout and points to trace', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValueOnce(0).mockReturnValue(181_000);
+    processJobMock.mockResolvedValueOnce({
+      id: 7,
+      original_filename: 'file.docx',
+      status: 'processing',
+      source_docx: '',
+      excel_file: null,
+      total_images: 1,
+      total_records: 0,
+      error_message: '',
+      provider_config_snapshot: {},
+      started_at: null,
+      finished_at: null,
+      created_at: '2026-04-21T00:00:00Z',
+      updated_at: '2026-04-21T00:00:00Z',
+      source_images: [],
+    });
+    getProcessingStateMock.mockResolvedValue({
+      job_id: 7,
+      status: 'processing',
+      current_stage: 'ocr',
+      processed_images: 0,
+      total_images: 1,
+      failed_images: 0,
+      total_records: 0,
+      last_event_at: '2026-04-21T00:00:01Z',
+      elapsed_ms: 1000,
+      stale_processing: false,
+    });
+    getJobDiagnosticsMock.mockResolvedValueOnce({
+      summary: { slowest_stage: 'ocr' },
+    });
+    const state: ProcessingState = {
+      isProcessing: false,
+      currentResults: { jobId: 7 } as ProcessingState['currentResults'],
+      processedFiles: [],
+      historyError: null,
+      isExporting: false,
+      isSavingCorrections: false,
+      isLoadingHistory: false,
+      isRefreshing: false,
+      setCurrentResults: vi.fn() as unknown as ProcessingState['setCurrentResults'],
+      setIsExporting: vi.fn() as unknown as ProcessingState['setIsExporting'],
+      setIsLoadingHistory: vi.fn() as unknown as ProcessingState['setIsLoadingHistory'],
+      setIsProcessing: vi.fn() as unknown as ProcessingState['setIsProcessing'],
+      setIsRefreshing: vi.fn() as unknown as ProcessingState['setIsRefreshing'],
+      setIsSavingCorrections: vi.fn() as unknown as ProcessingState['setIsSavingCorrections'],
+      setProcessedFiles: vi.fn() as unknown as ProcessingState['setProcessedFiles'],
+      setHistoryError: vi.fn() as unknown as ProcessingState['setHistoryError'],
+    } satisfies ProcessingState;
+
+    const { result } = renderHook(() => useProcessingActions(state));
+
+    await expect(result.current.runProcessing(7)).rejects.toThrow(/Trazabilidad/i);
+    expect(getJobMock).not.toHaveBeenCalled();
+    nowSpy.mockRestore();
   });
 });

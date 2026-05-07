@@ -18,6 +18,9 @@ export interface ApiSourceImage {
   sequence_index: number;
   source_name: string;
   content_hash: string;
+  context_date?: string;
+  context_text?: string;
+  context_payload?: Record<string, unknown>;
   ocr_status: 'pending' | 'processed' | 'failed';
   ocr_provider: string;
   ocr_raw_text: string;
@@ -74,6 +77,60 @@ export interface ApiProcessingState {
   last_event_at: string | null;
   elapsed_ms: number | null;
   stale_processing: boolean;
+}
+
+export interface ApiProcessingTraceEvent {
+  id: number;
+  timestamp: string | null;
+  stage: string;
+  status: string;
+  source_image_id: number | null;
+  sequence_index: number;
+  agent: string;
+  provider: string;
+  model: string;
+  ocr_mode: string;
+  attempt: number;
+  duration_ms: number;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
+  decision: string;
+  error: { class?: string; message?: string } | string | null;
+  notes: string;
+  raw_payload: Record<string, unknown>;
+}
+
+export interface ApiProcessingTraceSourceImage {
+  id: number;
+  sequence_index: number;
+  source_name: string;
+  context_date: string;
+  context_text: string;
+  context_payload: Record<string, unknown>;
+  explicit_ocr_date: string | null;
+  final_date_used: string | null;
+  final_date_source: string | null;
+  llm_candidates_count: number;
+  fallback_candidates_count: number;
+  rejected_candidates: Array<Record<string, unknown>>;
+  persisted_records: Array<Record<string, unknown>>;
+}
+
+export interface ApiProcessingTrace {
+  job_id: number;
+  status: ApiJobStatus;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+  summary: {
+    total_images: number;
+    processed_images: number;
+    failed_images: number;
+    total_records: number;
+    terminal_status: boolean;
+  };
+  source_images: ApiProcessingTraceSourceImage[];
+  events: ApiProcessingTraceEvent[];
 }
 
 export interface ApiJobDiagnosticsSummary {

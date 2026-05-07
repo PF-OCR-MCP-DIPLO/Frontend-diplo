@@ -40,6 +40,8 @@ function createFormValues(settings: ApiProcessingSettings): SettingsFormValues {
     assistant_temperature: settings.assistant_temperature,
     assistant_num_predict: settings.assistant_num_predict,
     request_timeout_seconds: settings.request_timeout_seconds,
+    max_images_warning_threshold: settings.max_images_warning_threshold,
+    block_documents_over_image_limit: settings.block_documents_over_image_limit,
     valid_consignation_month: settings.valid_consignation_month,
     valid_consignation_year: settings.valid_consignation_year,
     ocr_api_key: '',

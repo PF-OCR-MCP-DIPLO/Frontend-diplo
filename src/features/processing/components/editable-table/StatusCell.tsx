@@ -14,7 +14,7 @@ export function StatusCell({ row, validationMap }: { row: ConsignmentRow; valida
   const status = validationMap ? getRowStatus(row, validationMap) : row.estado === 'error' ? 'error' : row.estado === 'valid' ? 'valid' : 'neutral';
   if (status === 'valid') {
     return (
-      <Badge variant='success' className='gap-1 bg-success/8 text-success'>
+      <Badge variant='success' className='max-w-full gap-1 truncate bg-success/8 text-success'>
         <CheckCircle2 className='size-3' />
         Valido
       </Badge>
@@ -22,14 +22,14 @@ export function StatusCell({ row, validationMap }: { row: ConsignmentRow; valida
   }
   if (status === 'error') {
     return (
-      <Badge variant='outline' className='gap-1 border-danger/20 bg-danger/8 text-danger'>
+      <Badge variant='outline' className='max-w-full gap-1 truncate border-danger/20 bg-danger/8 text-danger'>
         <AlertCircle className='size-3' />
         Error
       </Badge>
     );
   }
   return (
-    <Badge variant='outline' className='gap-1 border-border/60 text-muted-foreground'>
+    <Badge variant='outline' className='max-w-full gap-1 truncate border-border/60 text-muted-foreground'>
       <CheckCircle2 className='size-3' />
       Neutral
     </Badge>

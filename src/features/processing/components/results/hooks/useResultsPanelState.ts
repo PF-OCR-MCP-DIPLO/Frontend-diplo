@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ResultFieldKey } from '@/features/processing/types/processing.types';
 
-export type ResultsPanelMode = 'preview' | 'logs' | 'issues' | 'error' | 'field-detail';
+export type ResultsPanelMode = 'preview' | 'logs' | 'trace' | 'issues' | 'error' | 'field-detail';
 
 export interface ResultsFieldDetailState {
   rowId: string;

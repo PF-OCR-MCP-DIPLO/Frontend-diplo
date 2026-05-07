@@ -10,6 +10,7 @@ import {
   MessageSquare,
   RefreshCw,
   ScrollText,
+  Workflow,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ApiJobDiagnosticsSummary } from '@/features/processing/types/processing.api';
@@ -38,7 +39,7 @@ interface ResultsTopBarProps {
   onExport: () => void;
   onSaveCorrections: () => void;
   onRetryAutosave: () => void;
-  onOpenPanel: (panel: 'issues' | 'logs' | 'preview') => void;
+  onOpenPanel: (panel: 'issues' | 'logs' | 'trace' | 'preview') => void;
   onOpenAssistant: () => void;
 }
 
@@ -160,6 +161,17 @@ export function ResultsTopBar({
           {status === 'failed' || status === 'completed_with_errors'
             ? 'Diagnóstico'
             : 'Logs'}
+        </Button>
+
+        <Button
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='gap-2 text-muted-foreground'
+          onClick={() => onOpenPanel('trace')}
+        >
+          <Workflow className='size-4' />
+          Trazabilidad
         </Button>
 
         <Button

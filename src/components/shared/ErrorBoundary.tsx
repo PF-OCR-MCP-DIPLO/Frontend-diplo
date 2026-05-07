@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     return (
-      <div className='page-stack p-6'>
+      <div className='page-stack'>
         <StatePanel
           tone='warning'
           icon={AlertTriangle}

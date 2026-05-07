@@ -28,7 +28,7 @@ interface ResultsWorkspaceProps {
  */
 export function ResultsWorkspace({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsWorkspaceProps) {
   return (
-    <section className='min-h-0'>
+    <section className='min-h-0 min-w-0 overflow-hidden'>
       <ResultsDataPanel
         data={data}
         validationMap={validationMap}

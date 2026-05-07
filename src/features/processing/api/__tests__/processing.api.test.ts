@@ -21,7 +21,7 @@ vi.mock('@/services/http/client', () => ({
   resolveAssetUrl: (path: string) => resolveAssetUrlMock(path),
 }));
 
-import { deleteJob, getJob, listJobs, processJob, reprocessFailed, reprocessSourceImage, saveJobCorrections } from '@/features/processing/api/processing.api';
+import { deleteJob, getJob, getJobTrace, listJobs, processJob, reprocessFailed, reprocessSourceImage, saveJobCorrections } from '@/features/processing/api/processing.api';
 
 describe('processing.api', () => {
   beforeEach(() => {
@@ -224,6 +224,29 @@ describe('processing.api', () => {
 
     await expect(deleteJob(12)).resolves.toBeUndefined();
     expect(httpRequestMock).toHaveBeenCalledWith('jobs/12/', { method: 'DELETE' });
+  });
+
+  it('loads processing trace from the dedicated endpoint', async () => {
+    httpRequestMock.mockResolvedValueOnce({
+      job_id: 7,
+      status: 'completed',
+      started_at: null,
+      finished_at: null,
+      duration_ms: 10,
+      summary: {
+        total_images: 1,
+        processed_images: 1,
+        failed_images: 0,
+        total_records: 1,
+        terminal_status: true,
+      },
+      events: [],
+    });
+
+    const trace = await getJobTrace(7);
+
+    expect(httpRequestMock).toHaveBeenCalledWith('jobs/7/trace/');
+    expect(trace.summary.terminal_status).toBe(true);
   });
 
   it('propagates delete errors without removing the job client-side', async () => {

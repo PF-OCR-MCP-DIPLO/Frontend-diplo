@@ -23,6 +23,7 @@ import type {
   ApiJobDetail,
   ApiJobListItem,
   ApiProcessingState,
+  ApiProcessingTrace,
   ApiSourceImage,
 } from '@/features/processing/types/processing.api';
 
@@ -63,6 +64,9 @@ export function normalizeSourceImages(images: ApiJobDetail['source_images'] | nu
     ...image,
     source_name: image.source_name ?? '',
     content_hash: image.content_hash ?? '',
+    context_date: image.context_date ?? '',
+    context_text: image.context_text ?? '',
+    context_payload: image.context_payload ?? {},
     ocr_provider: image.ocr_provider ?? '',
     ocr_raw_text: image.ocr_raw_text ?? '',
     error_message: image.error_message ?? '',
@@ -248,6 +252,16 @@ export function getJobLogs(jobId: number) {
  */
 export function getJobDiagnostics(jobId: number) {
   return httpRequest<ApiJobDiagnostics>(`jobs/${jobId}/diagnostics/`);
+}
+
+/**
+ * Obtiene la trazabilidad estructurada del pipeline de una corrida.
+ *
+ * @param jobId - Identificador de la corrida.
+ * @returns Trace ordenado por evento de backend.
+ */
+export function getJobTrace(jobId: number) {
+  return httpRequest<ApiProcessingTrace>(`jobs/${jobId}/trace/`);
 }
 
 /**

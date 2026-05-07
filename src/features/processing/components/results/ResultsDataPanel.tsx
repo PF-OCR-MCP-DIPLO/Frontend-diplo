@@ -21,15 +21,17 @@ interface ResultsDataPanelProps {
 
 export function ResultsDataPanel({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsDataPanelProps) {
   return (
-    <EditableTable
-      data={data}
-      validationMap={validationMap}
-      onDataChange={onDataChange}
-      onRowClick={(row) => onRowFocus(row.id)}
-      selectedRowId={selectedRowId}
-      selectedField={selectedField}
-      onCellFocus={onCellFocus}
-      onAskAssistant={onAskAssistant}
-    />
+    <div className='min-w-0 overflow-hidden'>
+      <EditableTable
+        data={data}
+        validationMap={validationMap}
+        onDataChange={onDataChange}
+        onRowClick={(row) => onRowFocus(row.id)}
+        selectedRowId={selectedRowId}
+        selectedField={selectedField}
+        onCellFocus={onCellFocus}
+        onAskAssistant={onAskAssistant}
+      />
+    </div>
   );
 }

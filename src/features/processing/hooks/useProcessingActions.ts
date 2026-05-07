@@ -35,6 +35,13 @@ const TERMINAL_STATUSES = new Set([
   "completed_with_errors",
   "failed",
 ]);
+const KNOWN_JOB_STATUSES = new Set([
+  "uploaded",
+  "processing",
+  "completed",
+  "completed_with_errors",
+  "failed",
+]);
 const PROCESSING_INITIAL_POLL_INTERVAL_MS = 1500;
 const PROCESSING_SLOW_POLL_INTERVAL_MS = 5000;
 const PROCESSING_BACKOFF_AFTER_MS = 30_000;
@@ -197,6 +204,16 @@ export function useProcessingActions({
         let latestState = await mergeProcessingState(jobId);
 
         while (latestState && !TERMINAL_STATUSES.has(latestState.status)) {
+          if (!KNOWN_JOB_STATUSES.has(String(latestState.status))) {
+            throw new Error(
+              `El backend devolvió un estado inválido (${String(latestState.status)}). Abre "Trazabilidad" para revisar el último evento del proceso.`,
+            );
+          }
+          if (latestState.stale_processing) {
+            throw new Error(
+              `El procesamiento no registra progreso reciente. Última etapa observada: ${latestState.current_stage ?? "desconocida"}. Abre "Trazabilidad" para ver el detalle por agente.`,
+            );
+          }
           // Timeout defensivo para evitar loops infinitos cuando el backend no
           // transiciona a estado terminal por errores externos de proveedor.
           if (Date.now() - startedAt >= PROCESSING_POLL_TIMEOUT_MS) {
@@ -207,9 +224,18 @@ export function useProcessingActions({
               diagnostics?.summary?.slowest_stage ??
               latestState.current_stage ??
               "desconocida";
-            throw new Error(
-              `El procesamiento sigue en curso. Última etapa observada: ${stage}. Usa "Logs" para revisar el diagnóstico.`,
+            const message = `El procesamiento superó el tiempo de espera. Última etapa observada: ${stage}. Abre "Trazabilidad" para revisar input/output por agente.`;
+            setCurrentResults((previous) =>
+              previous?.jobId === jobId
+                ? { ...previous, errorMessage: message }
+                : previous,
             );
+            setProcessedFiles((previous) =>
+              previous.map((item) =>
+                item.jobId === jobId ? { ...item, errorMessage: message } : item,
+              ),
+            );
+            throw new Error(message);
           }
           const elapsed = Date.now() - startedAt;
           const interval =
