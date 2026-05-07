@@ -11,13 +11,14 @@ export interface ConsignmentRow {
   hora: string;
   monto: string;
   referencia: string;
+  descripcion: string;
   sourceName: string;
   estado: RowStatus;
   errors: string[];
 }
 
 export type ResultRowId = ConsignmentRow['id'];
-export type ResultFieldKey = keyof Pick<ConsignmentRow, 'fecha' | 'hora' | 'monto' | 'referencia' | 'sourceName' | 'estado'>;
+export type ResultFieldKey = keyof Pick<ConsignmentRow, 'fecha' | 'hora' | 'monto' | 'referencia' | 'descripcion' | 'sourceName' | 'estado'>;
 export type ValidationSeverity = 'info' | 'warning' | 'error';
 
 export interface ValidationIssue {

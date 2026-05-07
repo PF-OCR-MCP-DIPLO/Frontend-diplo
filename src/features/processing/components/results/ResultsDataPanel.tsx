@@ -17,11 +17,24 @@ interface ResultsDataPanelProps {
   selectedField?: string | null;
   onCellFocus?: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
+  reprocessingDepositId?: number | null;
+  onReprocessDeposit?: (depositId: number) => void;
 }
 
-export function ResultsDataPanel({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsDataPanelProps) {
+export function ResultsDataPanel({
+  data,
+  validationMap,
+  onDataChange,
+  onRowFocus,
+  selectedRowId,
+  selectedField,
+  onCellFocus,
+  onAskAssistant,
+  reprocessingDepositId,
+  onReprocessDeposit,
+}: ResultsDataPanelProps) {
   return (
-    <div className='min-w-0 overflow-hidden'>
+    <div className="min-w-0 overflow-hidden">
       <EditableTable
         data={data}
         validationMap={validationMap}
@@ -31,6 +44,8 @@ export function ResultsDataPanel({ data, validationMap, onDataChange, onRowFocus
         selectedField={selectedField}
         onCellFocus={onCellFocus}
         onAskAssistant={onAskAssistant}
+        reprocessingDepositId={reprocessingDepositId}
+        onReprocessDeposit={onReprocessDeposit}
       />
     </div>
   );

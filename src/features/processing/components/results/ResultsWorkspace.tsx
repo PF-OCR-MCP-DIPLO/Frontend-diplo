@@ -8,9 +8,12 @@
  * La workspace no transforma datos; solo reenvía el contrato de la vista
  * superior al panel que contiene la tabla editable.
  */
-import { ResultsDataPanel } from '@/features/processing/components/results/ResultsDataPanel';
-import type { ResultsValidationMap } from '@/features/processing/components/results/results-validation';
-import type { ConsignmentRow, ResultFieldKey } from '@/features/processing/types/processing.types';
+import { ResultsDataPanel } from "@/features/processing/components/results/ResultsDataPanel";
+import type { ResultsValidationMap } from "@/features/processing/components/results/results-validation";
+import type {
+  ConsignmentRow,
+  ResultFieldKey,
+} from "@/features/processing/types/processing.types";
 
 interface ResultsWorkspaceProps {
   data: ConsignmentRow[];
@@ -21,14 +24,27 @@ interface ResultsWorkspaceProps {
   selectedField?: string | null;
   onCellFocus?: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
+  reprocessingDepositId?: number | null;
+  onReprocessDeposit?: (depositId: number) => void;
 }
 
 /**
  * Renderiza el espacio de trabajo de resultados con la tabla y sus controles.
  */
-export function ResultsWorkspace({ data, validationMap, onDataChange, onRowFocus, selectedRowId, selectedField, onCellFocus, onAskAssistant }: ResultsWorkspaceProps) {
+export function ResultsWorkspace({
+  data,
+  validationMap,
+  onDataChange,
+  onRowFocus,
+  selectedRowId,
+  selectedField,
+  onCellFocus,
+  onAskAssistant,
+  reprocessingDepositId,
+  onReprocessDeposit,
+}: ResultsWorkspaceProps) {
   return (
-    <section className='min-h-0 min-w-0 overflow-hidden'>
+    <section className="min-h-0 min-w-0 overflow-hidden">
       <ResultsDataPanel
         data={data}
         validationMap={validationMap}
@@ -38,6 +54,8 @@ export function ResultsWorkspace({ data, validationMap, onDataChange, onRowFocus
         selectedField={selectedField}
         onCellFocus={onCellFocus}
         onAskAssistant={onAskAssistant}
+        reprocessingDepositId={reprocessingDepositId}
+        onReprocessDeposit={onReprocessDeposit}
       />
     </section>
   );

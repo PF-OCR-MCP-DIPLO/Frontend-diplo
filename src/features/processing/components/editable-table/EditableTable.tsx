@@ -22,6 +22,8 @@ import type {
   ResultFieldKey,
 } from "@/features/processing/types/processing.types";
 import type { ResultsValidationMap } from "@/features/processing/components/results/results-validation";
+import { Button } from "@/components/ui/button";
+import { RotateCcw } from "lucide-react";
 
 interface EditableTableProps {
   data: ConsignmentRow[];
@@ -33,6 +35,7 @@ interface EditableTableProps {
   onCellFocus?: (rowId: string, field: ResultFieldKey) => void;
   onAskAssistant?: (rowId: string, field: ResultFieldKey) => void;
   reprocessingDepositId?: number | null;
+  onReprocessDeposit?: (depositId: number) => void;
 }
 
 type EditableTableColumn = {
@@ -45,11 +48,49 @@ type EditableTableColumn = {
 };
 
 const columns: EditableTableColumn[] = [
-  { key: "fecha", label: "Fecha", defaultWidth: 132, minWidth: 108, maxWidth: 220 },
-  { key: "hora", label: "Hora", defaultWidth: 112, minWidth: 96, maxWidth: 180 },
-  { key: "monto", label: "Monto", defaultWidth: 146, minWidth: 120, maxWidth: 240 },
-  { key: "referencia", label: "Referencia", defaultWidth: 280, minWidth: 180, maxWidth: 520 },
-  { key: "sourceName", label: "Archivo origen", defaultWidth: 250, minWidth: 180, maxWidth: 520, editable: false },
+  {
+    key: "fecha",
+    label: "Fecha",
+    defaultWidth: 132,
+    minWidth: 108,
+    maxWidth: 220,
+  },
+  {
+    key: "hora",
+    label: "Hora",
+    defaultWidth: 112,
+    minWidth: 96,
+    maxWidth: 180,
+  },
+  {
+    key: "monto",
+    label: "Monto",
+    defaultWidth: 146,
+    minWidth: 120,
+    maxWidth: 240,
+  },
+  {
+    key: "referencia",
+    label: "Referencia",
+    defaultWidth: 280,
+    minWidth: 180,
+    maxWidth: 520,
+  },
+  {
+    key: 'descripcion',
+    label: 'DESCRIPCION',
+    defaultWidth: 130,
+    minWidth: 110,
+    maxWidth: 180,
+  },
+  {
+    key: "sourceName",
+    label: "Archivo origen",
+    defaultWidth: 250,
+    minWidth: 180,
+    maxWidth: 520,
+    editable: false,
+  },
 ];
 
 const statusColumn = {
@@ -58,6 +99,14 @@ const statusColumn = {
   defaultWidth: 170,
   minWidth: 140,
   maxWidth: 260,
+};
+
+const actionColumn = {
+  key: "acciones",
+  label: "Acción",
+  defaultWidth: 140,
+  minWidth: 120,
+  maxWidth: 180,
 };
 
 export function EditableTable({
@@ -70,9 +119,14 @@ export function EditableTable({
   onCellFocus,
   onAskAssistant,
   reprocessingDepositId,
+  onReprocessDeposit,
 }: EditableTableProps) {
   const table = useEditableTable(data, onDataChange);
-  const resizableColumns = useResizableColumns([...columns, statusColumn]);
+  const resizableColumns = useResizableColumns([
+    ...columns,
+    statusColumn,
+    actionColumn,
+  ]);
 
   function getAutoFitValues(key: string) {
     if (key === statusColumn.key) return data.map((row) => row.estado);
@@ -101,6 +155,7 @@ export function EditableTable({
               />
             ))}
             <col style={{ width: resizableColumns.widths[statusColumn.key] }} />
+            <col style={{ width: resizableColumns.widths[actionColumn.key] }} />
           </colgroup>
 
           <TableHeader>
@@ -115,7 +170,9 @@ export function EditableTable({
                     type="button"
                     aria-label={`Redimensionar columna ${column.label}`}
                     className="absolute right-0 top-0 h-full w-2 cursor-col-resize border-r border-transparent hover:border-primary/50 focus:border-primary focus:outline-none"
-                    onPointerDown={(event) => resizableColumns.startResize(column.key, event)}
+                    onPointerDown={(event) =>
+                      resizableColumns.startResize(column.key, event)
+                    }
                     onDoubleClick={() =>
                       resizableColumns.autoFitColumn(
                         column.key,
@@ -126,19 +183,20 @@ export function EditableTable({
                 </TableHead>
               ))}
               <TableHead className="relative min-w-0 border-b border-border/50 pr-2">
-                <span className="block truncate pr-3">{statusColumn.label}</span>
+                <span className="block truncate pr-3">
+                  {actionColumn.label}
+                </span>
                 <button
                   type="button"
-                  aria-label={`Redimensionar columna ${statusColumn.label}`}
+                  aria-label={`Redimensionar columna ${actionColumn.label}`}
                   className="absolute right-0 top-0 h-full w-2 cursor-col-resize border-r border-transparent hover:border-primary/50 focus:border-primary focus:outline-none"
                   onPointerDown={(event) =>
-                    resizableColumns.startResize(statusColumn.key, event)
+                    resizableColumns.startResize(actionColumn.key, event)
                   }
                   onDoubleClick={() =>
-                    resizableColumns.autoFitColumn(
-                      statusColumn.key,
-                      getAutoFitValues(statusColumn.key),
-                    )
+                    resizableColumns.autoFitColumn(actionColumn.key, [
+                      "Reprocesar",
+                    ])
                   }
                 />
               </TableHead>
@@ -186,6 +244,28 @@ export function EditableTable({
                 ))}
                 <TableCell className="min-w-0 max-w-0 overflow-hidden py-2 align-middle">
                   <StatusCell row={row} validationMap={validationMap} />
+                </TableCell>
+                <TableCell className="min-w-0 max-w-0 overflow-hidden py-2 align-middle">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1 px-2 text-xs"
+                    disabled={
+                      !onReprocessDeposit ||
+                      reprocessingDepositId === row.depositId
+                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onReprocessDeposit?.(row.depositId);
+                    }}
+                    aria-label={`Reprocesar fila ${row.referencia || row.id}`}
+                  >
+                    <RotateCcw className="size-3" />
+                    {reprocessingDepositId === row.depositId
+                      ? "Reprocesando..."
+                      : "Reprocesar"}
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

@@ -246,7 +246,9 @@ export function ResultsView(props: ResultsViewProps) {
 
   async function handleOpenTrace(refresh = false) {
     try {
-      await viewState.openTrace({ refresh: refresh || props.status === "processing" });
+      await viewState.openTrace({
+        refresh: refresh || props.status === "processing",
+      });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -416,7 +418,9 @@ export function ResultsView(props: ResultsViewProps) {
               sourceImages={props.sourceImages}
               data={viewState.data}
               validationMap={validationMap}
-              selectedImageId={viewState.currentImage?.id ?? selectedPreviewImage?.id ?? null}
+              selectedImageId={
+                viewState.currentImage?.id ?? selectedPreviewImage?.id ?? null
+              }
               selectedRowId={viewState.selectedRowId}
               selectedField={viewState.selectedField}
               reprocessingDepositId={reprocessingDepositId}
@@ -444,6 +448,10 @@ export function ResultsView(props: ResultsViewProps) {
               selectedField={viewState.selectedField}
               onCellFocus={handleFocusCell}
               onAskAssistant={handleAskAssistant}
+              reprocessingDepositId={reprocessingDepositId}
+              onReprocessDeposit={(depositId) => {
+                void handleReprocessDeposit(depositId);
+              }}
             />
           </div>
         </div>

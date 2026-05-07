@@ -26,6 +26,7 @@ export function mapJobToConsignmentRows(job: ApiJobDetail): ConsignmentRow[] {
         hora: deposit.hora_consignacion || '',
         monto: String(deposit.valor),
         referencia: deposit.referencia,
+        descripcion: deposit.descripcion || 'CUENTA',
         sourceName: image.source_name,
         estado: resolveRowStatus(image.ocr_status === 'failed', (deposit.observations ?? []).length > 0),
         errors: [...(deposit.observations ?? []), ...(image.error_message ? [image.error_message] : [])],

@@ -6,6 +6,7 @@ export interface ApiExtractedDeposit {
   fecha_consignacion: string;
   hora_consignacion: string;
   referencia: string;
+  descripcion: string;
   valor: string;
   is_current_month: boolean | null;
   observations: string[];
